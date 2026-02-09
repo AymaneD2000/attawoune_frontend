@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import universityService from '../../services/universityService';
-import { Classroom, PaginatedResponse } from '../../types';
+import { Classroom } from '../../types';
 import {
     PlusIcon,
     PencilIcon,

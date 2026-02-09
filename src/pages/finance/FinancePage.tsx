@@ -5,7 +5,6 @@ import universityService from '../../services/universityService';
 import api from '../../services/api';
 import { TuitionPayment } from '../../types';
 import {
-  BanknotesIcon,
   UserGroupIcon,
   CreditCardIcon,
   ArrowTrendingDownIcon,
@@ -110,7 +109,7 @@ const FinancePage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [activeTab]);
+  }, [activeTab, students.length, teachers.length]);
 
   useEffect(() => {
     fetchData();

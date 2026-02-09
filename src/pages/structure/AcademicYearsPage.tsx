@@ -4,7 +4,6 @@ import universityService from '../../services/universityService';
 import { AcademicYear, Semester } from '../../types';
 import {
     PlusIcon,
-    PencilIcon,
     TrashIcon,
     CheckCircleIcon,
     XMarkIcon
@@ -13,7 +12,7 @@ import {
 const AcademicYearsPage: React.FC = () => {
     const { t } = useTranslation();
     const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
-    const [loading, setLoading] = useState(true);
+    // const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [showSemesterModal, setShowSemesterModal] = useState(false);
     const [editingYear, setEditingYear] = useState<AcademicYear | null>(null);
@@ -33,13 +32,13 @@ const AcademicYearsPage: React.FC = () => {
 
     const fetchYears = useCallback(async () => {
         try {
-            setLoading(true);
+            // setLoading(true);
             const data = await universityService.getAcademicYears();
             setAcademicYears(data.results);
         } catch (error) {
             console.error('Error fetching academic years:', error);
         } finally {
-            setLoading(false);
+            // setLoading(false);
         }
     }, []);
 
