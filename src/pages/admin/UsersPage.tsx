@@ -7,8 +7,7 @@ import {
     TrashIcon,
     KeyIcon,
     UserCircleIcon,
-    FunnelIcon,
-    XMarkIcon
+    FunnelIcon
 } from '@heroicons/react/24/outline';
 import userService from '../../services/userService';
 import { User } from '../../types';

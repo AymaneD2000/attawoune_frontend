@@ -45,7 +45,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ user, onClose, onSuccess 
                 is_active: user.is_active,
             });
         }
-    }, [user]);
+    }, [user, formData]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value, type } = e.target;

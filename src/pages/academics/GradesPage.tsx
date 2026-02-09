@@ -105,7 +105,7 @@ interface Exam {
 }
 
 const GradesPage: React.FC = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { user } = useAuth();
 
   // Data state
@@ -116,10 +116,10 @@ const GradesPage: React.FC = () => {
   const [allStudents, setAllStudents] = useState<Student[]>([]);
 
   // UI state
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const [, setError] = useState<string | null>(null);
+  const [, setSuccess] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'final' | 'evaluation'>('final');
 
   // Filter state
@@ -127,7 +127,7 @@ const GradesPage: React.FC = () => {
   const [selectedSemester, setSelectedSemester] = useState('');
   const [selectedEvalType, setSelectedEvalType] = useState<EvaluationType>('MIDTERM');
   const [studentSearch, setStudentSearch] = useState('');
-  const [selectedStudentId, setSelectedStudentId] = useState<number | null>(null);
+  const [selectedStudentId] = useState<number | null>(null);
 
   // Grade entry state
   const [showGradeModal, setShowGradeModal] = useState(false); // Exam state for grade entry
@@ -163,7 +163,7 @@ const GradesPage: React.FC = () => {
   // Bulletin & Modals state
   const [showBulletinModal, setShowBulletinModal] = useState(false);
   const [bulletinData, setBulletinData] = useState<BulletinData | null>(null);
-  const [generatingBulletin, setGeneratingBulletin] = useState(false);
+  const [, setGeneratingBulletin] = useState(false);
 
   const [showImportModal, setShowImportModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
