@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import api from '../../services/api';
 
@@ -25,11 +25,7 @@ const AuditLogPage: React.FC = () => {
     const [totalPages, setTotalPages] = useState(1);
     const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
 
-    useEffect(() => {
-        fetchLogs();
-    }, [page, search, modelFilter, actionFilter]);
-
-    const fetchLogs = async () => {
+    const fetchLogs = useCallback(async () => {
         setLoading(true);
         try {
             const params: any = {
@@ -48,7 +44,13 @@ const AuditLogPage: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [page, search, modelFilter, actionFilter]);
+
+    useEffect(() => {
+        fetchLogs();
+    }, [fetchLogs]);
+
+
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();

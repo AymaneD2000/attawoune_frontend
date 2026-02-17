@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import api from '../../services/api';
 import universityService from '../../services/universityService';
@@ -20,6 +20,26 @@ const DeliberationPage: React.FC = () => {
         loadData();
     }, []);
 
+    const fetchResults = useCallback(async () => {
+        try {
+            const response = await api.get('/academics/deliberation/results/', {
+                params: {
+                    academic_year_id: selectedYear,
+                    program_id: selectedProgram
+                }
+            });
+            if (response.data.count > 0) {
+                setResults(response.data.results);
+                setHasExistingResults(true);
+            } else {
+                setResults([]);
+                setHasExistingResults(false);
+            }
+        } catch (error) {
+            console.error('Error fetching results:', error);
+        }
+    }, [selectedYear, selectedProgram]);
+
     useEffect(() => {
         if (selectedYear && selectedProgram) {
             fetchResults();
@@ -27,7 +47,7 @@ const DeliberationPage: React.FC = () => {
             setResults([]);
             setHasExistingResults(false);
         }
-    }, [selectedYear, selectedProgram]);
+    }, [selectedYear, selectedProgram, fetchResults]);
 
     const loadData = async () => {
         try {
@@ -46,25 +66,7 @@ const DeliberationPage: React.FC = () => {
         }
     };
 
-    const fetchResults = async () => {
-        try {
-            const response = await api.get('/academics/deliberation/results/', {
-                params: {
-                    academic_year_id: selectedYear,
-                    program_id: selectedProgram
-                }
-            });
-            if (response.data.count > 0) {
-                setResults(response.data.results);
-                setHasExistingResults(true);
-            } else {
-                setResults([]);
-                setHasExistingResults(false);
-            }
-        } catch (error) {
-            console.error('Error fetching results:', error);
-        }
-    };
+
 
     const handleDeliberation = async () => {
         if (!selectedYear || !selectedProgram) return;

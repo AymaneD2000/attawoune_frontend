@@ -147,7 +147,7 @@ const FinancePage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [activeTab, searchTerm, startDate, endDate, minAmount, maxAmount, currentYearOnly]);
+  }, [activeTab, searchTerm, startDate, endDate, minAmount, maxAmount, currentYearOnly, students.length, levels.length, semesters.length, teachers.length]);
 
   useEffect(() => {
     fetchData();
