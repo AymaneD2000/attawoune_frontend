@@ -17,6 +17,7 @@ const StudentsPage: React.FC = () => {
   const [studentToEdit, setStudentToEdit] = useState<Student | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [statusFilter, setStatusFilter] = useState('');
+  const [currentYearOnly, setCurrentYearOnly] = useState(true);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
   const handleDownloadIDCard = async (student: Student) => {
@@ -74,6 +75,7 @@ const StudentsPage: React.FC = () => {
           page: currentPage,
           search: searchTerm,
           status: statusFilter || undefined,
+          current_year_only: currentYearOnly,
         },
       });
       setStudents(response.data.results || []);
@@ -84,7 +86,7 @@ const StudentsPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [currentPage, searchTerm, statusFilter]);
+  }, [currentPage, searchTerm, statusFilter, currentYearOnly]);
 
   useEffect(() => {
     fetchStudents();
@@ -168,6 +170,18 @@ const StudentsPage: React.FC = () => {
             <option value="SUSPENDED">{t('students.filters.suspended', 'Suspendu')}</option>
             <option value="DROPPED">{t('students.filters.dropped', 'Abandonné')}</option>
           </select>
+          <div className="flex items-center space-x-2 bg-white px-4 py-3 border border-gray-200 rounded-xl">
+            <input
+              type="checkbox"
+              id="currentYearOnly"
+              checked={currentYearOnly}
+              onChange={(e) => setCurrentYearOnly(e.target.checked)}
+              className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 h-5 w-5"
+            />
+            <label htmlFor="currentYearOnly" className="text-sm font-medium text-gray-700 cursor-pointer select-none">
+              {t('students.filters.current_year_only', 'Année en cours seulement')}
+            </label>
+          </div>
         </div>
       </div>
 

@@ -90,6 +90,106 @@
         "empty": {
             "title": "لم يتم العثور على طلاب",
             "subtitle": "حاول تعديل معايير البحث الخاصة بك"
+        },
+        "form": {
+            "title_new": "طالب جديد",
+            "title_edit": "تعديل الطالب",
+            "sections": {
+                "user_info": "معلومات المستخدم",
+                "academic_info": "المعلومات الأكاديمية"
+            },
+            "labels": {
+                "first_name": "الاسم الأول",
+                "last_name": "اللقب",
+                "email": "البريد الإلكتروني",
+                "username": "اسم المستخدم",
+                "date_of_birth": "تاريخ الميلاد",
+                "gender": "الجنس",
+                "photo": "صورة الملف الشخصي",
+                "program": "البرنامج",
+                "level": "المستوى",
+                "enrollment_date": "تاريخ التسجيل",
+                "guardian_name": "اسم الولي",
+                "phone": "الهاتف",
+                "address": "العنوان"
+            },
+            "placeholders": {
+                "select": "اختر"
+            },
+            "buttons": {
+                "next": "التالي",
+                "prev": "السابق",
+                "create": "إنشاء الطالب",
+                "update": "حفظ"
+            },
+            "notes": {
+                "password_admin": "يجب تغيير كلمة المرور من خلال إدارة المستخدمين.",
+                "password_auto": "سيتم إنشاء كلمة المرور تلقائيًا (الاسم الأولاللقب@السنة).",
+                "matricule_auto": "سيتم إنشاء الرقم الجامعي تلقائيًا (مثال: FST1920MA007817)."
+            },
+            "errors": {
+                "required_fields": "يرجى ملء جميع الحقول المطلوبة",
+                "save_error": "خطأ أثناء الحفظ"
+            }
+        },
+        "details": {
+            "tabs": {
+                "info": "معلومات",
+                "enrollments": "التسجيلات",
+                "grades": "الدرجات",
+                "attendance": "الحضور",
+                "bulletins": "الكشوف",
+                "finance": "المالية",
+                "idcard": "بطاقة الطالب"
+            },
+            "info": {
+                "program": "البرنامج",
+                "level": "المستوى",
+                "status": "الحالة",
+                "enrollment_date": "تاريخ التسجيل"
+            },
+            "enrollments": {
+                "empty": "لم يتم العثور على تسجيلات"
+            },
+            "grades": {
+                "course": "المقرر",
+                "type": "النوع",
+                "grade": "الدرجة",
+                "date": "التاريخ",
+                "empty": "لم يتم العثور على درجات امتحانات",
+                "undefined": "غير محدد"
+            },
+            "attendance": {
+                "total": "إجمالي الجلسات",
+                "present": "حاضر",
+                "absent": "غائب",
+                "late": "متأخر",
+                "rate": "نسبة الحضور"
+            },
+            "bulletins": {
+                "empty": "لا توجد كشوف متاحة",
+                "refresh": "تحديث",
+                "bulletin": "كشف",
+                "published": "منشور",
+                "average": "المعدل",
+                "credits": "الأرصدة",
+                "rank": "الترتيب",
+                "generated_at": "تم الإنشاء في",
+                "download": "تحميل PDF"
+            },
+            "finance": {
+                "total_due": "إجمالي المستحق",
+                "total_paid": "إجمالي المدفوع",
+                "remaining": "المتبقي",
+                "history": "سجل المعاملات",
+                "download_statement": "تحميل الكشف",
+                "empty": "لا توجد معاملات"
+            },
+            "idcard": {
+                "title": "بطاقة الطالب",
+                "download": "تحميل البطاقة",
+                "loading": "جاري تحميل البطاقة..."
+            }
         }
     },
     "teachers": {
@@ -122,9 +222,62 @@
             "hire_date": "تاريخ التوظيف",
             "status": "الحالة",
             "active": "نشط",
-            "inactive": "غير نشط"
+            "inactive": "غير نشط",
+            "not_assigned": "غير معين",
+            "not_specified": "غير محدد",
+            "primary": "أساسي",
+            "secondary": "ثانوي",
+            "empty_courses": "لا توجد دورات معينة",
+            "empty_schedule": "لا يوجد جدول زمني متاح"
         },
-        "empty": "لم يتم العثور على أساتذة"
+        "empty": "لم يتم العثور على أساتذة",
+        "form": {
+            "title_new": "أستاذ جديد",
+            "title_edit": "تعديل الأستاذ",
+            "sections": {
+                "user_info": "معلومات المستخدم",
+                "pro_info": "المعلومات المهنية",
+                "edit_pro_info": "تعديل المعلومات المهنية"
+            },
+            "labels": {
+                "first_name": "الاسم الأول *",
+                "last_name": "اللقب *",
+                "email": "البريد الإلكتروني *",
+                "username": "اسم المستخدم *",
+                "date_of_birth": "تاريخ الميلاد *",
+                "gender": "الجنس",
+                "department": "القسم",
+                "rank": "الرتبة",
+                "contract_type": "نوع العقد",
+                "hire_date": "تاريخ التوظيف",
+                "specialization": "التخصص",
+                "office": "المكتب",
+                "active_teacher": "أستاذ نشط"
+            },
+            "options": {
+                "male": "ذكر",
+                "female": "أنثى",
+                "select": "اختيار",
+                "permanent": "دائم",
+                "contract": "متعاقد",
+                "visiting": "زائر",
+                "part_time": "دوام جزئي"
+            },
+            "notes": {
+                "password_auto": "سيتم إنشاء كلمة المرور تلقائيًا (الاسم واللقب@السنة). يمكن للمستخدم تغييرها لاحقًا.",
+                "matricule_auto": "سيتم إنشاء الرقم الوظيفي للأستاذ تلقائيًا."
+            },
+            "buttons": {
+                "next": "التالي",
+                "prev": "السابق",
+                "create": "إنشاء الأستاذ",
+                "save": "حفظ التعديلات"
+            },
+            "errors": {
+                "required_fields": "يرجى ملء جميع الحقول المطلوبة",
+                "save_error": "خطأ أثناء الحفظ"
+            }
+        }
     },
     "courses": {
         "title": "إدارة الدورات",

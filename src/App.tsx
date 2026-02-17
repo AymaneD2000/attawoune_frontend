@@ -30,6 +30,7 @@ import LevelsPage from './pages/structure/LevelsPage';
 
 // Admin pages
 import UsersPage from './pages/admin/UsersPage';
+import AuditLogPage from './pages/admin/AuditLogPage';
 
 import './index.css';
 
@@ -94,6 +95,7 @@ function App() {
 
               {/* Administration */}
               <Route path="admin/users" element={<UsersPage />} />
+              <Route path="admin/audit" element={<AuditLogPage />} />
             </Route>
 
             {/* Unauthorized */}

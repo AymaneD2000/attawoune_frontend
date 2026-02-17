@@ -18,6 +18,10 @@
         "payments": "Paiements",
         "salaries": "Salaires",
         "expenses": "Dépenses",
+        "recovery": "Recouvrement",
+        "grades": "Notes",
+        "deliberation": "Délibération",
+        "announcements": "Annonces",
         "scheduling": "Emploi du Temps",
         "planning": "Plannings",
         "settings": "Paramètres",
@@ -99,6 +103,106 @@
         "empty": {
             "title": "Aucun étudiant trouvé",
             "subtitle": "Essayez de modifier vos critères de recherche"
+        },
+        "form": {
+            "title_new": "Nouvel Étudiant",
+            "title_edit": "Modifier Étudiant",
+            "sections": {
+                "user_info": "Informations Utilisateur",
+                "academic_info": "Informations Académiques"
+            },
+            "labels": {
+                "first_name": "Prénom",
+                "last_name": "Nom",
+                "email": "Email",
+                "username": "Nom d'utilisateur",
+                "date_of_birth": "Date de naissance",
+                "gender": "Sexe",
+                "photo": "Photo de profil",
+                "program": "Programme",
+                "level": "Niveau",
+                "enrollment_date": "Date d'inscription",
+                "guardian_name": "Nom du tuteur",
+                "phone": "Téléphone",
+                "address": "Adresse"
+            },
+            "placeholders": {
+                "select": "Sélectionner"
+            },
+            "buttons": {
+                "next": "Suivant",
+                "prev": "Précédent",
+                "create": "Créer l'étudiant",
+                "update": "Enregistrer"
+            },
+            "notes": {
+                "password_admin": "La modification du mot de passe doit se faire via l'administration des utilisateurs.",
+                "password_auto": "Le mot de passe sera généré automatiquement (PrénomNom@Année).",
+                "matricule_auto": "Le matricule sera généré automatiquement (ex: FST1920MA007817)."
+            },
+            "errors": {
+                "required_fields": "Veuillez remplir tous les champs obligatoires",
+                "save_error": "Erreur lors de la sauvegarde"
+            }
+        },
+        "details": {
+            "tabs": {
+                "info": "Informations",
+                "enrollments": "Inscriptions",
+                "grades": "Notes",
+                "attendance": "Présence",
+                "bulletins": "Bulletins",
+                "finance": "Finances",
+                "idcard": "Carte d'étudiant"
+            },
+            "info": {
+                "program": "Programme",
+                "level": "Niveau",
+                "status": "Statut",
+                "enrollment_date": "Date d'inscription"
+            },
+            "enrollments": {
+                "empty": "Aucune inscription trouvée"
+            },
+            "grades": {
+                "course": "Cours",
+                "type": "Type",
+                "grade": "Note",
+                "date": "Date",
+                "empty": "Aucune note d'examen trouvée",
+                "undefined": "Non défini"
+            },
+            "attendance": {
+                "total": "Total Sessions",
+                "present": "Présent",
+                "absent": "Absent",
+                "late": "En retard",
+                "rate": "Taux de présence"
+            },
+            "bulletins": {
+                "empty": "Aucun bulletin disponible",
+                "refresh": "Actualiser",
+                "bulletin": "bulletin",
+                "published": "Publié",
+                "average": "Moyenne",
+                "credits": "Crédits",
+                "rank": "Rang",
+                "generated_at": "Généré le",
+                "download": "Télécharger PDF"
+            },
+            "finance": {
+                "total_due": "Total Dû",
+                "total_paid": "Total Payé",
+                "remaining": "Reste à Payer",
+                "history": "Historique des transactions",
+                "download_statement": "Télécharger Relevé",
+                "empty": "Aucune transaction"
+            },
+            "idcard": {
+                "title": "Carte d'Étudiant",
+                "download": "Télécharger la carte",
+                "loading": "Chargement de la carte..."
+            }
         }
     },
     "teachers": {
@@ -131,9 +235,62 @@
             "hire_date": "Date d'embauche",
             "status": "Statut",
             "active": "Actif",
-            "inactive": "Inactif"
+            "inactive": "Inactif",
+            "not_assigned": "Non assigné",
+            "not_specified": "Non spécifié",
+            "primary": "Principal",
+            "secondary": "Secondaire",
+            "empty_courses": "Aucun cours assigné",
+            "empty_schedule": "Aucun emploi du temps disponible"
         },
-        "empty": "Aucun enseignant trouvé"
+        "empty": "Aucun enseignant trouvé",
+        "form": {
+            "title_new": "Nouvel Enseignant",
+            "title_edit": "Modifier l'Enseignant",
+            "sections": {
+                "user_info": "Informations Utilisateur",
+                "pro_info": "Informations Professionnelles",
+                "edit_pro_info": "Modifier les informations professionnelles"
+            },
+            "labels": {
+                "first_name": "Prénom *",
+                "last_name": "Nom *",
+                "email": "Email *",
+                "username": "Nom d'utilisateur *",
+                "date_of_birth": "Date de naissance *",
+                "gender": "Sexe",
+                "department": "Département",
+                "rank": "Grade",
+                "contract_type": "Type de contrat",
+                "hire_date": "Date d'embauche",
+                "specialization": "Spécialisation",
+                "office": "Bureau",
+                "active_teacher": "Enseignant actif"
+            },
+            "options": {
+                "male": "Homme",
+                "female": "Femme",
+                "select": "Sélectionner",
+                "permanent": "Permanent",
+                "contract": "Contractuel",
+                "visiting": "Vacataire",
+                "part_time": "Temps partiel"
+            },
+            "notes": {
+                "password_auto": "Le mot de passe sera généré automatiquement (PrénomNom@Année). L'utilisateur pourra le modifier ultérieurement.",
+                "matricule_auto": "Le matricule enseignant sera généré automatiquement."
+            },
+            "buttons": {
+                "next": "Suivant",
+                "prev": "Précédent",
+                "create": "Créer l'enseignant",
+                "save": "Enregistrer les modifications"
+            },
+            "errors": {
+                "required_fields": "Veuillez remplir tous les champs obligatoires",
+                "save_error": "Erreur lors de la sauvegarde"
+            }
+        }
     },
     "courses": {
         "title": "Gestion des Cours",
@@ -264,20 +421,23 @@
             "academic_year": "Année Académique",
             "program": "Programme"
         },
-        "button": {
-            "start": "Lancer la délibération",
+        "buttons": {
+            "process": "Lancer la délibération",
+            "reprocess": "Relancer la délibération",
             "processing": "Traitement en cours..."
         },
-        "results": {
-            "title": "Résultats",
-            "table": {
-                "matricule": "Matricule",
-                "student": "Étudiant",
-                "annual_average": "Moyenne Annuelle",
-                "decision": "Décision",
-                "info": "Info"
-            }
-        }
+        "table": {
+            "matricule": "Matricule",
+            "student": "Étudiant",
+            "annual_gpa": "Moyenne Annuelle",
+            "decision": "Décision",
+            "info": "Info"
+        },
+        "results_title": "Résultats",
+        "current_year_only": "La délibération ne peut être effectuée que pour l'année en cours",
+        "already_processed": "La délibération a déjà été effectuée pour ce programme. Vous pouvez voir les résultats ci-dessous.",
+        "confirm_reprocess": "Cette délibération a déjà été effectuée. Voulez-vous vraiment la relancer ?\nCela mettra à jour les décisions existantes.",
+        "error_processing": "Erreur lors de la délibération"
     },
     "scheduling": {
         "title": "Emploi du Temps",
@@ -397,6 +557,7 @@
             "table": {
                 "reference": "Référence",
                 "student": "Étudiant",
+                "level_semester": "Niveau / Semestre",
                 "amount": "Montant",
                 "method": "Méthode",
                 "date": "Date",
@@ -415,7 +576,8 @@
                 "bonuses": "Primes",
                 "deductions": "Déductions",
                 "net": "Net",
-                "pay": "Payer"
+                "pay": "Payer",
+                "status": "Statut"
             }
         },
         "expenses": {
@@ -429,19 +591,47 @@
             }
         },
         "recovery": {
-            "title": "Suivi du Recouvrement (Étudiants)",
+            "title_students": "Suivi du Recouvrement (Étudiants)",
+            "paid": "Payé",
+            "unpaid": "Impayé",
             "table": {
+                "student": "Étudiant",
+                "program": "Programme",
                 "total_due": "Total Dû",
                 "paid": "Payé",
                 "remaining": "Reste",
-                "status": "Statut",
-                "unpaid": "Impayé"
+                "status": "Statut"
             }
+        },
+        "filters": {
+            "current_year_only": "Année en cours seulement"
+        },
+        "payment_methods": {
+            "CASH": "Espèces",
+            "BANK_TRANSFER": "Virement Bancaire",
+            "MOBILE_MONEY": "Mobile Money",
+            "CHECK": "Chèque"
+        },
+        "expense_categories": {
+            "SALARIES": "Salaires",
+            "UTILITIES": "Factures (Eau/Élec/Internet)",
+            "MAINTENANCE": "Maintenance",
+            "EQUIPMENT": "Équipement",
+            "SUPPLIES": "Fournitures",
+            "OTHER": "Autre"
         },
         "modals": {
             "payment": {
                 "title": "Nouveau Paiement",
-                "method": "Méthode de Paiement",
+                "labels": {
+                    "student": "Étudiant",
+                    "select_student": "Sélectionner un étudiant",
+                    "level": "Niveau",
+                    "semester": "Semestre",
+                    "amount": "Montant",
+                    "method": "Méthode de Paiement",
+                    "select": "Sélectionner"
+                },
                 "financial_situation": "Situation Financière",
                 "program_cost": "Coût Programme",
                 "already_paid": "Déjà Payé",
@@ -450,12 +640,45 @@
             },
             "salary": {
                 "title": "Nouveau Salaire",
-                "base_salary": "Salaire de base",
-                "remarks": "Remarques"
+                "labels": {
+                    "employee": "Employé",
+                    "select_employee": "Sélectionner un employé",
+                    "month": "Mois",
+                    "year": "Année",
+                    "base_salary": "Salaire de Base",
+                    "bonuses": "Primes",
+                    "deductions": "Déductions",
+                    "remarks": "Remarques"
+                }
             },
             "expense": {
-                "title": "Nouvelle Dépense"
+                "title": "Nouvelle Dépense",
+                "labels": {
+                    "category": "Catégorie",
+                    "amount": "Montant",
+                    "date": "Date",
+                    "description": "Description"
+                }
             }
+        },
+        "salary_status": {
+            "PENDING": "En attente",
+            "PAID": "Payé",
+            "CANCELLED": "Annulé",
+            "COMPLETED": "Payé",
+            "FAILED": "Échoué",
+            "REFUNDED": "Remboursé",
+            "PARTIAL": "Partiel"
+        },
+        "errors": {
+            "payment_error": "Une erreur est survenue lors du paiement. Veuillez réessayer.",
+            "salary_creation": "Erreur lors de la création du salaire."
+        },
+        "empty": {
+            "payments": "Aucun paiement enregistré",
+            "salaries": "Aucun salaire trouvé",
+            "expenses": "Aucune dépense trouvée",
+            "recovery": "Aucun impayé trouvé"
         }
     },
     "structure": {

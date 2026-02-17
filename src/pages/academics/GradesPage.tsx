@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
-import { Course, Semester, Student } from '../../types';
+import { Course, Semester, Student, AcademicYear } from '../../types';
 import { gradesService } from '../../services/gradesService';
 import ImportGradesModal from './ImportGradesModal';
 import StudentGradesViewModal from './StudentGradesViewModal';
@@ -114,6 +114,7 @@ const GradesPage: React.FC = () => {
   const [courses, setCourses] = useState<Course[]>([]);
   const [semesters, setSemesters] = useState<Semester[]>([]);
   const [allStudents, setAllStudents] = useState<Student[]>([]);
+  const [, setCurrentAcademicYear] = useState<AcademicYear | null>(null);
 
   // UI state
   const [, setLoading] = useState(false);
@@ -177,9 +178,20 @@ const GradesPage: React.FC = () => {
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
+        // 1. Fetch current academic year first
+        const yearRes = await api.get('/university/academic-years/', { params: { is_current: true } });
+        const currentYear = yearRes.data.results?.[0] || yearRes.data?.[0];
+        setCurrentAcademicYear(currentYear || null);
+
+        // 2. Fetch other data, filtering semesters by current year if available
         const [coursesRes, semestersRes, studentsRes] = await Promise.all([
           api.get('/academics/courses/', { params: { page_size: 100 } }),
-          api.get('/university/semesters/', { params: { page_size: 50 } }),
+          api.get('/university/semesters/', { 
+            params: { 
+              page_size: 50,
+              academic_year: currentYear?.id // Filter by current academic year
+            } 
+          }),
           api.get('/students/', { params: { page_size: 500, status: 'ACTIVE' } })
         ]);
         setCourses(coursesRes.data.results || coursesRes.data);

@@ -100,6 +100,16 @@ export interface Program {
   tuition_fee: string;
   is_active: boolean;
   students_count: number;
+  fees?: ProgramFee[];
+}
+
+export interface ProgramFee {
+  id: number;
+  level: number;
+  level_name: string;
+  academic_year: number;
+  academic_year_name: string;
+  amount: string;
 }
 
 export interface Classroom {
@@ -210,6 +220,11 @@ export interface TuitionPayment {
   student_name: string;
   student_matricule: string;
   academic_year: number;
+  academic_year_name: string;
+  level: number | null;
+  level_name: string;
+  semester: number | null;
+  semester_name: string;
   amount: string;
   payment_method: string;
   payment_method_display: string;

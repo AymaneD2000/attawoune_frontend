@@ -165,7 +165,7 @@ const TeachersPage: React.FC = () => {
       {loading ? (
         <div className="bg-white rounded-xl shadow-sm p-12 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-4 border-teal-500 border-t-transparent mx-auto"></div>
-          <p className="mt-4 text-gray-500">Chargement des enseignants...</p>
+          <p className="mt-4 text-gray-500">{t('common.loading', 'Chargement...')}</p>
         </div>
       ) : teachers.length === 0 ? (
         <div className="bg-white rounded-xl shadow-sm p-12 text-center">
@@ -329,22 +329,22 @@ const TeachersPage: React.FC = () => {
                       </div>
                       <div className="p-4 bg-gray-50 rounded-xl">
                         <p className="text-sm text-gray-500">{t('teachers.details.department', 'Département')}</p>
-                        <p className="font-medium text-gray-900">{selectedTeacher.department_name || 'Non assigné'}</p>
+                        <p className="font-medium text-gray-900">{selectedTeacher.department_name || t('teachers.details.not_assigned', 'Non assigné')}</p>
                       </div>
                       <div className="p-4 bg-gray-50 rounded-xl">
                         <p className="text-sm text-gray-500">{t('teachers.details.specialization', 'Spécialisation')}</p>
-                        <p className="font-medium text-gray-900">{selectedTeacher.specialization || 'Non spécifiée'}</p>
+                        <p className="font-medium text-gray-900">{selectedTeacher.specialization || t('teachers.details.not_specified', 'Non spécifiée')}</p>
                       </div>
                       <div className="p-4 bg-gray-50 rounded-xl">
                         <p className="text-sm text-gray-500">{t('teachers.details.contract_type', 'Type de contrat')}</p>
-                        <p className="font-medium text-gray-900">{selectedTeacher.contract_type_display || 'Non spécifié'}</p>
+                        <p className="font-medium text-gray-900">{selectedTeacher.contract_type_display || t('teachers.details.not_specified', 'Non spécifié')}</p>
                       </div>
                       <div className="p-4 bg-gray-50 rounded-xl">
                         <p className="text-sm text-gray-500">{t('teachers.details.hire_date', "Date d'embauche")}</p>
                         <p className="font-medium text-gray-900">
                           {selectedTeacher.hire_date
                             ? new Date(selectedTeacher.hire_date).toLocaleDateString(i18n.language)
-                            : 'Non spécifiée'}
+                            : t('teachers.details.not_specified', 'Non spécifiée')}
                         </p>
                       </div>
                       <div className="p-4 bg-gray-50 rounded-xl">
@@ -360,7 +360,7 @@ const TeachersPage: React.FC = () => {
                     <div className="space-y-4">
                       {Object.keys(teacherCourses).length === 0 ? (
                         <div className="text-center py-8 text-gray-500">
-                          Aucun cours assigné
+                          {t('teachers.details.empty_courses', 'Aucun cours assigné')}
                         </div>
                       ) : (
                         Object.entries(teacherCourses).map(([semester, courses]) => (
@@ -375,7 +375,7 @@ const TeachersPage: React.FC = () => {
                                   </div>
                                   <div className="text-right">
                                     <span className={`px-2 py-1 rounded text-xs ${course.is_primary ? 'bg-teal-100 text-teal-700' : 'bg-gray-200 text-gray-600'}`}>
-                                      {course.is_primary ? 'Principal' : 'Secondaire'}
+                                      {course.is_primary ? t('teachers.details.primary', 'Principal') : t('teachers.details.secondary', 'Secondaire')}
                                     </span>
                                     <p className="text-sm text-gray-500 mt-1">{course.hours_assigned}h</p>
                                   </div>
@@ -392,7 +392,7 @@ const TeachersPage: React.FC = () => {
                     <div className="space-y-4">
                       {Object.keys(teacherSchedule).length === 0 ? (
                         <div className="text-center py-8 text-gray-500">
-                          Aucun emploi du temps disponible
+                          {t('teachers.details.empty_schedule', 'Aucun emploi du temps disponible')}
                         </div>
                       ) : (
                         Object.entries(teacherSchedule).map(([day, schedules]) => (

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import universityService from '../../services/universityService';
 import userService from '../../services/userService';
 import teacherService from '../../services/teacherService';
@@ -11,6 +12,7 @@ interface TeacherFormModalProps {
 }
 
 const TeacherFormModal: React.FC<TeacherFormModalProps> = ({ onClose, onSuccess, teacher }) => {
+    const { t } = useTranslation();
     const isEditMode = !!teacher;
     const [step, setStep] = useState(isEditMode ? 2 : 1);
     const [loading, setLoading] = useState(false);
@@ -80,7 +82,7 @@ const TeacherFormModal: React.FC<TeacherFormModalProps> = ({ onClose, onSuccess,
 
     const validateStep1 = (): boolean => {
         if (!userData.first_name || !userData.last_name || !userData.email || !userData.username || !userData.date_of_birth) {
-            setError('Veuillez remplir tous les champs obligatoires');
+            setError(t('teachers.form.errors.required_fields', 'Veuillez remplir tous les champs obligatoires'));
             return false;
         }
         setError(null);
@@ -131,7 +133,7 @@ const TeacherFormModal: React.FC<TeacherFormModalProps> = ({ onClose, onSuccess,
             onClose();
         } catch (err: any) {
             console.error('Error saving teacher:', err);
-            setError(err.response?.data?.detail || err.response?.data?.error || JSON.stringify(err.response?.data) || 'Erreur lors de la sauvegarde');
+            setError(err.response?.data?.detail || err.response?.data?.error || JSON.stringify(err.response?.data) || t('teachers.form.errors.save_error', 'Erreur lors de la sauvegarde'));
         } finally {
             setLoading(false);
         }
@@ -139,10 +141,10 @@ const TeacherFormModal: React.FC<TeacherFormModalProps> = ({ onClose, onSuccess,
 
     const renderStep1 = () => (
         <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Informations Utilisateur</h3>
+            <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">{t('teachers.form.sections.user_info', 'Informations Utilisateur')}</h3>
             <div className="grid grid-cols-2 gap-4">
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Prénom *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('teachers.form.labels.first_name', 'Prénom *')}</label>
                     <input
                         type="text"
                         name="first_name"
@@ -152,7 +154,7 @@ const TeacherFormModal: React.FC<TeacherFormModalProps> = ({ onClose, onSuccess,
                     />
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Nom *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('teachers.form.labels.last_name', 'Nom *')}</label>
                     <input
                         type="text"
                         name="last_name"
@@ -163,7 +165,7 @@ const TeacherFormModal: React.FC<TeacherFormModalProps> = ({ onClose, onSuccess,
                 </div>
             </div>
             <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('teachers.form.labels.email', 'Email *')}</label>
                 <input
                     type="email"
                     name="email"
@@ -173,7 +175,7 @@ const TeacherFormModal: React.FC<TeacherFormModalProps> = ({ onClose, onSuccess,
                 />
             </div>
             <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nom d'utilisateur *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('teachers.form.labels.username', "Nom d'utilisateur *")}</label>
                 <input
                     type="text"
                     name="username"
@@ -183,11 +185,11 @@ const TeacherFormModal: React.FC<TeacherFormModalProps> = ({ onClose, onSuccess,
                 />
             </div>
             <div className="p-4 bg-yellow-50 text-yellow-800 rounded-lg text-sm">
-                <span className="font-semibold">Note:</span> Le mot de passe sera généré automatiquement (PrénomNom@Année). L'utilisateur pourra le modifier ultérieurement.
+                <span className="font-semibold">Note:</span> {t('teachers.form.notes.password_auto', "Le mot de passe sera généré automatiquement (PrénomNom@Année). L'utilisateur pourra le modifier ultérieurement.")}
             </div>
             <div className="grid grid-cols-2 gap-4">
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Date de naissance *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('teachers.form.labels.date_of_birth', 'Date de naissance *')}</label>
                     <input
                         type="date"
                         name="date_of_birth"
@@ -197,15 +199,15 @@ const TeacherFormModal: React.FC<TeacherFormModalProps> = ({ onClose, onSuccess,
                     />
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Sexe</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('teachers.form.labels.gender', 'Sexe')}</label>
                     <select
                         name="gender"
                         className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500"
                         value={userData.gender}
                         onChange={handleUserChange}
                     >
-                        <option value="M">Homme</option>
-                        <option value="F">Femme</option>
+                        <option value="M">{t('teachers.form.options.male', 'Homme')}</option>
+                        <option value="F">{t('teachers.form.options.female', 'Femme')}</option>
                     </select>
                 </div>
             </div>
@@ -215,59 +217,59 @@ const TeacherFormModal: React.FC<TeacherFormModalProps> = ({ onClose, onSuccess,
     const renderStep2 = () => (
         <div className="space-y-4">
             <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
-                {isEditMode ? 'Modifier les informations professionnelles' : 'Informations Professionnelles'}
+                {isEditMode ? t('teachers.form.sections.edit_pro_info', 'Modifier les informations professionnelles') : t('teachers.form.sections.pro_info', 'Informations Professionnelles')}
             </h3>
             {!isEditMode && (
                 <div className="p-4 bg-blue-50 text-blue-700 rounded-lg text-sm">
-                    <span className="font-semibold">Note:</span> Le matricule enseignant sera généré automatiquement.
+                    <span className="font-semibold">Note:</span> {t('teachers.form.notes.matricule_auto', 'Le matricule enseignant sera généré automatiquement.')}
                 </div>
             )}
 
             <div className="grid grid-cols-2 gap-4">
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Département</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('teachers.form.labels.department', 'Département')}</label>
                     <select
                         name="department"
                         className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500"
                         value={teacherData.department}
                         onChange={handleTeacherChange}
                     >
-                        <option value="">Sélectionner</option>
+                        <option value="">{t('teachers.form.options.select', 'Sélectionner')}</option>
                         {departments.map(d => (
                             <option key={d.id} value={d.id}>{d.name}</option>
                         ))}
                     </select>
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Grade</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('teachers.form.labels.rank', 'Grade')}</label>
                     <select
                         name="rank"
                         className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500"
                         value={teacherData.rank}
                         onChange={handleTeacherChange}
                     >
-                        <option value="ASSISTANT">Assistant</option>
-                        <option value="LECTURER">Maître assistant</option>
-                        <option value="SENIOR_LECTURER">Maître de conférences</option>
-                        <option value="ASSOCIATE_PROFESSOR">Professeur associé</option>
-                        <option value="PROFESSOR">Professeur</option>
+                        <option value="ASSISTANT">{t('teachers.filters.assistant', 'Assistant')}</option>
+                        <option value="LECTURER">{t('teachers.filters.lecturer', 'Maître assistant')}</option>
+                        <option value="SENIOR_LECTURER">{t('teachers.filters.senior_lecturer', 'Maître de conférences')}</option>
+                        <option value="ASSOCIATE_PROFESSOR">{t('teachers.filters.associate_professor', 'Professeur associé')}</option>
+                        <option value="PROFESSOR">{t('teachers.filters.professor', 'Professeur')}</option>
                     </select>
                 </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Type de contrat</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('teachers.form.labels.contract_type', 'Type de contrat')}</label>
                     <select
                         name="contract_type"
                         className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500"
                         value={teacherData.contract_type}
                         onChange={handleTeacherChange}
                     >
-                        <option value="PERMANENT">Permanent</option>
-                        <option value="CONTRACT">Contractuel</option>
-                        <option value="VISITING">Vacataire</option>
-                        <option value="PART_TIME">Temps partiel</option>
+                        <option value="PERMANENT">{t('teachers.form.options.permanent', 'Permanent')}</option>
+                        <option value="CONTRACT">{t('teachers.form.options.contract', 'Contractuel')}</option>
+                        <option value="VISITING">{t('teachers.form.options.visiting', 'Vacataire')}</option>
+                        <option value="PART_TIME">{t('teachers.form.options.part_time', 'Temps partiel')}</option>
                     </select>
                 </div>
                 <div>
@@ -283,7 +285,7 @@ const TeacherFormModal: React.FC<TeacherFormModalProps> = ({ onClose, onSuccess,
             </div>
 
             <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Spécialisation</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('teachers.form.labels.specialization', 'Spécialisation')}</label>
                 <input
                     type="text"
                     name="specialization"
@@ -294,7 +296,7 @@ const TeacherFormModal: React.FC<TeacherFormModalProps> = ({ onClose, onSuccess,
             </div>
 
             <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Bureau</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('teachers.form.labels.office', 'Bureau')}</label>
                 <input
                     type="text"
                     name="office_location"
@@ -315,7 +317,7 @@ const TeacherFormModal: React.FC<TeacherFormModalProps> = ({ onClose, onSuccess,
                         className="w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500"
                     />
                     <label htmlFor="is_active" className="text-sm font-medium text-gray-700">
-                        Enseignant actif
+                        {t('teachers.form.labels.active_teacher', 'Enseignant actif')}
                     </label>
                 </div>
             )}
@@ -327,7 +329,7 @@ const TeacherFormModal: React.FC<TeacherFormModalProps> = ({ onClose, onSuccess,
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
                 <div className="bg-gradient-to-r from-teal-600 to-emerald-600 p-6 text-white flex justify-between items-center">
                     <h2 className="text-xl font-bold">
-                        {isEditMode ? 'Modifier l\'Enseignant' : 'Nouvel Enseignant'}
+                        {isEditMode ? t('teachers.form.title_edit', "Modifier l'Enseignant") : t('teachers.form.title_new', 'Nouvel Enseignant')}
                     </h2>
                     <button onClick={onClose} className="text-white/80 hover:text-white">
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -365,7 +367,7 @@ const TeacherFormModal: React.FC<TeacherFormModalProps> = ({ onClose, onSuccess,
                                 onClick={goToPreviousStep}
                                 className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
                             >
-                                Précédent
+                                {t('teachers.form.buttons.prev', 'Précédent')}
                             </button>
                         )}
                         {step === 1 && !isEditMode ? (
@@ -375,7 +377,7 @@ const TeacherFormModal: React.FC<TeacherFormModalProps> = ({ onClose, onSuccess,
                                 className="ml-auto px-6 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 disabled:opacity-50"
                                 disabled={!userData.first_name || !userData.last_name || !userData.email || !userData.username}
                             >
-                                Suivant
+                                {t('teachers.form.buttons.next', 'Suivant')}
                             </button>
                         ) : (
                             <button
@@ -385,7 +387,7 @@ const TeacherFormModal: React.FC<TeacherFormModalProps> = ({ onClose, onSuccess,
                                 className="ml-auto px-6 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 text-white rounded-lg hover:shadow-lg disabled:opacity-50 flex items-center gap-2"
                             >
                                 {loading && <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>}
-                                {isEditMode ? 'Enregistrer les modifications' : 'Créer l\'enseignant'}
+                                {isEditMode ? t('teachers.form.buttons.save', 'Enregistrer les modifications') : t('teachers.form.buttons.create', "Créer l'enseignant")}
                             </button>
                         )}
                     </div>

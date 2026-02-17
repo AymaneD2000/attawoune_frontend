@@ -63,6 +63,7 @@ const Sidebar: React.FC = () => {
         { key: 'classrooms', path: '/university/classrooms', icon: '🚪', roles: ['ADMIN', 'DEAN'] },
         { key: 'academic-years', path: '/university/academic-years', icon: '📅', roles: ['ADMIN'] },
         { key: 'levels', path: '/university/levels', icon: '⭐', roles: ['ADMIN'] },
+        { key: 'audit-logs', path: '/admin/audit', icon: '📜', roles: ['ADMIN'] },
       ]
     }
   ], []);

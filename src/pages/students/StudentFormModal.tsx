@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import universityService from '../../services/universityService';
 import userService from '../../services/userService';
 import studentService from '../../services/studentService';
@@ -11,6 +12,7 @@ interface StudentFormModalProps {
 }
 
 const StudentFormModal: React.FC<StudentFormModalProps> = ({ onClose, onSuccess, student }) => {
+    const { t } = useTranslation();
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -119,7 +121,7 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({ onClose, onSuccess,
 
     const validateStep1 = (): boolean => {
         if (!userData.first_name || !userData.last_name || !userData.email || !userData.username || !userData.date_of_birth) {
-            setError('Veuillez remplir tous les champs obligatoires');
+            setError(t('students.form.errors.required_fields', 'Veuillez remplir tous les champs obligatoires'));
             return false;
         }
         setError(null);
@@ -198,14 +200,14 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({ onClose, onSuccess,
             const errorData = err.response?.data;
             const errorMessage = typeof errorData === 'string'
                 ? errorData
-                : errorData?.message || errorData?.detail || errorData?.error || 'Erreur lors de la sauvegarde';
+                : errorData?.message || errorData?.detail || errorData?.error || t('students.form.errors.save_error', 'Erreur lors de la sauvegarde');
 
             setError(typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage));
 
             if (errorData && typeof errorData === 'object') {
-                if (errorData.username) setError(`Nom d'utilisateur: ${errorData.username}`);
-                if (errorData.email) setError(`Email: ${errorData.email}`);
-                if (errorData.student_id) setError(`Matricule: ${errorData.student_id}`);
+                if (errorData.username) setError(`${t('students.form.labels.username')}: ${errorData.username}`);
+                if (errorData.email) setError(`${t('students.form.labels.email')}: ${errorData.email}`);
+                if (errorData.student_id) setError(`${t('deliberation.table.matricule')}: ${errorData.student_id}`);
             }
         } finally {
             setLoading(false);
@@ -214,10 +216,10 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({ onClose, onSuccess,
 
     const renderStep1 = () => (
         <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Informations Utilisateur</h3>
+            <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">{t('students.form.sections.user_info', 'Informations Utilisateur')}</h3>
             <div className="grid grid-cols-2 gap-4">
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Prénom *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('students.form.labels.first_name', 'Prénom')} *</label>
                     <input
                         type="text"
                         name="first_name"
@@ -227,7 +229,7 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({ onClose, onSuccess,
                     />
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Nom *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('students.form.labels.last_name', 'Nom')} *</label>
                     <input
                         type="text"
                         name="last_name"
@@ -238,7 +240,7 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({ onClose, onSuccess,
                 </div>
             </div>
             <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('students.form.labels.email', 'Email')} *</label>
                 <input
                     type="email"
                     name="email"
@@ -248,7 +250,7 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({ onClose, onSuccess,
                 />
             </div>
             <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nom d'utilisateur *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('students.form.labels.username', "Nom d'utilisateur")} *</label>
                 <input
                     type="text"
                     name="username"
@@ -258,11 +260,11 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({ onClose, onSuccess,
                 />
             </div>
             <div className="p-4 bg-yellow-50 text-yellow-800 rounded-lg text-sm">
-                <span className="font-semibold">Note:</span> {student ? "La modification du mot de passe doit se faire via l'administration des utilisateurs." : "Le mot de passe sera généré automatiquement (PrénomNom@Année)."}
+                <span className="font-semibold">Note:</span> {student ? t('students.form.notes.password_admin') : t('students.form.notes.password_auto')}
             </div>
             <div className="grid grid-cols-2 gap-4">
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Date de naissance *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('students.form.labels.date_of_birth', 'Date de naissance')} *</label>
                     <input
                         type="date"
                         name="date_of_birth"
@@ -272,20 +274,20 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({ onClose, onSuccess,
                     />
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Sexe</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('students.form.labels.gender', 'Sexe')}</label>
                     <select
                         name="gender"
                         className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
                         value={userData.gender}
                         onChange={handleUserChange}
                     >
-                        <option value="M">Homme</option>
-                        <option value="F">Femme</option>
+                        <option value="M">{t('admin.users.gender.M', 'Homme')}</option>
+                        <option value="F">{t('admin.users.gender.F', 'Femme')}</option>
                     </select>
                 </div>
             </div>
             <div className="mt-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Photo de profil</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('students.form.labels.photo', 'Photo de profil')}</label>
                 <input
                     type="file"
                     accept="image/*"
@@ -307,27 +309,27 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({ onClose, onSuccess,
 
     const renderStep2 = () => (
         <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Informations Académiques</h3>
+            <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">{t('students.form.sections.academic_info', 'Informations Académiques')}</h3>
             <div className="p-4 bg-blue-50 text-blue-700 rounded-lg text-sm">
-                <span className="font-semibold">Note:</span> Le matricule sera généré automatiquement (ex: FST1920MA007817).
+                <span className="font-semibold">Note:</span> {t('students.form.notes.matricule_auto')}
             </div>
             <div className="grid grid-cols-2 gap-4">
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Programme *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('students.form.labels.program', 'Programme')} *</label>
                     <select
                         name="program"
                         className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
                         value={studentData.program}
                         onChange={handleStudentChange}
                     >
-                        <option value="">Sélectionner</option>
+                        <option value="">{t('students.form.placeholders.select', 'Sélectionner')}</option>
                         {programs.map(p => (
                             <option key={p.id} value={p.id}>{p.name}</option>
                         ))}
                     </select>
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Niveau *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('students.form.labels.level', 'Niveau')} *</label>
                     <select
                         name="current_level"
                         className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
@@ -335,7 +337,7 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({ onClose, onSuccess,
                         onChange={handleStudentChange}
                         disabled={!studentData.program}
                     >
-                        <option value="">Sélectionner</option>
+                        <option value="">{t('students.form.placeholders.select', 'Sélectionner')}</option>
                         {levels
                             .filter(l => {
                                 if (!studentData.program) return false;
@@ -350,7 +352,7 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({ onClose, onSuccess,
                 </div>
             </div>
             <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Date d'inscription</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('students.form.labels.enrollment_date', "Date d'inscription")}</label>
                 <input
                     type="date"
                     name="enrollment_date"
@@ -360,7 +362,7 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({ onClose, onSuccess,
                 />
             </div>
             <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nom du tuteur</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('students.form.labels.guardian_name', 'Nom du tuteur')}</label>
                 <input
                     type="text"
                     name="guardian_name"
@@ -376,7 +378,7 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({ onClose, onSuccess,
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
                 <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white flex justify-between items-center">
-                    <h2 className="text-xl font-bold">{student ? 'Modifier Étudiant' : 'Nouvel Étudiant'}</h2>
+                    <h2 className="text-xl font-bold">{student ? t('students.form.title_edit', 'Modifier Étudiant') : t('students.form.title_new', 'Nouvel Étudiant')}</h2>
                     <button onClick={onClose} className="text-white/80 hover:text-white">
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -410,7 +412,7 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({ onClose, onSuccess,
                                 onClick={goToPreviousStep}
                                 className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
                             >
-                                Précédent
+                                {t('students.form.buttons.prev', 'Précédent')}
                             </button>
                         )}
                         {step === 1 ? (
@@ -420,7 +422,7 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({ onClose, onSuccess,
                                 className="ml-auto px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
                                 disabled={!userData.first_name || !userData.last_name || !userData.email || !userData.username}
                             >
-                                Suivant
+                                {t('students.form.buttons.next', 'Suivant')}
                             </button>
                         ) : (
                             <button
@@ -430,7 +432,7 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({ onClose, onSuccess,
                                 className="ml-auto px-6 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:shadow-lg disabled:opacity-50 flex items-center gap-2"
                             >
                                 {loading && <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>}
-                                {student ? 'Enregistrer' : 'Créer l\'étudiant'}
+                                {student ? t('students.form.buttons.update', 'Enregistrer') : t('students.form.buttons.create', "Créer l'étudiant")}
                             </button>
                         )}
                     </div>
