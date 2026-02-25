@@ -43,6 +43,30 @@ export const studentService = {
         });
         return response.data;
     },
+
+    exportStudents: async (params?: any) => {
+        const response = await api.get('/students/export_excel/', {
+            params,
+            responseType: 'blob'
+        });
+        return response.data;
+    },
+
+    importStudents: async (file: File) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        const response = await api.post('/students/import_excel/', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        return response.data;
+    },
+
+    downloadImportTemplate: async () => {
+        const response = await api.get('/students/download_template/', {
+            responseType: 'blob'
+        });
+        return response.data;
+    },
 };
 
 export default studentService;

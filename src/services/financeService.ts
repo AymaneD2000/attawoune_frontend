@@ -100,7 +100,82 @@ export const financeService = {
     getOutstandingBalances: async (params?: any) => {
         const response = await api.get('/finance/student-balances/outstanding/', { params });
         return response.data;
-    }
+    },
+
+    // Excel Import/Export
+    exportPayments: async (params?: any) => {
+        const response = await api.get('/finance/tuition-payments/export_excel/', {
+            params,
+            responseType: 'blob'
+        });
+        return response.data;
+    },
+
+    importPayments: async (file: File) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        const response = await api.post('/finance/tuition-payments/import_excel/', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        return response.data;
+    },
+
+    downloadPaymentTemplate: async () => {
+        const response = await api.get('/finance/tuition-payments/download_template/', {
+            responseType: 'blob'
+        });
+        return response.data;
+    },
+
+    // Salary Excel Import/Export
+    exportSalaries: async (params?: any) => {
+        const response = await api.get('/finance/salaries/export_excel/', {
+            params,
+            responseType: 'blob'
+        });
+        return response.data;
+    },
+
+    importSalaries: async (file: File) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        const response = await api.post('/finance/salaries/import_excel/', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        return response.data;
+    },
+
+    downloadSalaryTemplate: async () => {
+        const response = await api.get('/finance/salaries/download_template/', {
+            responseType: 'blob'
+        });
+        return response.data;
+    },
+
+    // Expense Excel Import/Export
+    exportExpenses: async (params?: any) => {
+        const response = await api.get('/finance/expenses/export_excel/', {
+            params,
+            responseType: 'blob'
+        });
+        return response.data;
+    },
+
+    importExpenses: async (file: File) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        const response = await api.post('/finance/expenses/import_excel/', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        return response.data;
+    },
+
+    downloadExpenseTemplate: async () => {
+        const response = await api.get('/finance/expenses/download_template/', {
+            responseType: 'blob'
+        });
+        return response.data;
+    },
 };
 
 export default financeService;

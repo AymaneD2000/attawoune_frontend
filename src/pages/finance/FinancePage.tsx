@@ -11,8 +11,13 @@ import {
   ArrowTrendingUpIcon,
   PlusIcon,
   MagnifyingGlassIcon,
-  XMarkIcon
+  XMarkIcon,
+  ArrowDownTrayIcon,
+  DocumentArrowUpIcon
 } from '@heroicons/react/24/outline';
+import SearchableSelect, { Option } from '../../components/common/SearchableSelect';
+import PaymentExcelImportModal from './PaymentExcelImportModal';
+import FinanceExcelImportModal from './FinanceExcelImportModal';
 
 const FinancePage: React.FC = () => {
   const { t } = useTranslation();
@@ -26,6 +31,9 @@ const FinancePage: React.FC = () => {
   const [minAmount, setMinAmount] = useState('');
   const [maxAmount, setMaxAmount] = useState('');
   const [currentYearOnly, setCurrentYearOnly] = useState(true);
+  const [showPaymentFilters, setShowPaymentFilters] = useState(false);
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState('');
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState('');
 
   // Reset filters when changing tabs
   useEffect(() => {
@@ -34,6 +42,8 @@ const FinancePage: React.FC = () => {
     setEndDate('');
     setMinAmount('');
     setMaxAmount('');
+    setPaymentMethodFilter('');
+    setPaymentStatusFilter('');
   }, [activeTab]);
 
   // Data States
@@ -47,11 +57,15 @@ const FinancePage: React.FC = () => {
   const [studentStatement, setStudentStatement] = useState<any>(null);
   const [levels, setLevels] = useState<Level[]>([]);
   const [semesters, setSemesters] = useState<Semester[]>([]);
+  const [studentProgramLevels, setStudentProgramLevels] = useState<{id: number, display_name: string}[]>([]);
 
   // Modals
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showSalaryModal, setShowSalaryModal] = useState(false);
   const [showExpenseModal, setShowExpenseModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [showSalaryImportModal, setShowSalaryImportModal] = useState(false);
+  const [showExpenseImportModal, setShowExpenseImportModal] = useState(false);
 
   // Forms
   const [expenseForm, setExpenseForm] = useState({
@@ -101,6 +115,8 @@ const FinancePage: React.FC = () => {
       if (minAmount) params.amount_min = minAmount;
       if (maxAmount) params.amount_max = maxAmount;
       if (currentYearOnly) params.current_year_only = currentYearOnly;
+      if (paymentMethodFilter) params.payment_method = paymentMethodFilter;
+      if (paymentStatusFilter) params.status = paymentStatusFilter;
 
       if (activeTab === 'dashboard') {
         const data = await financeService.getDashboardStats();
@@ -108,11 +124,6 @@ const FinancePage: React.FC = () => {
       } else if (activeTab === 'payments') {
         const data = await financeService.getPayments(params);
         setPayments(data.results);
-
-        if (students.length === 0) {
-          const studentRes = await api.get('/students/');
-          setStudents(studentRes.data.results || []);
-        }
 
         if (levels.length === 0) {
             const levelsRes = await universityService.getLevels();
@@ -136,18 +147,13 @@ const FinancePage: React.FC = () => {
       } else if (activeTab === 'recovery') {
         const data = await financeService.getOutstandingBalances(params);
         setOutstandingBalances(data.results || []);
-
-        if (students.length === 0) {
-          const studentRes = await api.get('/students/');
-          setStudents(studentRes.data.results || []);
-        }
       }
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
       setLoading(false);
     }
-  }, [activeTab, searchTerm, startDate, endDate, minAmount, maxAmount, currentYearOnly, students.length, levels.length, semesters.length, teachers.length]);
+  }, [activeTab, searchTerm, startDate, endDate, minAmount, maxAmount, currentYearOnly, paymentMethodFilter, paymentStatusFilter, levels.length, semesters.length, teachers.length]);
 
   useEffect(() => {
     fetchData();
@@ -214,6 +220,44 @@ const FinancePage: React.FC = () => {
     } catch (error) {
       console.error("Error creating payment", error);
       window.alert(t('finance.errors.payment_error', "Une erreur est survenue lors du paiement. Veuillez réessayer."));
+    }
+  };
+
+  const handleSearchStudents = async (query: string): Promise<Option[]> => {
+    try {
+      const response = await api.get(`/students/?search=${query}`);
+      return (response.data.results || []).map((s: any) => ({
+        id: s.id,
+        label: s.user_name || `${s.first_name} ${s.last_name}`,
+        subLabel: s.student_id
+      }));
+    } catch (error) {
+      console.error("Error searching students", error);
+      return [];
+    }
+  };
+
+  const handleStudentChange = async (studentId: string | number) => {
+    setPaymentForm(prev => ({ ...prev, student: studentId.toString() }));
+    if (studentId) {
+      try {
+        const response = await api.get(`/students/${studentId}/`);
+        const studentDetail = response.data;
+        if (studentDetail.current_level) {
+          setPaymentForm(prev => ({ ...prev, level: studentDetail.current_level.toString() }));
+        }
+        // Store program-specific levels for filtering the dropdown
+        if (studentDetail.program_levels) {
+          setStudentProgramLevels(studentDetail.program_levels);
+        } else {
+          setStudentProgramLevels([]);
+        }
+      } catch (error) {
+        console.error("Error fetching student details", error);
+      }
+    } else {
+      setPaymentForm(prev => ({ ...prev, level: '' }));
+      setStudentProgramLevels([]);
     }
   };
 
@@ -462,14 +506,158 @@ const FinancePage: React.FC = () => {
     <div className="bg-white rounded-xl shadow-sm border border-gray-200">
       <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
         <h3 className="font-semibold text-gray-700">{t('finance.payments.title')}</h3>
-        <button
-          onClick={() => setShowPaymentModal(true)}
-          className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium"
-        >
-          <PlusIcon className="h-5 w-5 mr-2" />
-          {t('finance.payments.new')}
-        </button>
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={async () => {
+              try {
+                const blob = await financeService.exportPayments();
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', 'paiements.xlsx');
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+              } catch (error) {
+                console.error('Export error:', error);
+              }
+            }}
+            className="flex items-center px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium"
+          >
+            <ArrowDownTrayIcon className="h-4 w-4 mr-1" />
+            {t('finance.payments.export', 'Exporter')}
+          </button>
+          <button
+            onClick={() => setShowImportModal(true)}
+            className="flex items-center px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 text-sm font-medium"
+          >
+            <DocumentArrowUpIcon className="h-4 w-4 mr-1" />
+            {t('finance.payments.import', 'Importer')}
+          </button>
+          <button
+            onClick={() => setShowPaymentModal(true)}
+            className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium"
+          >
+            <PlusIcon className="h-5 w-5 mr-2" />
+            {t('finance.payments.new')}
+          </button>
+        </div>
       </div>
+
+      {/* Search & Filters */}
+      <div className="p-4 border-b border-gray-200 space-y-3">
+        <div className="flex items-center gap-3">
+          <div className="relative flex-1">
+            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder={t('finance.payments.search_placeholder', 'Rechercher par référence, nom, matricule...')}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+          <button
+            onClick={() => setShowPaymentFilters(!showPaymentFilters)}
+            className={`flex items-center px-3 py-2 border rounded-lg text-sm font-medium transition-colors ${
+              showPaymentFilters || paymentMethodFilter || paymentStatusFilter || startDate || endDate || minAmount || maxAmount
+                ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" /></svg>
+            {t('finance.payments.filters', 'Filtres')}
+          </button>
+        </div>
+
+        {showPaymentFilters && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2 border-t border-gray-100">
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">{t('finance.payments.filter.date_from', 'Date début')}</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="w-full border border-gray-300 rounded-md text-sm px-2 py-1.5 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">{t('finance.payments.filter.date_to', 'Date fin')}</label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="w-full border border-gray-300 rounded-md text-sm px-2 py-1.5 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">{t('finance.payments.filter.method', 'Méthode')}</label>
+              <select
+                value={paymentMethodFilter}
+                onChange={(e) => setPaymentMethodFilter(e.target.value)}
+                className="w-full border border-gray-300 rounded-md text-sm px-2 py-1.5 focus:ring-indigo-500 focus:border-indigo-500"
+              >
+                <option value="">{t('common.all', 'Tous')}</option>
+                <option value="CASH">{t('finance.payment_methods.CASH', 'Espèces')}</option>
+                <option value="BANK_TRANSFER">{t('finance.payment_methods.BANK_TRANSFER', 'Virement')}</option>
+                <option value="MOBILE_MONEY">{t('finance.payment_methods.MOBILE_MONEY', 'Mobile Money')}</option>
+                <option value="CHECK">{t('finance.payment_methods.CHECK', 'Chèque')}</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">{t('finance.payments.filter.status', 'Statut')}</label>
+              <select
+                value={paymentStatusFilter}
+                onChange={(e) => setPaymentStatusFilter(e.target.value)}
+                className="w-full border border-gray-300 rounded-md text-sm px-2 py-1.5 focus:ring-indigo-500 focus:border-indigo-500"
+              >
+                <option value="">{t('common.all', 'Tous')}</option>
+                <option value="COMPLETED">{t('finance.status.COMPLETED', 'Complété')}</option>
+                <option value="PENDING">{t('finance.status.PENDING', 'En attente')}</option>
+                <option value="FAILED">{t('finance.status.FAILED', 'Échoué')}</option>
+                <option value="REFUNDED">{t('finance.status.REFUNDED', 'Remboursé')}</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">{t('finance.payments.filter.min_amount', 'Montant min')}</label>
+              <input
+                type="number"
+                value={minAmount}
+                onChange={(e) => setMinAmount(e.target.value)}
+                placeholder="0"
+                className="w-full border border-gray-300 rounded-md text-sm px-2 py-1.5 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">{t('finance.payments.filter.max_amount', 'Montant max')}</label>
+              <input
+                type="number"
+                value={maxAmount}
+                onChange={(e) => setMaxAmount(e.target.value)}
+                placeholder="∞"
+                className="w-full border border-gray-300 rounded-md text-sm px-2 py-1.5 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+            <div className="flex items-end">
+              <button
+                onClick={() => {
+                  setSearchTerm('');
+                  setStartDate('');
+                  setEndDate('');
+                  setMinAmount('');
+                  setMaxAmount('');
+                  setPaymentMethodFilter('');
+                  setPaymentStatusFilter('');
+                }}
+                className="w-full px-3 py-1.5 text-sm text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+              >
+                {t('common.reset', 'Réinitialiser')}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
 
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
@@ -508,7 +696,12 @@ const FinancePage: React.FC = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {t(`finance.payment_methods.${payment.payment_method}`, payment.payment_method_display)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{payment.payment_date}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{payment.payment_date}</div>
+                    <div className="text-xs text-gray-400">
+                      {(payment as any).created_at ? new Date((payment as any).created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : ''}
+                    </div>
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">{getStatusBadge(payment.status)}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
                     {payment.status === 'PENDING' && (
@@ -560,13 +753,40 @@ const FinancePage: React.FC = () => {
       <div className="bg-white rounded-xl shadow-sm border border-gray-200">
         <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
           <h3 className="font-semibold text-gray-700">{t('finance.salaries.title')}</h3>
-          <button
-            onClick={() => setShowSalaryModal(true)}
-            className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium"
-          >
-            <PlusIcon className="h-5 w-5 mr-2" />
-            {t('finance.salaries.new')}
-          </button>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={async () => {
+                try {
+                  const blob = await financeService.exportSalaries();
+                  const url = window.URL.createObjectURL(blob);
+                  const link = document.createElement('a');
+                  link.href = url;
+                  link.setAttribute('download', 'salaires.xlsx');
+                  document.body.appendChild(link);
+                  link.click();
+                  link.remove();
+                } catch (error) { console.error('Export error:', error); }
+              }}
+              className="flex items-center px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium"
+            >
+              <ArrowDownTrayIcon className="h-4 w-4 mr-1" />
+              {t('finance.salaries.export', 'Exporter')}
+            </button>
+            <button
+              onClick={() => setShowSalaryImportModal(true)}
+              className="flex items-center px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 text-sm font-medium"
+            >
+              <DocumentArrowUpIcon className="h-4 w-4 mr-1" />
+              {t('finance.salaries.import', 'Importer')}
+            </button>
+            <button
+              onClick={() => setShowSalaryModal(true)}
+              className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium"
+            >
+              <PlusIcon className="h-5 w-5 mr-2" />
+              {t('finance.salaries.new')}
+            </button>
+          </div>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
@@ -593,7 +813,12 @@ const FinancePage: React.FC = () => {
                 filteredSalaries.map((salary) => (
                   <tr key={salary.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{salary.employee_name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{salary.month}/{salary.year}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{salary.month}/{salary.year}</div>
+                      <div className="text-xs text-gray-400">
+                        {(salary as any).created_at ? new Date((salary as any).created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : ''}
+                      </div>
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">{formatCurrency(salary.base_salary)}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-green-600">+{formatCurrency(salary.bonuses)}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-red-600">-{formatCurrency(salary.deductions)}</td>
@@ -650,13 +875,40 @@ const FinancePage: React.FC = () => {
       <div className="bg-white rounded-xl shadow-sm border border-gray-200">
         <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
           <h3 className="font-semibold text-gray-700">{t('finance.expenses.title')}</h3>
-          <button
-            onClick={() => setShowExpenseModal(true)}
-            className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium"
-          >
-            <PlusIcon className="h-5 w-5 mr-2" />
-            {t('finance.expenses.new')}
-          </button>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={async () => {
+                try {
+                  const blob = await financeService.exportExpenses();
+                  const url = window.URL.createObjectURL(blob);
+                  const link = document.createElement('a');
+                  link.href = url;
+                  link.setAttribute('download', 'depenses.xlsx');
+                  document.body.appendChild(link);
+                  link.click();
+                  link.remove();
+                } catch (error) { console.error('Export error:', error); }
+              }}
+              className="flex items-center px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium"
+            >
+              <ArrowDownTrayIcon className="h-4 w-4 mr-1" />
+              {t('finance.expenses.export', 'Exporter')}
+            </button>
+            <button
+              onClick={() => setShowExpenseImportModal(true)}
+              className="flex items-center px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 text-sm font-medium"
+            >
+              <DocumentArrowUpIcon className="h-4 w-4 mr-1" />
+              {t('finance.expenses.import', 'Importer')}
+            </button>
+            <button
+              onClick={() => setShowExpenseModal(true)}
+              className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium"
+            >
+              <PlusIcon className="h-5 w-5 mr-2" />
+              {t('finance.expenses.new')}
+            </button>
+          </div>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
@@ -678,7 +930,12 @@ const FinancePage: React.FC = () => {
               ) : (
                 filteredExpenses.map((expense) => (
                   <tr key={expense.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{expense.date}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{expense.date}</div>
+                      <div className="text-xs text-gray-400">
+                        {(expense as any).created_at ? new Date((expense as any).created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : ''}
+                      </div>
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                         {t(`finance.expense_categories.${expense.category}`, expense.category)}
@@ -725,6 +982,7 @@ const FinancePage: React.FC = () => {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('finance.recovery.table.student')}</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('university.level.title', 'Niveau')}</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('finance.recovery.table.program')}</th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">{t('finance.recovery.table.total_due')}</th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">{t('finance.recovery.table.paid')}</th>
@@ -746,37 +1004,40 @@ const FinancePage: React.FC = () => {
                   const isGoodPayer = percentPaid >= 0.60;
                   
                   return (
-                  <tr key={item.id} className={`hover:bg-gray-50 ${isGoodPayer ? 'bg-green-50/50' : ''}`}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {item.student_name}
-                      <div className="text-xs text-gray-500">{item.student_matricule}</div>
-                      {isGoodPayer && (
-                         <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 mt-1">
-                           {Math.round(percentPaid * 100)}% {t('finance.recovery.paid')}
-                         </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.student_program || 'N/A'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">{formatCurrency(item.total_due)}</td>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm text-right ${isGoodPayer ? 'text-green-700 font-bold' : 'text-green-600'}`}>{formatCurrency(item.total_paid)}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-red-600 font-bold">{formatCurrency(item.balance)}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
-                        {t('finance.recovery.unpaid')}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button
-                        onClick={() => {
-                          setPaymentForm(prev => ({ ...prev, student: item.student || item.student_id, amount: item.balance }));
-                          setShowPaymentModal(true);
-                        }}
-                        className="text-indigo-600 hover:text-indigo-900"
-                      >
-                        {t('common.actions.pay', 'Payer')}
-                      </button>
-                    </td>
-                  </tr>
+                    <tr key={item.id} className={`hover:bg-gray-50 ${isGoodPayer ? 'bg-green-50/50' : ''}`}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {item.student_name}
+                        <div className="text-xs text-gray-500">{item.student_matricule}</div>
+                        {isGoodPayer && (
+                           <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 mt-1">
+                             {Math.round(percentPaid * 100)}% {t('finance.recovery.paid')}
+                           </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {item.student_level || '-'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.student_program || 'N/A'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">{formatCurrency(item.total_due)}</td>
+                      <td className={`px-6 py-4 whitespace-nowrap text-sm text-right ${isGoodPayer ? 'text-green-700 font-bold' : 'text-green-600'}`}>{formatCurrency(item.total_paid)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-red-600 font-bold">{formatCurrency(item.balance)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                          {t('finance.recovery.unpaid')}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button
+                          onClick={() => {
+                            setPaymentForm(prev => ({ ...prev, student: item.student || item.student_id, amount: item.balance }));
+                            setShowPaymentModal(true);
+                          }}
+                          className="text-indigo-600 hover:text-indigo-900"
+                        >
+                          {t('common.actions.pay', 'Payer')}
+                        </button>
+                      </td>
+                    </tr>
                   );
                 })
               )}
@@ -805,20 +1066,14 @@ const FinancePage: React.FC = () => {
 
           <form onSubmit={handleCreatePayment} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">{t('finance.modals.payment.labels.student')}</label>
-              <select
+              <SearchableSelect
+                label={t('finance.modals.payment.labels.student')}
                 required
                 value={paymentForm.student}
-                onChange={(e) => setPaymentForm({ ...paymentForm, student: e.target.value })}
-                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              >
-                <option value="">{t('finance.modals.payment.labels.select_student')}</option>
-                {students.map(student => (
-                  <option key={student.id} value={student.id}>
-                    {student.user_name} ({student.student_id})
-                  </option>
-                ))}
-              </select>
+                onChange={handleStudentChange}
+                onSearch={handleSearchStudents}
+                placeholder={t('finance.modals.payment.labels.select_student')}
+              />
             </div>
 
             {studentStatement && (
@@ -854,37 +1109,20 @@ const FinancePage: React.FC = () => {
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">{t('finance.modals.payment.labels.level')}</label>
-                <select
-                  value={paymentForm.level}
-                  onChange={(e) => setPaymentForm({ ...paymentForm, level: e.target.value })}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                >
-                  <option value="">{t('finance.modals.payment.labels.select')}</option>
-                  {levels.map(level => (
-                    <option key={level.id} value={level.id}>
-                      {level.display_name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">{t('finance.modals.payment.labels.semester')}</label>
-                <select
-                  value={paymentForm.semester}
-                  onChange={(e) => setPaymentForm({ ...paymentForm, semester: e.target.value })}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                >
-                  <option value="">{t('finance.modals.payment.labels.select')}</option>
-                  {semesters.map(semester => (
-                    <option key={semester.id} value={semester.id}>
-                      {semester.semester_type}
-                    </option>
-                  ))}
-                </select>
-              </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">{t('finance.modals.payment.labels.level')}</label>
+              <select
+                value={paymentForm.level}
+                onChange={(e) => setPaymentForm({ ...paymentForm, level: e.target.value })}
+                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              >
+                <option value="">{t('finance.modals.payment.labels.select')}</option>
+                {(studentProgramLevels.length > 0 ? studentProgramLevels : levels).map(level => (
+                  <option key={level.id} value={level.id}>
+                    {level.display_name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>
@@ -1192,6 +1430,31 @@ const FinancePage: React.FC = () => {
       {renderPaymentModal()}
       {renderExpenseModal()}
       {renderSalaryModal()}
+      <PaymentExcelImportModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        onRefresh={fetchData}
+      />
+      <FinanceExcelImportModal
+        isOpen={showSalaryImportModal}
+        onClose={() => setShowSalaryImportModal(false)}
+        onRefresh={fetchData}
+        title="Importer des Salaires (Excel)"
+        requiredColumns="Email, Mois, Année, Salaire de base, Primes, Déductions"
+        importFn={financeService.importSalaries}
+        downloadTemplateFn={financeService.downloadSalaryTemplate}
+        templateFileName="template_import_salaires.xlsx"
+      />
+      <FinanceExcelImportModal
+        isOpen={showExpenseImportModal}
+        onClose={() => setShowExpenseImportModal(false)}
+        onRefresh={fetchData}
+        title="Importer des Dépenses (Excel)"
+        requiredColumns="Date, Catégorie, Description, Montant"
+        importFn={financeService.importExpenses}
+        downloadTemplateFn={financeService.downloadExpenseTemplate}
+        templateFileName="template_import_depenses.xlsx"
+      />
     </div>
   );
 };

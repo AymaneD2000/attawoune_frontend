@@ -339,16 +339,19 @@ const ProgramsPage: React.FC = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">{t('structure.programs.modal.tuition', 'Frais de scolarité standard (annuel)')}</label>
+                                    <label className="block text-sm font-medium text-gray-700">{t('structure.programs.modal.tuition', 'Frais de scolarité')}</label>
                                     <input
                                         type="number"
                                         required
+                                        readOnly={Object.values(formData.fees_config).some(v => v && parseFloat(v) > 0)}
                                         value={formData.tuition_fee}
                                         onChange={(e) => setFormData({ ...formData, tuition_fee: e.target.value })}
-                                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                        className={`mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${Object.values(formData.fees_config).some(v => v && parseFloat(v) > 0) ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                                     />
                                     <p className="mt-1 text-xs text-gray-500">
-                                        {t('structure.programs.modal.tuition_hint', 'Sera utilisé par défaut si aucun tarif spécifique n\'est défini pour un niveau.')}
+                                        {Object.values(formData.fees_config).some(v => v && parseFloat(v) > 0)
+                                            ? t('structure.programs.modal.tuition_auto_hint', 'Calculé automatiquement à partir des frais par niveau.')
+                                            : t('structure.programs.modal.tuition_hint', 'Sera utilisé par défaut si aucun tarif spécifique n\'est défini pour un niveau.')}
                                     </p>
                                 </div>
                                 {formData.levels.length > 0 && (
@@ -366,13 +369,29 @@ const ProgramsPage: React.FC = () => {
                                                             type="text"
                                                             placeholder={formData.tuition_fee || "0"}
                                                             value={formData.fees_config[level.id] || ''}
-                                                            onChange={(e) => setFormData({
-                                                                ...formData,
-                                                                fees_config: {
+                                                            onChange={(e) => {
+                                                                const newFeesConfig = {
                                                                     ...formData.fees_config,
                                                                     [level.id]: e.target.value
+                                                                };
+                                                                // Auto-calculate tuition_fee as sum of per-level fees
+                                                                const hasAnyFee = Object.values(newFeesConfig).some(v => v && parseFloat(v as string) > 0);
+                                                                let newTuitionFee = formData.tuition_fee;
+                                                                if (hasAnyFee) {
+                                                                    let total = 0;
+                                                                    formData.levels.forEach(lid => {
+                                                                        const feeStr = newFeesConfig[lid as any];
+                                                                        const fee = feeStr ? parseFloat(feeStr as string) : 0;
+                                                                        if (fee > 0) total += fee;
+                                                                    });
+                                                                    newTuitionFee = total.toString();
                                                                 }
-                                                            })}
+                                                                setFormData({
+                                                                    ...formData,
+                                                                    fees_config: newFeesConfig,
+                                                                    tuition_fee: newTuitionFee
+                                                                });
+                                                            }}
                                                             className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                                                         />
                                                     </div>

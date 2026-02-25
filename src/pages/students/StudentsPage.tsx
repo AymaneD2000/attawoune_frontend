@@ -5,6 +5,7 @@ import { Student, PaginatedResponse } from '../../types';
 import studentService from '../../services/studentService';
 import StudentFormModal from './StudentFormModal';
 import StudentDetailModal from './StudentDetailsModal';
+import ExcelImportModal from './ExcelImportModal';
 
 const StudentsPage: React.FC = () => {
   const { t } = useTranslation();
@@ -19,6 +20,7 @@ const StudentsPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState('');
   const [currentYearOnly, setCurrentYearOnly] = useState(true);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [showImportModal, setShowImportModal] = useState(false);
 
   const handleDownloadIDCard = async (student: Student) => {
     try {
@@ -50,6 +52,26 @@ const StudentsPage: React.FC = () => {
     } catch (err) {
       console.error('Error downloading bulk ID cards:', err);
       alert('Erreur lors du téléchargement groupé');
+    }
+  };
+
+  const handleExport = async () => {
+    try {
+      const blob = await studentService.exportStudents({
+        search: searchTerm,
+        status: statusFilter || undefined,
+        current_year_only: currentYearOnly,
+      });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'etudiants.xlsx');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (err) {
+      console.error('Error exporting students:', err);
+      alert('Erreur lors de l’exportation Excel');
     }
   };
 
@@ -118,17 +140,24 @@ const StudentsPage: React.FC = () => {
           <p className="text-gray-500 mt-1">{t('students.subtitle', { count: totalCount, defaultValue: `${totalCount} étudiants au total` })}</p>
         </div>
         <div className="flex gap-2">
-          {selectedIds.length > 0 && (
-            <button
-              onClick={handleBulkDownload}
-              className="bg-white border border-gray-300 text-gray-700 px-4 py-3 rounded-xl font-medium hover:bg-gray-50 transition-all duration-200 flex items-center gap-2"
-            >
-              <svg className="w-5 h-5 rtl:mirror" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-              </svg>
-              {t('students.actions.download_cards', 'Télécharger Cartes')} ({selectedIds.length})
-            </button>
-          )}
+          <button
+            onClick={() => setShowImportModal(true)}
+            className="bg-white border border-gray-300 text-gray-700 px-4 py-3 rounded-xl font-medium hover:bg-gray-50 transition-all duration-200 flex items-center gap-2"
+          >
+            <svg className="w-5 h-5 rtl:mirror text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0l-4 4m4-4v12" />
+            </svg>
+            {t('students.actions.import_excel', 'Importer')}
+          </button>
+          <button
+            onClick={handleExport}
+            className="bg-white border border-gray-300 text-gray-700 px-4 py-3 rounded-xl font-medium hover:bg-gray-50 transition-all duration-200 flex items-center gap-2"
+          >
+            <svg className="w-5 h-5 rtl:mirror text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            {t('students.actions.export_excel', 'Exporter')}
+          </button>
           <button
             onClick={() => {
               setStudentToEdit(null);
@@ -365,6 +394,13 @@ const StudentsPage: React.FC = () => {
           }}
         />
       )}
+
+      {/* Excel Import Modal */}
+      <ExcelImportModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        onRefresh={fetchStudents}
+      />
     </div>
   );
 };

@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import LanguageSwitcher from '../common/LanguageSwitcher';
+import logo from '../../assets/logo.jpeg';
 
 interface NavItem {
   key: string;
@@ -183,16 +184,18 @@ const Sidebar: React.FC = () => {
     >
       {/* Header */}
       <div className="h-16 flex items-center justify-between px-4 border-b border-gray-800 shrink-0">
-        {!collapsed && (
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="font-bold text-lg">A</span>
-            </div>
+        <div className="flex items-center gap-2">
+          <img
+            src={logo}
+            alt="DSS logo"
+            className="w-10 h-10 rounded-lg object-contain bg-white p-1"
+          />
+          {!collapsed && (
             <h1 className="text-lg font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
               Attawoune
             </h1>
-          </div>
-        )}
+          )}
+        </div>
         <button
           onClick={() => setCollapsed(!collapsed)}
           className={`p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-colors ${collapsed ? 'mx-auto' : ''}`}

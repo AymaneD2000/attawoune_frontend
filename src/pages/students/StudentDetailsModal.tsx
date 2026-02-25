@@ -69,11 +69,11 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({ student, onClos
     }, [activeTab, fetchData]);
 
     const downloadReportCard = async (id: number) => {
-        window.open(`${process.env.REACT_APP_API_URL || 'http://localhost:8000/api/v1'}/academics/report-cards/${id}/download_pdf/`, '_blank');
+        window.open(`${process.env.REACT_APP_API_URL || 'http://localhost:8001/api/v1'}/academics/report-cards/${id}/download_pdf/`, '_blank');
     };
 
     const downloadStatement = async () => {
-        window.open(`${process.env.REACT_APP_API_URL || 'http://localhost:8000/api/v1'}/finance/student-balances/download_statement/?student_id=${student.id}`, '_blank');
+        window.open(`${process.env.REACT_APP_API_URL || 'http://localhost:8001/api/v1'}/finance/student-balances/download_statement/?student_id=${student.id}`, '_blank');
     };
 
     return (
