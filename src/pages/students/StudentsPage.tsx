@@ -38,6 +38,7 @@ const StudentsPage: React.FC = () => {
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleBulkDownload = async () => {
     if (selectedIds.length === 0) return;
     try {

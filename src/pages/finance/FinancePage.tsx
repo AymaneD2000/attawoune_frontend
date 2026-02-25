@@ -52,7 +52,6 @@ const FinancePage: React.FC = () => {
   const [salaries, setSalaries] = useState<Salary[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [outstandingBalances, setOutstandingBalances] = useState<any[]>([]);
-  const [students, setStudents] = useState<any[]>([]);
   const [teachers, setTeachers] = useState<any[]>([]);
   const [studentStatement, setStudentStatement] = useState<any>(null);
   const [levels, setLevels] = useState<Level[]>([]);
