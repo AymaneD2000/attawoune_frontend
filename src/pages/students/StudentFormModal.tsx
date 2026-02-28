@@ -327,7 +327,7 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({ onClose, onSuccess,
                     >
                         <option value="">{t('students.form.placeholders.select', 'Sélectionner')}</option>
                         {programs.map(p => (
-                            <option key={p.id} value={p.id}>{p.name}</option>
+                            <option key={p.id} value={p.id}>{p.code} - {p.name}</option>
                         ))}
                     </select>
                 </div>

@@ -104,7 +104,7 @@ const CoursesPage: React.FC = () => {
           <select className="px-4 py-2 border rounded-lg">
             <option value="">{t('courses.filters.all_programs', 'Tous les programmes')}</option>
             {programs.map(p => (
-              <option key={p.id} value={p.id}>{p.name}</option>
+              <option key={p.id} value={p.id}>{p.code} - {p.name}</option>
             ))}
           </select>
           <select className="px-4 py-2 border rounded-lg">

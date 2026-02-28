@@ -59,18 +59,29 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ user, onClose, onSuccess 
         setError(null);
 
         try {
+            const payload: any = { ...formData };
+            if (!payload.email) delete payload.email;
+            if (!payload.date_of_birth) delete payload.date_of_birth;
+            if (!payload.phone) delete payload.phone;
+            if (!payload.address) delete payload.address;
+
             if (user) {
                 // Update
-                const { password, password_confirm, username, email, ...updateData } = formData;
+                const { password, password_confirm, username, email, ...updateData } = payload;
                 await userService.updateUser(user.id, updateData as any);
             } else {
                 // Create
-                await userService.createUser(formData);
+                await userService.createUser(payload);
             }
             onSuccess();
         } catch (err: any) {
             console.error('Error saving user:', err);
-            setError(err.response?.data || { detail: 'An error occurred' });
+            const errorData = err.response?.data;
+            if (typeof errorData === 'object') {
+                setError(errorData);
+            } else {
+                setError({ detail: errorData || 'Une erreur est survenue' });
+            }
         } finally {
             setLoading(false);
         }
@@ -120,7 +131,6 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ user, onClose, onSuccess 
                                 <input
                                     type="email"
                                     name="email"
-                                    required
                                     disabled={!!user}
                                     value={formData.email}
                                     onChange={handleChange}

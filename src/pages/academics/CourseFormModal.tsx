@@ -132,7 +132,7 @@ const CourseFormModal: React.FC<CourseFormModalProps> = ({ course, programs, lev
                             >
                                 <option value="">Sélectionner...</option>
                                 {programs.map(p => (
-                                    <option key={p.id} value={p.id}>{p.name}</option>
+                                    <option key={p.id} value={p.id}>{p.code} - {p.name}</option>
                                 ))}
                             </select>
                         </div>
