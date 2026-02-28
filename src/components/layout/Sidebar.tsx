@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import LanguageSwitcher from '../common/LanguageSwitcher';
-import logo from '../../assets/logo.jpeg';
+
 
 interface NavItem {
   key: string;
@@ -185,11 +185,9 @@ const Sidebar: React.FC = () => {
       {/* Header */}
       <div className="h-16 flex items-center justify-between px-4 border-b border-gray-800 shrink-0">
         <div className="flex items-center gap-2">
-          <img
-            src={logo}
-            alt="DSS logo"
-            className="w-10 h-10 rounded-lg object-contain bg-white p-1"
-          />
+          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">
+            A
+          </div>
           {!collapsed && (
             <h1 className="text-lg font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
               Attawoune

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../../services/api';
-import logo from '../../assets/logo.jpeg';
+
 
 const RegisterPage: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -51,11 +51,9 @@ const RegisterPage: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
-          <img
-            src={logo}
-            alt="DSS logo"
-            className="mx-auto h-24 w-24 object-contain"
-          />
+          <h1 className="text-center text-5xl font-extrabold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+            Attawoune
+          </h1>
           <h2 className="mt-4 text-center text-3xl font-extrabold text-gray-900">
             Université Attawoune
           </h2>
