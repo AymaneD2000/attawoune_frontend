@@ -81,7 +81,7 @@ const TeacherFormModal: React.FC<TeacherFormModalProps> = ({ onClose, onSuccess,
     };
 
     const validateStep1 = (): boolean => {
-        if (!userData.first_name || !userData.last_name || !userData.email || !userData.username || !userData.date_of_birth) {
+        if (!userData.first_name || !userData.last_name) {
             setError(t('teachers.form.errors.required_fields', 'Veuillez remplir tous les champs obligatoires'));
             return false;
         }
@@ -113,14 +113,24 @@ const TeacherFormModal: React.FC<TeacherFormModalProps> = ({ onClose, onSuccess,
                 } as any);
             } else {
                 // Create new teacher
+                const randomNum = Math.floor(Math.random() * 900) + 100;
+                const autoUsername = `ens_${userData.first_name.toLowerCase().replace(/\s/g, '_')}_${userData.last_name.toLowerCase().replace(/\s/g, '_')}_${randomNum}`;
                 const birthYear = userData.date_of_birth ? new Date(userData.date_of_birth).getFullYear() : new Date().getFullYear();
                 const generatedPassword = `${userData.first_name}${userData.last_name}@${birthYear}`.replace(/\s/g, '');
 
-                const userResponse = await userService.createUser({
+                const userPayload: any = {
                     ...userData,
+                    username: autoUsername,
                     password: generatedPassword,
                     password_confirm: generatedPassword
-                });
+                };
+
+                if (!userPayload.email) delete userPayload.email;
+                if (!userPayload.date_of_birth) delete userPayload.date_of_birth;
+                if (!userPayload.phone) delete userPayload.phone;
+                if (!userPayload.address) delete userPayload.address;
+
+                const userResponse = await userService.createUser(userPayload);
 
                 await teacherService.createTeacher({
                     ...teacherData,
@@ -165,7 +175,7 @@ const TeacherFormModal: React.FC<TeacherFormModalProps> = ({ onClose, onSuccess,
                 </div>
             </div>
             <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{t('teachers.form.labels.email', 'Email *')}</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('teachers.form.labels.email', 'Email')}</label>
                 <input
                     type="email"
                     name="email"
@@ -174,22 +184,13 @@ const TeacherFormModal: React.FC<TeacherFormModalProps> = ({ onClose, onSuccess,
                     onChange={handleUserChange}
                 />
             </div>
-            <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{t('teachers.form.labels.username', "Nom d'utilisateur *")}</label>
-                <input
-                    type="text"
-                    name="username"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500"
-                    value={userData.username}
-                    onChange={handleUserChange}
-                />
-            </div>
+
             <div className="p-4 bg-yellow-50 text-yellow-800 rounded-lg text-sm">
                 <span className="font-semibold">Note:</span> {t('teachers.form.notes.password_auto', "Le mot de passe sera généré automatiquement (PrénomNom@Année). L'utilisateur pourra le modifier ultérieurement.")}
             </div>
             <div className="grid grid-cols-2 gap-4">
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('teachers.form.labels.date_of_birth', 'Date de naissance *')}</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('teachers.form.labels.date_of_birth', 'Date de naissance')}</label>
                     <input
                         type="date"
                         name="date_of_birth"
@@ -375,7 +376,7 @@ const TeacherFormModal: React.FC<TeacherFormModalProps> = ({ onClose, onSuccess,
                                 type="button"
                                 onClick={goToNextStep}
                                 className="ml-auto px-6 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 disabled:opacity-50"
-                                disabled={!userData.first_name || !userData.last_name || !userData.email || !userData.username}
+                                disabled={!userData.first_name || !userData.last_name}
                             >
                                 {t('teachers.form.buttons.next', 'Suivant')}
                             </button>
