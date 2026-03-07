@@ -23,21 +23,25 @@ const UsersPage: React.FC = () => {
     const [showUserModal, setShowUserModal] = useState(false);
     const [showPasswordModal, setShowPasswordModal] = useState(false);
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalUsers, setTotalUsers] = useState(0);
 
     const fetchUsers = useCallback(async () => {
         setLoading(true);
         try {
             const data = await userService.getUsers({
                 search: searchQuery,
-                role: roleFilter || undefined
+                role: roleFilter || undefined,
+                page: currentPage
             });
-            setUsers(data.results);
+            setUsers(data.results || []);
+            setTotalUsers(data.count || 0);
         } catch (error) {
             console.error('Error fetching users:', error);
         } finally {
             setLoading(false);
         }
-    }, [searchQuery, roleFilter]);
+    }, [searchQuery, roleFilter, currentPage]);
 
     useEffect(() => {
         fetchUsers();
@@ -98,7 +102,10 @@ const UsersPage: React.FC = () => {
                                 type="text"
                                 placeholder={t('common.search')}
                                 value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onChange={(e) => {
+                                    setSearchQuery(e.target.value);
+                                    setCurrentPage(1);
+                                }}
                                 className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all rtl:pl-4 rtl:pr-12 bg-white"
                             />
                         </div>
@@ -106,7 +113,10 @@ const UsersPage: React.FC = () => {
                             <FunnelIcon className="h-4 w-4 text-gray-400 absolute left-4 top-1/2 transform -translate-y-1/2 rtl:left-auto rtl:right-4" />
                             <select
                                 value={roleFilter}
-                                onChange={(e) => setRoleFilter(e.target.value)}
+                                onChange={(e) => {
+                                    setRoleFilter(e.target.value);
+                                    setCurrentPage(1);
+                                }}
                                 className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all rtl:pl-4 rtl:pr-10 appearance-none bg-white font-medium"
                             >
                                 <option value="">{t('admin.users.filters.all_roles')}</option>
@@ -220,6 +230,40 @@ const UsersPage: React.FC = () => {
                                 )}
                             </tbody>
                         </table>
+                    </div>
+                )}
+                
+                {/* Pagination */}
+                {!loading && (
+                    <div className="p-4 border-t border-gray-100 bg-gray-50 bg-opacity-50 flex flex-col md:flex-row justify-between items-center gap-4">
+                        <div className="text-sm text-gray-500 font-medium">
+                            {t('common.showing', 'Affichage de')} <span className="font-bold text-gray-900">{(currentPage - 1) * 10 + 1}</span> {t('common.to', 'à')} <span className="font-bold text-gray-900">{Math.min(currentPage * 10, totalUsers)}</span> {t('common.of', 'sur')} <span className="font-bold text-gray-900">{totalUsers}</span> {t('common.results', 'résultats')}
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                                disabled={currentPage === 1}
+                                className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-white disabled:opacity-50 disabled:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-medium flex items-center gap-2 group"
+                            >
+                                <svg className="w-4 h-4 text-gray-400 group-hover:text-indigo-500 rtl:rotate-180 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                </svg>
+                                <span className="text-gray-700 group-hover:text-indigo-600 transition-colors">{t('common.prev', 'Précédent')}</span>
+                            </button>
+                            <span className="px-4 py-2 bg-indigo-600 text-white rounded-lg font-bold shadow-sm">
+                                {currentPage}
+                            </span>
+                            <button
+                                onClick={() => setCurrentPage((p) => p + 1)}
+                                disabled={users.length < 10 || currentPage * 10 >= totalUsers}
+                                className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-white disabled:opacity-50 disabled:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-medium flex items-center gap-2 group"
+                            >
+                                <span className="text-gray-700 group-hover:text-indigo-600 transition-colors">{t('common.next', 'Suivant')}</span>
+                                <svg className="w-4 h-4 text-gray-400 group-hover:text-indigo-500 rtl:rotate-180 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                 )}
             </div>

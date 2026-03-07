@@ -129,7 +129,11 @@ export interface Student {
   id: number;
   user: number;
   user_full_name: string;
+  first_name: string;
+  last_name: string;
+  date_of_birth?: string | null;
   user_email: string;
+  user_phone?: string;
   student_id: string;
   program: number;
   program_name: string;

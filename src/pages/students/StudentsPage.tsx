@@ -236,7 +236,10 @@ const StudentsPage: React.FC = () => {
                     />
                   </th>
                   <th className="px-6 py-4 text-start text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    {t('students.table.student', 'Étudiant')}
+                    {t('students.table.last_name', 'Nom')}
+                  </th>
+                  <th className="px-6 py-4 text-start text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    {t('students.table.first_name', 'Prénom')}
                   </th>
                   <th className="px-6 py-4 text-start text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     {t('students.table.program', 'Programme')}
@@ -278,16 +281,19 @@ const StudentsPage: React.FC = () => {
                         <div className="flex items-center gap-4">
                           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-semibold shadow-md overflow-hidden">
                             {student.photo ? (
-                              <img src={student.photo} alt={student.user_full_name} className="w-full h-full object-cover" />
+                              <img src={student.photo} alt={student.last_name || student.user_full_name} className="w-full h-full object-cover" />
                             ) : (
-                              student.user_full_name?.charAt(0).toUpperCase() || 'E'
+                              (student.last_name || student.user_full_name || 'E').charAt(0).toUpperCase()
                             )}
                           </div>
                           <div>
-                            <p className="font-semibold text-gray-900">{student.user_full_name}</p>
+                            <p className="font-semibold text-gray-900">{student.last_name || student.user_full_name}</p>
                             <p className="text-sm text-gray-500">{student.student_id}</p>
                           </div>
                         </div>
+                      </td>
+                      <td className="px-6 py-4 text-gray-900 font-medium">
+                        {student.first_name || '-'}
                       </td>
                       <td className="px-6 py-4 text-gray-600">
                         {student.program_name || 'N/A'}

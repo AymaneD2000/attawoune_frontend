@@ -134,11 +134,22 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({ student, onClos
                     ) : (
                         <>
                             {activeTab === 'info' && (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <InfoCard label={t('students.details.info.program', 'Programme')} value={student.program_name || 'N/A'} />
-                                    <InfoCard label={t('students.details.info.level', 'Niveau')} value={student.level_display || 'N/A'} />
-                                    <InfoCard label={t('students.details.info.status', 'Statut')} value={student.status || 'N/A'} />
-                                    <InfoCard label={t('students.details.info.enrollment_date', "Date d'inscription")} value={student.enrollment_date || 'N/A'} />
+                                <div className="space-y-6">
+                                    <h3 className="text-lg font-bold text-gray-900 border-b pb-2">{t('students.details.info.personal_info', 'Informations Personnelles')}</h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <InfoCard label={t('students.details.info.last_name', 'Nom')} value={student.last_name || 'N/A'} />
+                                        <InfoCard label={t('students.details.info.first_name', 'Prénom')} value={student.first_name || 'N/A'} />
+                                        <InfoCard label={t('students.details.info.date_of_birth', 'Date de naissance')} value={student.date_of_birth ? new Date(student.date_of_birth).toLocaleDateString() : 'N/A'} />
+                                        <InfoCard label={t('students.details.info.email', 'Email')} value={student.user_email || 'N/A'} />
+                                        <InfoCard label={t('students.details.info.phone', 'Téléphone')} value={student.user_phone || 'N/A'} />
+                                    </div>
+                                    <h3 className="text-lg font-bold text-gray-900 border-b pb-2 mt-6">{t('students.details.info.academic_info', 'Informations Académiques')}</h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <InfoCard label={t('students.details.info.program', 'Programme')} value={student.program_name || 'N/A'} />
+                                        <InfoCard label={t('students.details.info.level', 'Niveau')} value={student.level_display || 'N/A'} />
+                                        <InfoCard label={t('students.details.info.status', 'Statut')} value={student.status || 'N/A'} />
+                                        <InfoCard label={t('students.details.info.enrollment_date', "Date d'inscription")} value={student.enrollment_date ? new Date(student.enrollment_date).toLocaleDateString() : 'N/A'} />
+                                    </div>
                                 </div>
                             )}
 

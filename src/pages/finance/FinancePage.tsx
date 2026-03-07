@@ -44,14 +44,20 @@ const FinancePage: React.FC = () => {
     setMaxAmount('');
     setPaymentMethodFilter('');
     setPaymentStatusFilter('');
+    setPaymentsPage(1);
+    setRecoveryPage(1);
   }, [activeTab]);
 
   // Data States
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [payments, setPayments] = useState<TuitionPayment[]>([]);
+  const [paymentsPage, setPaymentsPage] = useState(1);
+  const [paymentsTotal, setPaymentsTotal] = useState(0);
   const [salaries, setSalaries] = useState<Salary[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [outstandingBalances, setOutstandingBalances] = useState<any[]>([]);
+  const [recoveryPage, setRecoveryPage] = useState(1);
+  const [recoveryTotal, setRecoveryTotal] = useState(0);
   const [teachers, setTeachers] = useState<any[]>([]);
   const [studentStatement, setStudentStatement] = useState<any>(null);
   const [levels, setLevels] = useState<Level[]>([]);
@@ -121,8 +127,10 @@ const FinancePage: React.FC = () => {
         const data = await financeService.getDashboardStats();
         setDashboardData(data);
       } else if (activeTab === 'payments') {
+        params.page = paymentsPage;
         const data = await financeService.getPayments(params);
-        setPayments(data.results);
+        setPayments(data.results || []);
+        setPaymentsTotal(data.count || 0);
 
         if (levels.length === 0) {
             const levelsRes = await universityService.getLevels();
@@ -144,15 +152,17 @@ const FinancePage: React.FC = () => {
         const data = await financeService.getExpenses(params);
         setExpenses(data.results);
       } else if (activeTab === 'recovery') {
+        params.page = recoveryPage;
         const data = await financeService.getOutstandingBalances(params);
         setOutstandingBalances(data.results || []);
+        setRecoveryTotal(data.count || 0);
       }
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
       setLoading(false);
     }
-  }, [activeTab, searchTerm, startDate, endDate, minAmount, maxAmount, currentYearOnly, paymentMethodFilter, paymentStatusFilter, levels.length, semesters.length, teachers.length]);
+  }, [activeTab, searchTerm, startDate, endDate, minAmount, maxAmount, currentYearOnly, paymentMethodFilter, paymentStatusFilter, levels.length, semesters.length, teachers.length, paymentsPage, recoveryPage]);
 
   useEffect(() => {
     fetchData();
@@ -718,6 +728,38 @@ const FinancePage: React.FC = () => {
           </tbody>
         </table>
       </div>
+      
+      {/* Pagination Payments */}
+      <div className="p-4 border-t border-gray-200 bg-gray-50 flex flex-col md:flex-row justify-between items-center gap-4 rounded-b-xl">
+        <div className="text-sm text-gray-500">
+          {t('common.showing', 'Affichage de')} <span className="font-medium">{(paymentsPage - 1) * 10 + 1}</span> {t('common.to', 'à')} <span className="font-medium">{Math.min(paymentsPage * 10, paymentsTotal)}</span> {t('common.of', 'sur')} <span className="font-medium">{paymentsTotal}</span> {t('common.results', 'résultats')}
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setPaymentsPage((p) => Math.max(1, p - 1))}
+            disabled={paymentsPage === 1}
+            className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+          >
+            <svg className="w-4 h-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            {t('common.prev', 'Précédent')}
+          </button>
+          <span className="px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium">
+            {paymentsPage}
+          </span>
+          <button
+            onClick={() => setPaymentsPage((p) => p + 1)}
+            disabled={payments.length < 10 || paymentsPage * 10 >= paymentsTotal}
+            className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+          >
+            {t('common.next', 'Suivant')}
+            <svg className="w-4 h-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+      </div>
     </div>
   );
 
@@ -1042,6 +1084,38 @@ const FinancePage: React.FC = () => {
               )}
             </tbody>
           </table>
+        </div>
+        
+        {/* Pagination Recovery */}
+        <div className="p-4 border-t border-gray-200 bg-gray-50 flex flex-col md:flex-row justify-between items-center gap-4 rounded-b-xl">
+          <div className="text-sm text-gray-500">
+            {t('common.showing', 'Affichage de')} <span className="font-medium">{(recoveryPage - 1) * 10 + 1}</span> {t('common.to', 'à')} <span className="font-medium">{Math.min(recoveryPage * 10, recoveryTotal)}</span> {t('common.of', 'sur')} <span className="font-medium">{recoveryTotal}</span> {t('common.results', 'résultats')}
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setRecoveryPage((p) => Math.max(1, p - 1))}
+              disabled={recoveryPage === 1}
+              className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+            >
+              <svg className="w-4 h-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              {t('common.prev', 'Précédent')}
+            </button>
+            <span className="px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium">
+              {recoveryPage}
+            </span>
+            <button
+              onClick={() => setRecoveryPage((p) => p + 1)}
+              disabled={outstandingBalances.length < 10 || recoveryPage * 10 >= recoveryTotal}
+              className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+            >
+              {t('common.next', 'Suivant')}
+              <svg className="w-4 h-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
     </div>
