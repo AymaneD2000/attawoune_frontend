@@ -7,14 +7,20 @@ import {
     TrashIcon,
     KeyIcon,
     UserCircleIcon,
-    FunnelIcon
+    FunnelIcon,
+    CheckCircleIcon
 } from '@heroicons/react/24/outline';
 import userService from '../../services/userService';
 import { User } from '../../types';
 import UserFormModal from './UserFormModal';
 import ChangePasswordModal from './ChangePasswordModal';
+import { useAuth } from '../../context/AuthContext';
 
 const UsersPage: React.FC = () => {
+    const { user: currentUser } = useAuth();
+    const isAdmin = currentUser?.role === 'ADMIN';
+    const isDean = currentUser?.role === 'DEAN';
+    const canSeeFilters = isAdmin || isDean;
     const { t } = useTranslation();
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
@@ -25,6 +31,7 @@ const UsersPage: React.FC = () => {
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalUsers, setTotalUsers] = useState(0);
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
     const fetchUsers = useCallback(async () => {
         setLoading(true);
@@ -81,6 +88,7 @@ const UsersPage: React.FC = () => {
                         {t('admin.users.subtitle')}
                     </p>
                 </div>
+                {isAdmin && (
                 <button
                     onClick={() => {
                         setSelectedUser(null);
@@ -91,9 +99,11 @@ const UsersPage: React.FC = () => {
                     <PlusIcon className="h-5 w-5 mr-2 rtl:ml-2 rtl:mr-0 stroke-2" />
                     <span className="font-bold">{t('admin.users.actions.new')}</span>
                 </button>
+                )}
             </div>
 
             <div className="bg-white rounded-2xl shadow-xl shadow-gray-100 border border-gray-100 overflow-hidden">
+                {canSeeFilters && (
                 <div className="p-6 border-b border-gray-100 bg-gray-50 bg-opacity-30">
                     <div className="flex flex-col md:flex-row gap-4">
                         <div className="relative flex-grow group">
@@ -127,6 +137,7 @@ const UsersPage: React.FC = () => {
                         </div>
                     </div>
                 </div>
+                )}
 
                 {loading ? (
                     <div className="p-20 text-center flex flex-col items-center">
@@ -210,6 +221,7 @@ const UsersPage: React.FC = () => {
                                                 >
                                                     <KeyIcon className="h-5 w-5" />
                                                 </button>
+                                                {isAdmin && (
                                                 <button
                                                     onClick={() => handleDelete(user)}
                                                     className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
@@ -217,6 +229,7 @@ const UsersPage: React.FC = () => {
                                                 >
                                                     <TrashIcon className="h-5 w-5" />
                                                 </button>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>
@@ -275,6 +288,12 @@ const UsersPage: React.FC = () => {
                     onSuccess={() => {
                         setShowUserModal(false);
                         fetchUsers();
+                        setSuccessMessage(
+                            selectedUser 
+                                ? t('admin.users.messages.update_success', 'Utilisateur mis à jour avec succès') 
+                                : t('admin.users.messages.create_success', 'Utilisateur créé avec succès')
+                        );
+                        setTimeout(() => setSuccessMessage(null), 3000);
                     }}
                 />
             )}
@@ -285,9 +304,20 @@ const UsersPage: React.FC = () => {
                     onClose={() => setShowPasswordModal(false)}
                     onSuccess={() => {
                         setShowPasswordModal(false);
-                        alert(t('admin.users.modal.password_success', 'Mot de passe modifié avec succès'));
+                        setSuccessMessage(t('admin.users.modal.password_success', 'Mot de passe modifié avec succès'));
+                        setTimeout(() => setSuccessMessage(null), 3000);
                     }}
                 />
+            )}
+
+            {/* Success Toast Notification */}
+            {successMessage && (
+                <div className="fixed bottom-4 right-4 z-50 animate-fade-in-up">
+                    <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg shadow-lg flex items-center gap-3">
+                        <CheckCircleIcon className="h-6 w-6 text-green-500" />
+                        <span className="font-medium">{successMessage}</span>
+                    </div>
+                </div>
             )}
         </div>
     );

@@ -143,7 +143,26 @@ const TeacherFormModal: React.FC<TeacherFormModalProps> = ({ onClose, onSuccess,
             onClose();
         } catch (err: any) {
             console.error('Error saving teacher:', err);
-            setError(err.response?.data?.detail || err.response?.data?.error || JSON.stringify(err.response?.data) || t('teachers.form.errors.save_error', 'Erreur lors de la sauvegarde'));
+            
+            let errorMessage = t('teachers.form.errors.save_error', 'Erreur lors de la sauvegarde');
+            if (err.response?.data) {
+                if (typeof err.response.data.detail === 'string') {
+                    errorMessage = err.response.data.detail;
+                } else if (typeof err.response.data.error === 'string') {
+                    errorMessage = err.response.data.error;
+                } else if (err.response.data.message && typeof err.response.data.message === 'string') {
+                    errorMessage = err.response.data.message;
+                } else {
+                    // Try to extract first string from an object of arrays (DRF standard)
+                    const firstKey = Object.keys(err.response.data)[0];
+                    if (firstKey && Array.isArray(err.response.data[firstKey])) {
+                        errorMessage = `${firstKey}: ${err.response.data[firstKey][0]}`;
+                    } else if (firstKey && typeof err.response.data[firstKey] === 'string') {
+                        errorMessage = err.response.data[firstKey];
+                    }
+                }
+            }
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }

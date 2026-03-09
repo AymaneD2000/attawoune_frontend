@@ -18,7 +18,7 @@ const LoginPage: React.FC = () => {
     setLoading(true);
 
     try {
-      await login(username, password);
+      await login(username.trim(), password);
       navigate('/dashboard');
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Identifiants incorrects');
@@ -104,12 +104,6 @@ const LoginPage: React.FC = () => {
             >
               {loading ? 'Connexion...' : 'Se connecter'}
             </button>
-          </div>
-
-          <div className="text-center">
-            <Link to="/register" className="text-sm text-primary-600 hover:text-primary-500">
-              Pas encore inscrit ? Créer un compte
-            </Link>
           </div>
         </form>
       </div>

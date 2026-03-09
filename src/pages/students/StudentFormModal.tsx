@@ -209,18 +209,30 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({ onClose, onSuccess,
             onClose();
         } catch (err: any) {
             console.error('Error saving student:', err);
-            const errorData = err.response?.data;
-            const errorMessage = typeof errorData === 'string'
-                ? errorData
-                : errorData?.message || errorData?.detail || errorData?.error || t('students.form.errors.save_error', 'Erreur lors de la sauvegarde');
-
-            setError(typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage));
-
-            if (errorData && typeof errorData === 'object') {
-                if (errorData.username) setError(`${t('students.form.labels.username')}: ${errorData.username}`);
-                if (errorData.email) setError(`${t('students.form.labels.email')}: ${errorData.email}`);
-                if (errorData.student_id) setError(`${t('deliberation.table.matricule')}: ${errorData.student_id}`);
+            
+            let errorMessage = t('students.form.errors.save_error', 'Erreur lors de la sauvegarde');
+            if (err.response?.data) {
+                if (typeof err.response.data === 'string') {
+                    errorMessage = err.response.data;
+                } else if (typeof err.response.data.detail === 'string') {
+                    errorMessage = err.response.data.detail;
+                } else if (typeof err.response.data.error === 'string') {
+                    errorMessage = err.response.data.error;
+                } else if (err.response.data.message && typeof err.response.data.message === 'string') {
+                    errorMessage = err.response.data.message;
+                } else {
+                    const firstKey = Object.keys(err.response.data)[0];
+                    if (firstKey) {
+                        if (Array.isArray(err.response.data[firstKey])) {
+                            errorMessage = `${firstKey}: ${err.response.data[firstKey][0]}`;
+                        } else if (typeof err.response.data[firstKey] === 'string') {
+                            errorMessage = err.response.data[firstKey];
+                        }
+                    }
+                }
             }
+
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }

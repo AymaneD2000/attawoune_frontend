@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import userService from '../../services/userService';
 import { User } from '../../types';
+import { useAuth } from '../../context/AuthContext';
 
 interface UserFormModalProps {
     user?: User | null;
@@ -12,6 +13,8 @@ interface UserFormModalProps {
 
 const UserFormModal: React.FC<UserFormModalProps> = ({ user, onClose, onSuccess }) => {
     const { t } = useTranslation();
+    const { user: currentUser } = useAuth();
+    const isAdmin = currentUser?.role === 'ADMIN';
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<any>(null);
 
@@ -32,8 +35,8 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ user, onClose, onSuccess 
 
     useEffect(() => {
         if (user) {
-            setFormData({
-                ...formData,
+            setFormData(prev => ({
+                ...prev,
                 username: user.username,
                 email: user.email,
                 first_name: user.first_name,
@@ -43,9 +46,9 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ user, onClose, onSuccess 
                 address: user.address || '',
                 date_of_birth: user.date_of_birth || '',
                 is_active: user.is_active,
-            });
+            }));
         }
-    }, [user, formData]);
+    }, [user]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value, type } = e.target;
@@ -59,7 +62,11 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ user, onClose, onSuccess 
         setError(null);
 
         try {
-            const payload: any = { ...formData };
+            const payload: any = { 
+                ...formData, 
+                username: formData.username.trim(),
+                email: formData.email.trim()
+            };
             if (!payload.email) delete payload.email;
             if (!payload.date_of_birth) delete payload.date_of_birth;
             if (!payload.phone) delete payload.phone;
@@ -67,7 +74,17 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ user, onClose, onSuccess 
 
             if (user) {
                 // Update
-                const { password, password_confirm, username, email, ...updateData } = payload;
+                const { username, ...updateData } = payload;
+                
+                if (!isAdmin) {
+                    delete updateData.role;
+                    delete updateData.is_active;
+                }
+                if (!updateData.password) {
+                    delete updateData.password;
+                    delete updateData.password_confirm;
+                }
+
                 await userService.updateUser(user.id, updateData as any);
             } else {
                 // Create
@@ -131,10 +148,10 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ user, onClose, onSuccess 
                                 <input
                                     type="email"
                                     name="email"
-                                    disabled={!!user}
+                                    disabled={!!user && !isAdmin}
                                     value={formData.email}
                                     onChange={handleChange}
-                                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all ${user ? 'bg-gray-50 bg-opacity-50 cursor-not-allowed' : ''} ${error?.email ? 'border-red-500' : 'border-gray-300'}`}
+                                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all ${(user && !isAdmin) ? 'bg-gray-50 bg-opacity-50 cursor-not-allowed' : ''} ${error?.email ? 'border-red-500' : 'border-gray-300'}`}
                                 />
                                 {error?.email && <p className="mt-1 text-xs text-red-500">{error.email}</p>}
                             </div>
@@ -170,8 +187,8 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ user, onClose, onSuccess 
                                     name="role"
                                     value={formData.role}
                                     onChange={handleChange}
-                                    disabled={!!user}
-                                    className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all ${user ? 'bg-gray-50 bg-opacity-50 cursor-not-allowed text-gray-500' : ''}`}
+                                    disabled={!isAdmin}
+                                    className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all ${!isAdmin ? 'bg-gray-50 bg-opacity-50 cursor-not-allowed text-gray-500' : ''}`}
                                 >
                                     {roles.map(role => (
                                         <option key={role} value={role}>{t(`admin.users.roles.${role}`)}</option>
@@ -182,33 +199,33 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ user, onClose, onSuccess 
 
                         {/* Passwords / Additional Info */}
                         <div className="space-y-4">
-                            {!user ? (
-                                <>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.users.modal.password')}</label>
-                                        <input
-                                            type="password"
-                                            name="password"
-                                            required
-                                            value={formData.password}
-                                            onChange={handleChange}
-                                            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all ${error?.password ? 'border-red-500' : 'border-gray-300'}`}
-                                        />
-                                        {error?.password && <p className="mt-1 text-xs text-red-500">{error.password}</p>}
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.users.modal.password_confirm')}</label>
-                                        <input
-                                            type="password"
-                                            name="password_confirm"
-                                            required
-                                            value={formData.password_confirm}
-                                            onChange={handleChange}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
-                                        />
-                                    </div>
-                                </>
-                            ) : (
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    {t('admin.users.modal.password')} {user && <span className="text-gray-400 font-normal text-xs ml-1">(Laissez vide pour conserver)</span>}
+                                </label>
+                                <input
+                                    type="password"
+                                    name="password"
+                                    required={!user}
+                                    value={formData.password}
+                                    onChange={handleChange}
+                                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all ${error?.password ? 'border-red-500' : 'border-gray-300'}`}
+                                />
+                                {error?.password && <p className="mt-1 text-xs text-red-500">{error.password}</p>}
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.users.modal.password_confirm')}</label>
+                                <input
+                                    type="password"
+                                    name="password_confirm"
+                                    required={!user}
+                                    value={formData.password_confirm}
+                                    onChange={handleChange}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                                />
+                            </div>
+
+                            {user && (
                                 <>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.users.modal.phone')}</label>
@@ -227,9 +244,10 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ user, onClose, onSuccess 
                                             id="is_active"
                                             checked={formData.is_active}
                                             onChange={handleChange as any}
-                                            className="h-5 w-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded transition-all"
+                                            disabled={!isAdmin}
+                                            className={`h-5 w-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded transition-all ${!isAdmin ? 'opacity-50 cursor-not-allowed' : ''}`}
                                         />
-                                        <label htmlFor="is_active" className="text-sm font-medium text-gray-700">
+                                        <label htmlFor="is_active" className={`text-sm font-medium ${!isAdmin ? 'text-gray-400' : 'text-gray-700'}`}>
                                             {t('admin.users.modal.is_active')}
                                         </label>
                                     </div>

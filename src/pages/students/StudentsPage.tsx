@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 import { Student, PaginatedResponse } from '../../types';
 import studentService from '../../services/studentService';
@@ -9,6 +10,8 @@ import ExcelImportModal from './ExcelImportModal';
 
 const StudentsPage: React.FC = () => {
   const { t } = useTranslation();
+  const { user: currentUser } = useAuth();
+  const canManageUsers = ['ADMIN', 'DEAN', 'SECRETARY'].includes(currentUser?.role || '');
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -140,37 +143,41 @@ const StudentsPage: React.FC = () => {
           <h1 className="text-3xl font-bold text-gray-900">{t('students.title', 'Gestion des Étudiants')}</h1>
           <p className="text-gray-500 mt-1">{t('students.subtitle', { count: totalCount, defaultValue: `${totalCount} étudiants au total` })}</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 text-sm md:text-base overflow-x-auto pb-2 md:pb-0">
+          {canManageUsers && (
           <button
             onClick={() => setShowImportModal(true)}
-            className="bg-white border border-gray-300 text-gray-700 px-4 py-3 rounded-xl font-medium hover:bg-gray-50 transition-all duration-200 flex items-center gap-2"
+            className="bg-white border border-gray-300 text-gray-700 px-4 py-3 rounded-xl font-medium hover:bg-gray-50 transition-all duration-200 flex items-center gap-2 whitespace-nowrap shadow-sm"
           >
             <svg className="w-5 h-5 rtl:mirror text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0l-4 4m4-4v12" />
             </svg>
-            {t('students.actions.import_excel', 'Importer')}
+            <span className="hidden sm:inline">{t('students.actions.import', 'Importer')}</span>
           </button>
+          )}
           <button
             onClick={handleExport}
-            className="bg-white border border-gray-300 text-gray-700 px-4 py-3 rounded-xl font-medium hover:bg-gray-50 transition-all duration-200 flex items-center gap-2"
+            className="bg-white border border-gray-300 text-gray-700 px-4 py-3 rounded-xl font-medium hover:bg-gray-50 transition-all duration-200 flex items-center gap-2 whitespace-nowrap shadow-sm"
           >
-            <svg className="w-5 h-5 rtl:mirror text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 rtl:mirror text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
-            {t('students.actions.export_excel', 'Exporter')}
+            <span className="hidden sm:inline">{t('students.actions.export', 'Exporter')}</span>
           </button>
+          {canManageUsers && (
           <button
             onClick={() => {
               setStudentToEdit(null);
               setShowCreateModal(true);
             }}
-            className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-xl font-medium hover:shadow-lg transition-all duration-200 flex items-center gap-2"
+            className="bg-indigo-600 text-white px-4 py-3 rounded-xl font-medium hover:bg-indigo-700 transition-all duration-200 shadow-lg shadow-indigo-200 flex items-center gap-2 whitespace-nowrap transform hover:-translate-y-0.5 active:translate-y-0"
           >
             <svg className="w-5 h-5 rtl:mirror" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
-            {t('students.actions.new_student', 'Nouvel Étudiant')}
+            <span className="hidden sm:inline">{t('students.actions.add', 'Ajouter')}</span>
           </button>
+          )}
         </div>
       </div>
 

@@ -36,28 +36,28 @@ const Sidebar: React.FC = () => {
       key: 'academics',
       icon: '🎓',
       items: [
-        { key: 'students', path: '/students', icon: '👨‍🎓', roles: ['ADMIN', 'DEAN', 'SECRETARY'] },
-        { key: 'teachers', path: '/teachers', icon: '👨‍🏫', roles: ['ADMIN', 'DEAN'] },
-        { key: 'courses', path: '/academics/courses', icon: '📚' },
-        { key: 'grades', path: '/academics/grades', icon: '📝', roles: ['ADMIN', 'TEACHER', 'STUDENT'] },
+        { key: 'students', path: '/students', icon: '👨‍🎓', roles: ['ADMIN', 'DEAN', 'SECRETARY', 'ACCOUNTANT'] },
+        { key: 'teachers', path: '/teachers', icon: '👨‍🏫', roles: ['ADMIN', 'DEAN', 'ACCOUNTANT', 'SECRETARY'] },
+        { key: 'courses', path: '/academics/courses', icon: '📚', roles: ['ADMIN', 'DEAN', 'TEACHER', 'STUDENT'] },
+        { key: 'grades', path: '/academics/grades', icon: '📝', roles: ['ADMIN', 'TEACHER', 'STUDENT', 'DEAN'] },
         { key: 'deliberation', path: '/academics/deliberation', icon: '⚖️', roles: ['ADMIN', 'DEAN'] },
       ]
     },
     {
       key: 'planning',
       icon: '📅',
+      roles: ['ADMIN', 'DEAN', 'TEACHER', 'STUDENT'],
       items: [
-        { key: 'scheduling', path: '/scheduling', icon: '🗓️' },
-        { key: 'announcements', path: '/announcements', icon: '📢' },
+        { key: 'scheduling', path: '/scheduling', icon: '🗓️', roles: ['ADMIN', 'DEAN', 'TEACHER', 'STUDENT'] },
+        { key: 'announcements', path: '/announcements', icon: '📢', roles: ['ADMIN', 'DEAN', 'TEACHER', 'STUDENT'] },
       ]
     },
-    { key: 'finance', path: '/finance', icon: '💰', roles: ['ADMIN', 'ACCOUNTANT'] },
+    { key: 'finance', path: '/finance', icon: '💰', roles: ['ADMIN', 'ACCOUNTANT', 'SECRETARY', 'DEAN'] },
     {
       key: 'administration',
       icon: '🏛️',
       roles: ['ADMIN'],
       items: [
-        { key: 'users', path: '/admin/users', icon: '👤', roles: ['ADMIN'] },
         { key: 'faculties', path: '/university/faculties', icon: '🏢', roles: ['ADMIN'] },
         { key: 'departments', path: '/university/departments', icon: '🏬', roles: ['ADMIN'] },
         { key: 'programs', path: '/university/programs', icon: '🎓', roles: ['ADMIN', 'DEAN'] },
@@ -66,7 +66,8 @@ const Sidebar: React.FC = () => {
         { key: 'levels', path: '/university/levels', icon: '⭐', roles: ['ADMIN'] },
         { key: 'audit-logs', path: '/admin/audit', icon: '📜', roles: ['ADMIN'] },
       ]
-    }
+    },
+    { key: 'users', path: '/admin/users', icon: '👤' }
   ], []);
 
   // Auto-open group based on current path

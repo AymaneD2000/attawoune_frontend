@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 import { Teacher, PaginatedResponse } from '../../types';
 import TeacherFormModal from './TeacherFormModal';
@@ -24,6 +25,8 @@ interface TeacherSchedule {
 
 const TeachersPage: React.FC = () => {
   const { t, i18n } = useTranslation();
+  const { user: currentUser } = useAuth();
+  const canManageUsers = ['ADMIN', 'DEAN', 'SECRETARY'].includes(currentUser?.role || '');
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -117,6 +120,7 @@ const TeachersPage: React.FC = () => {
             <h1 className="text-2xl font-bold text-white">{t('teachers.title', 'Gestion des Enseignants')}</h1>
             <p className="text-teal-100 mt-1">{t('teachers.subtitle', 'Gérer le corps professoral et leurs affectations')}</p>
           </div>
+          {canManageUsers && (
           <button
             onClick={() => setShowCreateModal(true)}
             className="bg-white text-teal-600 px-5 py-2.5 rounded-xl font-semibold hover:bg-teal-50 transition-all shadow-md flex items-center gap-2"
@@ -126,6 +130,7 @@ const TeachersPage: React.FC = () => {
             </svg>
             {t('teachers.actions.new_teacher', 'Nouvel Enseignant')}
           </button>
+          )}
         </div>
       </div>
 
@@ -279,6 +284,7 @@ const TeachersPage: React.FC = () => {
                 </button>
               </div>
               {/* Edit Button */}
+              {canManageUsers && (
               <button
                 onClick={() => {
                   setShowModal(false);
@@ -291,6 +297,7 @@ const TeachersPage: React.FC = () => {
                 </svg>
                 {t('teachers.actions.edit', 'Modifier')}
               </button>
+              )}
             </div>
 
             {/* Tabs */}

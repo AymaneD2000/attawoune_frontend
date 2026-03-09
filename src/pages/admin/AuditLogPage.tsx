@@ -5,6 +5,10 @@ import api from '../../services/api';
 interface AuditLog {
     id: number;
     user_name: string;
+    user_email?: string;
+    user_username?: string;
+    user_first_name?: string;
+    user_last_name?: string;
     action: string;
     model_name: string;
     object_id: string;
@@ -138,8 +142,21 @@ const AuditLogPage: React.FC = () => {
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {new Date(log.timestamp).toLocaleString()}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                            {log.user_name || 'Système'}
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            {log.user_username ? (
+                                                <div className="flex flex-col">
+                                                    <span className="text-sm font-bold text-gray-900">
+                                                        {log.user_first_name} {log.user_last_name}
+                                                    </span>
+                                                    <span className="text-xs text-gray-500 font-medium">
+                                                        {log.user_username} • {log.user_email}
+                                                    </span>
+                                                </div>
+                                            ) : (
+                                                <span className="text-sm font-medium text-gray-900">
+                                                    {log.user_name || 'Système'}
+                                                </span>
+                                            )}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
@@ -234,7 +251,11 @@ const AuditLogPage: React.FC = () => {
                                     Détails du Log #{selectedLog.id}
                                 </h3>
                                 <div className="mt-4 text-sm text-gray-600">
-                                    <p><strong>Utilisateur:</strong> {selectedLog.user_name || 'Système'}</p>
+                                    <div className="mb-4">
+                                        <p><strong>Utilisateur:</strong> {selectedLog.user_username ? (
+                                            <span>{selectedLog.user_first_name} {selectedLog.user_last_name} ({selectedLog.user_username} - {selectedLog.user_email})</span>
+                                        ) : selectedLog.user_name || 'Système'}</p>
+                                    </div>
                                     <p><strong>Action:</strong> {selectedLog.action}</p>
                                     <p><strong>Cible:</strong> {selectedLog.model_name} #{selectedLog.object_id}</p>
                                     <p><strong>Représentation:</strong> {selectedLog.object_repr}</p>
