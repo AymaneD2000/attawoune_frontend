@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../context/AuthContext";
-import logo from "../../assets/logo.jpeg";
+import logo from "../../assets/logo.jpg";
 
 const LoginPage: React.FC = () => {
   const { t, i18n } = useTranslation();
