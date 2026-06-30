@@ -87,8 +87,12 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
     }
   }, [activeTab, fetchData]);
 
-  const API_BASE_URL =
-    process.env.REACT_APP_API_URL || "https://api.universiter-attawoune.ml/api/v1";
+  const API_BASE_URL = (
+    process.env.REACT_APP_API_URL || "https://api.universiter-attawoune.ml/api/v1"
+  ).replace(
+    "https://api.attawoune.ml/api/v1",
+    "https://api.universiter-attawoune.ml/api/v1",
+  );
 
   const downloadReportCard = async (id: number) => {
     window.open(
