@@ -87,16 +87,19 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
     }
   }, [activeTab, fetchData]);
 
+  const API_BASE_URL =
+    process.env.REACT_APP_API_URL || "https://api.universiter-attawoune.ml/api/v1";
+
   const downloadReportCard = async (id: number) => {
     window.open(
-      `https://api.universiter-attawoune.ml/api/v1/academics/report-cards/${id}/download_pdf/`,
+      `${API_BASE_URL}/academics/report-cards/${id}/download_pdf/`,
       "_blank",
     );
   };
 
   const downloadStatement = async () => {
     window.open(
-      `https://api.universiter-attawoune.ml/api/v1/finance/student-balances/download_statement/?student_id=${student.id}`,
+      `${API_BASE_URL}/finance/student-balances/download_statement/?student_id=${student.id}`,
       "_blank",
     );
   };

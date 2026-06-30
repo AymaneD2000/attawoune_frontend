@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
-import { Course, Semester, Student, AcademicYear } from '../../types';
+import { Course, Semester, Student, AcademicYear, Level } from '../../types';
 import { gradesService } from '../../services/gradesService';
 import ImportGradesModal from './ImportGradesModal';
 import StudentGradesViewModal from './StudentGradesViewModal';
@@ -94,6 +94,23 @@ const EVALUATION_TYPES_LIST: EvaluationType[] = [
   'MIDTERM', 'FINAL', 'QUIZ', 'PRACTICAL', 'PROJECT', 'ORAL', 'RESIT'
 ];
 
+// Curriculum semesters S1-S6 = course Level order (L1/L2/L3) x academic-year
+// semester (S1/S2). The grade still persists to the underlying year Semester.
+const CURRICULUM_SEMESTERS = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'] as const;
+type CurriculumSemester = typeof CURRICULUM_SEMESTERS[number];
+const SEM_MAP: Record<CurriculumSemester, { order: number; yearType: 'S1' | 'S2' }> = {
+  S1: { order: 1, yearType: 'S1' }, S2: { order: 1, yearType: 'S2' },
+  S3: { order: 2, yearType: 'S1' }, S4: { order: 2, yearType: 'S2' },
+  S5: { order: 3, yearType: 'S1' }, S6: { order: 3, yearType: 'S2' },
+};
+// Resolve a curriculum semester code (S1-S6) to the real academic-year Semester id.
+const yearSemId = (code: string, semesters: Semester[]): number | '' => {
+  const m = SEM_MAP[code as CurriculumSemester];
+  if (!m) return '';
+  const s = semesters.find(x => x.semester_type === m.yearType);
+  return s ? s.id : '';
+};
+
 interface Exam {
   id: number;
   course: number;
@@ -113,6 +130,7 @@ const GradesPage: React.FC = () => {
   const [individualGrades, setIndividualGrades] = useState<IndividualGrade[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [semesters, setSemesters] = useState<Semester[]>([]);
+  const [levels, setLevels] = useState<Level[]>([]);
   const [allStudents, setAllStudents] = useState<Student[]>([]);
   const [, setCurrentAcademicYear] = useState<AcademicYear | null>(null);
 
@@ -144,12 +162,13 @@ const GradesPage: React.FC = () => {
   // Fetch exams for filter dropdown
   useEffect(() => {
     const fetchExams = async () => {
-      if (!selectedCourse || !selectedSemester) {
+      const semId = yearSemId(selectedSemester, semesters);
+      if (!selectedCourse || !semId) {
         setExamsForFilter([]);
         return;
       }
       try {
-        const params: any = { course: selectedCourse, semester: selectedSemester, page_size: 50 };
+        const params: any = { course: selectedCourse, semester: semId, page_size: 50 };
         if (selectedEvalType) params.exam_type = selectedEvalType;
         const res = await api.get('/academics/exams/', { params });
         setExamsForFilter(res.data.results || res.data);
@@ -158,7 +177,7 @@ const GradesPage: React.FC = () => {
       }
     };
     fetchExams();
-  }, [selectedCourse, selectedSemester, selectedEvalType]);
+  }, [selectedCourse, selectedSemester, selectedEvalType, semesters]);
   const [gradeInputs, setGradeInputs] = useState<GradeInput[]>([]);
 
   // Bulletin & Modals state
@@ -170,11 +189,6 @@ const GradesPage: React.FC = () => {
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [historyStudent, setHistoryStudent] = useState<Student | null>(null);
 
-  const formatSemesterName = (sem: Semester) => {
-    const typeLabel = sem.semester_type === 'S1' ? t('common.s1', 'Semestre 1') : t('common.s2', 'Semestre 2');
-    return `${typeLabel} (${sem.academic_year_name || sem.academic_year})`;
-  };
-
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
@@ -184,19 +198,21 @@ const GradesPage: React.FC = () => {
         setCurrentAcademicYear(currentYear || null);
 
         // 2. Fetch other data, filtering semesters by current year if available
-        const [coursesRes, semestersRes, studentsRes] = await Promise.all([
-          api.get('/academics/courses/', { params: { page_size: 100 } }),
-          api.get('/university/semesters/', { 
-            params: { 
+        const [coursesRes, semestersRes, studentsRes, levelsRes] = await Promise.all([
+          api.get('/academics/courses/', { params: { page_size: 1000 } }),
+          api.get('/university/semesters/', {
+            params: {
               page_size: 50,
               academic_year: currentYear?.id // Filter by current academic year
-            } 
+            }
           }),
-          api.get('/students/', { params: { page_size: 500, status: 'ACTIVE' } })
+          api.get('/students/', { params: { page_size: 500, status: 'ACTIVE' } }),
+          api.get('/university/levels/', { params: { page_size: 50 } })
         ]);
         setCourses(coursesRes.data.results || coursesRes.data);
         setSemesters(semestersRes.data.results || semestersRes.data);
         setAllStudents(studentsRes.data.results || studentsRes.data);
+        setLevels(levelsRes.data.results || levelsRes.data);
       } catch (err) {
         console.error('Error fetching initial data:', err);
       }
@@ -205,7 +221,8 @@ const GradesPage: React.FC = () => {
   }, []);
 
   const fetchGrades = useCallback(async () => {
-    if (!selectedCourse || !selectedSemester) {
+    const semId = yearSemId(selectedSemester, semesters);
+    if (!selectedCourse || !semId) {
       setGrades([]);
       setIndividualGrades([]);
       return;
@@ -215,13 +232,13 @@ const GradesPage: React.FC = () => {
     setError(null);
     try {
       if (viewMode === 'final') {
-        const params: any = { course: selectedCourse, semester: selectedSemester, page_size: 200 };
+        const params: any = { course: selectedCourse, semester: semId, page_size: 200 };
         if (selectedStudentId) params.student = selectedStudentId;
 
         const response = await api.get('/academics/course-grades/', { params });
         setGrades(response.data.results || response.data);
       } else {
-        const examParams: any = { course: selectedCourse, semester: selectedSemester, page_size: 100 };
+        const examParams: any = { course: selectedCourse, semester: semId, page_size: 100 };
         if (selectedEvalType) examParams.exam_type = selectedEvalType;
 
         // Use examsForFilter if available to avoid double fetch, but best to rely on fresh fetch or current logic
@@ -263,14 +280,15 @@ const GradesPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedCourse, selectedSemester, viewMode, selectedStudentId, selectedEvalType, filterExamId, courses, t]);
+  }, [selectedCourse, selectedSemester, semesters, viewMode, selectedStudentId, selectedEvalType, filterExamId, courses, t]);
 
   useEffect(() => {
     fetchGrades();
   }, [fetchGrades]);
 
   const openGradeModal = async () => {
-    if (!selectedCourse || !selectedSemester) {
+    const semId = yearSemId(selectedSemester, semesters);
+    if (!selectedCourse || !semId) {
       setError(t('grades.empty', 'Veuillez sélectionner un cours et un semestre'));
       return;
     }
@@ -281,7 +299,7 @@ const GradesPage: React.FC = () => {
       if (!course) return;
 
       const examsRes = await api.get('/academics/exams/', {
-        params: { course: selectedCourse, semester: selectedSemester, page_size: 50 }
+        params: { course: selectedCourse, semester: semId, page_size: 50 }
       });
       setExistingExams(examsRes.data.results || examsRes.data);
 
@@ -341,7 +359,7 @@ const GradesPage: React.FC = () => {
       if (!examId) {
         const examRes = await api.post('/academics/exams/', {
           course: parseInt(selectedCourse),
-          semester: parseInt(selectedSemester),
+          semester: yearSemId(selectedSemester, semesters),
           exam_type: selectedEvalType,
           title: examTitle || `${t(`grades.eval_types.${selectedEvalType.toLowerCase()}`)} - ${new Date().toLocaleDateString()}`,
           max_score: parseFloat(maxScore),
@@ -383,7 +401,7 @@ const GradesPage: React.FC = () => {
     try {
       await api.post('/academics/course-grades/calculate_final_grades/', {
         course_id: selectedCourse,
-        semester_id: selectedSemester
+        semester_id: yearSemId(selectedSemester, semesters)
       });
       setSuccess(t('grades.calculate_success', 'Calcul effectué'));
       fetchGrades();
@@ -395,14 +413,15 @@ const GradesPage: React.FC = () => {
   };
 
   const generateBulletin = async (studentId: number) => {
-    if (!selectedSemester) return;
+    const semId = yearSemId(selectedSemester, semesters);
+    if (!semId) return;
     setGeneratingBulletin(true);
     try {
       // 1. Check if report card already exists
       let reportCardId;
       try {
         const checkRes = await api.get('/academics/report-cards/', {
-          params: { student: studentId, semester: selectedSemester }
+          params: { student: studentId, semester: semId }
         });
         if (checkRes.data.results && checkRes.data.results.length > 0) {
           reportCardId = checkRes.data.results[0].id;
@@ -417,7 +436,7 @@ const GradesPage: React.FC = () => {
       if (!reportCardId) {
         const createRes = await api.post('/academics/report-cards/', {
           student: studentId,
-          semester: parseInt(selectedSemester)
+          semester: semId
         });
         reportCardId = createRes.data.id;
       }
@@ -460,22 +479,30 @@ const GradesPage: React.FC = () => {
     return { label: t('grades.mentions.fail'), color: 'text-red-600 bg-red-100' };
   };
 
-  const renderTeacherView = () => (
+  const renderTeacherView = () => {
+    const levelOrderById: Record<number, number> = {};
+    levels.forEach(l => { levelOrderById[l.id] = l.order; });
+    const semMeta = SEM_MAP[selectedSemester as CurriculumSemester];
+    const filteredCourses = semMeta
+      ? courses.filter(c => c.semester_type === semMeta.yearType && levelOrderById[c.level] === semMeta.order)
+      : courses;
+
+    return (
     <div className="space-y-6">
       <div className="bg-white rounded-xl shadow p-6">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <div className="flex flex-col">
-            <label className="text-sm font-medium text-gray-700 mb-1">{t('grades.labels.course', 'Cours')}</label>
-            <select className="px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500" value={selectedCourse} onChange={(e) => setSelectedCourse(e.target.value)}>
-              <option value="">{t('grades.placeholders.select_course')}</option>
-              {courses.map(c => <option key={c.id} value={c.id}>{c.code} - {c.name}</option>)}
+            <label className="text-sm font-medium text-gray-700 mb-1">{t('grades.labels.semester', 'Semestre')}</label>
+            <select className="px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500" value={selectedSemester} onChange={(e) => { setSelectedSemester(e.target.value); setSelectedCourse(''); }}>
+              <option value="">{t('grades.placeholders.select_semester')}</option>
+              {CURRICULUM_SEMESTERS.map(code => <option key={code} value={code}>{`${t('grades.labels.semester', 'Semestre')} ${code.slice(1)}`}</option>)}
             </select>
           </div>
           <div className="flex flex-col">
-            <label className="text-sm font-medium text-gray-700 mb-1">{t('grades.labels.semester', 'Semestre')}</label>
-            <select className="px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500" value={selectedSemester} onChange={(e) => setSelectedSemester(e.target.value)}>
-              <option value="">{t('grades.placeholders.select_semester')}</option>
-              {semesters.map(s => <option key={s.id} value={s.id}>{formatSemesterName(s)}</option>)}
+            <label className="text-sm font-medium text-gray-700 mb-1">{t('grades.labels.course', 'Cours')}</label>
+            <select className="px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500" value={selectedCourse} onChange={(e) => setSelectedCourse(e.target.value)} disabled={!selectedSemester}>
+              <option value="">{t('grades.placeholders.select_course')}</option>
+              {filteredCourses.map(c => <option key={c.id} value={c.id}>{c.code} - {c.name}</option>)}
             </select>
           </div>
           <div className="flex flex-col">
@@ -628,13 +655,14 @@ const GradesPage: React.FC = () => {
         </div>
       </div>
     </div>
-  );
+    );
+  };
 
   const renderStudentView = () => (
     <div className="space-y-6">
       <select className="px-3 py-2 border rounded-lg" value={selectedSemester} onChange={(e) => setSelectedSemester(e.target.value)}>
         <option value="">{t('grades.placeholders.select_semester')}</option>
-        {semesters.map(s => <option key={s.id} value={s.id}>{formatSemesterName(s)}</option>)}
+        {CURRICULUM_SEMESTERS.map(code => <option key={code} value={code}>{`${t('grades.labels.semester', 'Semestre')} ${code.slice(1)}`}</option>)}
       </select>
       <div className="bg-white rounded-xl shadow overflow-hidden">
         <table className="w-full">
