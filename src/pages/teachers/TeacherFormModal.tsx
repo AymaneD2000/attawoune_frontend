@@ -14,7 +14,7 @@ interface TeacherFormModalProps {
 const TeacherFormModal: React.FC<TeacherFormModalProps> = ({ onClose, onSuccess, teacher }) => {
     const { t } = useTranslation();
     const isEditMode = !!teacher;
-    const [step, setStep] = useState(isEditMode ? 2 : 1);
+    const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -59,6 +59,17 @@ const TeacherFormModal: React.FC<TeacherFormModalProps> = ({ onClose, onSuccess,
     // Pre-fill data when editing
     useEffect(() => {
         if (teacher) {
+            setUserData({
+                first_name: teacher.first_name || '',
+                last_name: teacher.last_name || '',
+                email: teacher.user_email || '',
+                username: '',
+                role: 'TEACHER',
+                phone: teacher.user_phone || '',
+                address: teacher.user_address || '',
+                date_of_birth: teacher.user_date_of_birth || '',
+                gender: teacher.user_gender || 'M'
+            });
             setTeacherData({
                 department: teacher.department?.toString() || '',
                 rank: teacher.rank || 'ASSISTANT',
@@ -106,10 +117,16 @@ const TeacherFormModal: React.FC<TeacherFormModalProps> = ({ onClose, onSuccess,
 
         try {
             if (isEditMode && teacher) {
-                // Update existing teacher
                 await teacherService.updateTeacher(teacher.id, {
                     ...teacherData,
                     department: teacherData.department ? parseInt(teacherData.department) : null,
+                    first_name: userData.first_name,
+                    last_name: userData.last_name,
+                    user_email: userData.email,
+                    user_phone: userData.phone,
+                    user_address: userData.address,
+                    user_date_of_birth: userData.date_of_birth || null,
+                    user_gender: userData.gender as 'M' | 'F',
                 } as any);
             } else {
                 // Create new teacher
@@ -143,7 +160,7 @@ const TeacherFormModal: React.FC<TeacherFormModalProps> = ({ onClose, onSuccess,
             onClose();
         } catch (err: any) {
             console.error('Error saving teacher:', err);
-            
+
             let errorMessage = t('teachers.form.errors.save_error', 'Erreur lors de la sauvegarde');
             if (err.response?.data) {
                 if (typeof err.response.data.detail === 'string') {
@@ -202,6 +219,29 @@ const TeacherFormModal: React.FC<TeacherFormModalProps> = ({ onClose, onSuccess,
                     value={userData.email}
                     onChange={handleUserChange}
                 />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('teachers.form.labels.phone', 'Téléphone')}</label>
+                    <input
+                        type="tel"
+                        name="phone"
+                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500"
+                        value={userData.phone}
+                        onChange={handleUserChange}
+                    />
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('teachers.form.labels.address', 'Adresse')}</label>
+                    <input
+                        type="text"
+                        name="address"
+                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500"
+                        value={userData.address}
+                        onChange={handleUserChange}
+                    />
+                </div>
             </div>
 
             <div className="p-4 bg-yellow-50 text-yellow-800 rounded-lg text-sm">
@@ -365,23 +405,20 @@ const TeacherFormModal: React.FC<TeacherFormModalProps> = ({ onClose, onSuccess,
                         </div>
                     )}
 
-                    {/* Step indicator (only show for new teachers) */}
-                    {!isEditMode && (
-                        <div className="mb-6 flex items-center justify-center">
-                            <div className={`w-3 h-3 rounded-full ${step >= 1 ? 'bg-teal-600' : 'bg-gray-300'}`}></div>
-                            <div className={`w-12 h-1 ${step >= 2 ? 'bg-teal-600' : 'bg-gray-200'}`}></div>
-                            <div className={`w-3 h-3 rounded-full ${step >= 2 ? 'bg-teal-600' : 'bg-gray-300'}`}></div>
-                        </div>
-                    )}
+                    <div className="mb-6 flex items-center justify-center">
+                        <div className={`w-3 h-3 rounded-full ${step >= 1 ? 'bg-teal-600' : 'bg-gray-300'}`}></div>
+                        <div className={`w-12 h-1 ${step >= 2 ? 'bg-teal-600' : 'bg-gray-200'}`}></div>
+                        <div className={`w-3 h-3 rounded-full ${step >= 2 ? 'bg-teal-600' : 'bg-gray-300'}`}></div>
+                    </div>
 
                     {/* NO FORM ELEMENT - This prevents accidental submission */}
                     <div>
-                        {step === 1 && !isEditMode ? renderStep1() : renderStep2()}
+                        {step === 1 ? renderStep1() : renderStep2()}
                     </div>
 
                     {/* Navigation Buttons - All are type="button", no form submission */}
                     <div className="mt-8 flex justify-between">
-                        {step === 2 && !isEditMode && (
+                        {step === 2 && (
                             <button
                                 type="button"
                                 onClick={goToPreviousStep}
@@ -390,7 +427,7 @@ const TeacherFormModal: React.FC<TeacherFormModalProps> = ({ onClose, onSuccess,
                                 {t('teachers.form.buttons.prev', 'Précédent')}
                             </button>
                         )}
-                        {step === 1 && !isEditMode ? (
+                        {step === 1 ? (
                             <button
                                 type="button"
                                 onClick={goToNextStep}

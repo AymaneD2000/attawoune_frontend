@@ -23,6 +23,18 @@ interface TeacherSchedule {
   end_time: string;
 }
 
+const getTeacherFullName = (teacher: Teacher): string => {
+  const composedName = [teacher.first_name, teacher.last_name]
+    .filter(Boolean)
+    .join(' ')
+    .trim();
+
+  return teacher.user_full_name || teacher.user_name || composedName || teacher.employee_id;
+};
+
+const getTeacherInitial = (teacher: Teacher): string =>
+  getTeacherFullName(teacher).charAt(0).toUpperCase() || 'E';
+
 const TeachersPage: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { user: currentUser } = useAuth();
@@ -68,13 +80,15 @@ const TeachersPage: React.FC = () => {
   const fetchTeacherDetails = async (teacher: Teacher) => {
     setDetailLoading(true);
     try {
-      // Fetch courses
-      const coursesRes = await api.get(`/teachers/teachers/${teacher.id}/courses/`);
-      setTeacherCourses(coursesRes.data.by_semester || {});
+      const [teacherRes, coursesRes, scheduleRes] = await Promise.all([
+        api.get<Teacher>(`/teachers/teachers/${teacher.id}/`),
+        api.get(`/teachers/teachers/${teacher.id}/courses/`).catch(() => null),
+        api.get(`/teachers/teachers/${teacher.id}/schedules/`).catch(() => null),
+      ]);
 
-      // Fetch schedule
-      const scheduleRes = await api.get(`/teachers/teachers/${teacher.id}/schedules/`);
-      setTeacherSchedule(scheduleRes.data.schedule_by_day || {});
+      setSelectedTeacher(teacherRes.data);
+      setTeacherCourses(coursesRes?.data?.by_semester || {});
+      setTeacherSchedule(scheduleRes?.data?.schedule_by_day || {});
     } catch (error) {
       console.error('Error fetching teacher details:', error);
     } finally {
@@ -183,6 +197,7 @@ const TeachersPage: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {teachers.map((teacher) => {
             const rankStyle = getRankBadge(teacher.rank);
+            const fullName = getTeacherFullName(teacher);
             return (
               <div
                 key={teacher.id}
@@ -190,12 +205,20 @@ const TeachersPage: React.FC = () => {
                 onClick={() => handleViewTeacher(teacher)}
               >
                 <div className="flex items-start gap-4">
-                  <div className="w-14 h-14 bg-gradient-to-br from-teal-400 to-emerald-500 rounded-xl flex items-center justify-center text-white text-xl font-bold shadow-md group-hover:scale-105 transition-transform">
-                    {teacher.user_full_name?.charAt(0) || 'E'}
+                  <div className="w-14 h-14 bg-gradient-to-br from-teal-400 to-emerald-500 rounded-xl flex items-center justify-center text-white text-xl font-bold shadow-md group-hover:scale-105 transition-transform overflow-hidden">
+                    {teacher.user_profile_picture ? (
+                      <img
+                        src={teacher.user_profile_picture}
+                        alt={fullName}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : getTeacherInitial(teacher)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-900 truncate">{teacher.user_full_name}</h3>
-                    <p className="text-sm text-gray-500 truncate">{teacher.user_email}</p>
+                    <h3 className="font-semibold text-gray-900 truncate">{fullName}</h3>
+                    <p className="text-sm text-gray-500 truncate">
+                      {teacher.user_email || teacher.user_phone || t('teachers.details.not_specified', 'Non spécifié')}
+                    </p>
                     <div className="flex items-center gap-2 mt-2">
                       <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium border ${rankStyle.bg} ${rankStyle.text} ${rankStyle.border}`}>
                         <span>{getRankIcon(teacher.rank)}</span>
@@ -263,11 +286,17 @@ const TeachersPage: React.FC = () => {
             <div className="bg-gradient-to-r from-teal-600 to-emerald-500 p-6">
               <div className="flex justify-between items-start">
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center text-white text-2xl font-bold">
-                    {selectedTeacher.user_full_name?.charAt(0) || 'E'}
+                  <div className="w-16 h-16 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center text-white text-2xl font-bold overflow-hidden">
+                    {selectedTeacher.user_profile_picture ? (
+                      <img
+                        src={selectedTeacher.user_profile_picture}
+                        alt={getTeacherFullName(selectedTeacher)}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : getTeacherInitial(selectedTeacher)}
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold text-white">{selectedTeacher.user_full_name}</h2>
+                    <h2 className="text-xl font-bold text-white">{getTeacherFullName(selectedTeacher)}</h2>
                     <p className="text-teal-100">{selectedTeacher.employee_id}</p>
                     <span className="inline-block mt-1 px-3 py-1 bg-white/20 rounded-full text-sm text-white">
                       {selectedTeacher.rank_display}
@@ -329,14 +358,48 @@ const TeachersPage: React.FC = () => {
               ) : (
                 <>
                   {activeTab === 'info' && (
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="p-4 bg-gray-50 rounded-xl">
+                        <p className="text-sm text-gray-500">{t('teachers.form.labels.last_name', 'Nom')}</p>
+                        <p className="font-medium text-gray-900">{selectedTeacher.last_name || t('teachers.details.not_specified', 'Non spécifié')}</p>
+                      </div>
+                      <div className="p-4 bg-gray-50 rounded-xl">
+                        <p className="text-sm text-gray-500">{t('teachers.form.labels.first_name', 'Prénom')}</p>
+                        <p className="font-medium text-gray-900">{selectedTeacher.first_name || t('teachers.details.not_specified', 'Non spécifié')}</p>
+                      </div>
                       <div className="p-4 bg-gray-50 rounded-xl">
                         <p className="text-sm text-gray-500">{t('teachers.details.email', 'Email')}</p>
-                        <p className="font-medium text-gray-900">{selectedTeacher.user_email}</p>
+                        <p className="font-medium text-gray-900 break-words">{selectedTeacher.user_email || t('teachers.details.not_specified', 'Non spécifié')}</p>
+                      </div>
+                      <div className="p-4 bg-gray-50 rounded-xl">
+                        <p className="text-sm text-gray-500">{t('teachers.form.labels.phone', 'Téléphone')}</p>
+                        <p className="font-medium text-gray-900">{selectedTeacher.user_phone || t('teachers.details.not_specified', 'Non spécifié')}</p>
+                      </div>
+                      <div className="p-4 bg-gray-50 rounded-xl">
+                        <p className="text-sm text-gray-500">{t('teachers.form.labels.date_of_birth', 'Date de naissance')}</p>
+                        <p className="font-medium text-gray-900">
+                          {selectedTeacher.user_date_of_birth
+                            ? new Date(selectedTeacher.user_date_of_birth).toLocaleDateString(i18n.language)
+                            : t('teachers.details.not_specified', 'Non spécifiée')}
+                        </p>
+                      </div>
+                      <div className="p-4 bg-gray-50 rounded-xl">
+                        <p className="text-sm text-gray-500">{t('teachers.form.labels.gender', 'Sexe')}</p>
+                        <p className="font-medium text-gray-900">
+                          {selectedTeacher.user_gender === 'F'
+                            ? t('teachers.form.options.female', 'Femme')
+                            : selectedTeacher.user_gender === 'M'
+                              ? t('teachers.form.options.male', 'Homme')
+                              : t('teachers.details.not_specified', 'Non spécifié')}
+                        </p>
                       </div>
                       <div className="p-4 bg-gray-50 rounded-xl">
                         <p className="text-sm text-gray-500">{t('teachers.details.department', 'Département')}</p>
                         <p className="font-medium text-gray-900">{selectedTeacher.department_name || t('teachers.details.not_assigned', 'Non assigné')}</p>
+                      </div>
+                      <div className="p-4 bg-gray-50 rounded-xl">
+                        <p className="text-sm text-gray-500">{t('teachers.details.faculty', 'Faculté')}</p>
+                        <p className="font-medium text-gray-900">{selectedTeacher.faculty_name || t('teachers.details.not_assigned', 'Non assignée')}</p>
                       </div>
                       <div className="p-4 bg-gray-50 rounded-xl">
                         <p className="text-sm text-gray-500">{t('teachers.details.specialization', 'Spécialisation')}</p>
@@ -353,6 +416,14 @@ const TeachersPage: React.FC = () => {
                             ? new Date(selectedTeacher.hire_date).toLocaleDateString(i18n.language)
                             : t('teachers.details.not_specified', 'Non spécifiée')}
                         </p>
+                      </div>
+                      <div className="p-4 bg-gray-50 rounded-xl">
+                        <p className="text-sm text-gray-500">{t('teachers.form.labels.office', 'Bureau')}</p>
+                        <p className="font-medium text-gray-900">{selectedTeacher.office_location || t('teachers.details.not_specified', 'Non spécifié')}</p>
+                      </div>
+                      <div className="p-4 bg-gray-50 rounded-xl md:col-span-2">
+                        <p className="text-sm text-gray-500">{t('teachers.form.labels.address', 'Adresse')}</p>
+                        <p className="font-medium text-gray-900">{selectedTeacher.user_address || t('teachers.details.not_specified', 'Non spécifiée')}</p>
                       </div>
                       <div className="p-4 bg-gray-50 rounded-xl">
                         <p className="text-sm text-gray-500">{t('teachers.details.status', 'Statut')}</p>

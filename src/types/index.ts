@@ -151,11 +151,21 @@ export interface Student {
 export interface Teacher {
   id: number;
   user: number;
-  user_full_name: string;
-  user_email: string;
+  user_name?: string;
+  user_full_name?: string;
+  first_name?: string;
+  last_name?: string;
+  user_email?: string;
+  user_phone?: string;
+  user_address?: string;
+  user_date_of_birth?: string | null;
+  user_gender?: 'M' | 'F';
+  user_profile_picture?: string | null;
   employee_id: string;
-  department: number;
-  department_name: string;
+  department: number | null;
+  department_name?: string;
+  department_code?: string;
+  faculty_name?: string;
   rank: string;
   rank_display: string;
   contract_type: string;
@@ -164,6 +174,8 @@ export interface Teacher {
   specialization: string;
   office_location: string;
   is_active: boolean;
+  courses_count?: number;
+  active_contracts_count?: number;
 }
 
 // Course types
