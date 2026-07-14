@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { PencilSquareIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { ArrowDownTrayIcon, PencilSquareIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import api from "../../services/api";
 import { Student } from "../../types";
 import { StatusPill } from "../../components/common/EntityDisplay";
@@ -80,7 +80,10 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
           { responseType: "blob" },
         );
         const url = window.URL.createObjectURL(new Blob([response.data]));
-        setIdCardUrl(url);
+        setIdCardUrl((previousUrl) => {
+          if (previousUrl) window.URL.revokeObjectURL(previousUrl);
+          return url;
+        });
       }
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -94,6 +97,10 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
       fetchData();
     }
   }, [activeTab, fetchData]);
+
+  useEffect(() => () => {
+    if (idCardUrl) window.URL.revokeObjectURL(idCardUrl);
+  }, [idCardUrl]);
 
   const API_BASE_URL = (
     process.env.REACT_APP_API_URL || "https://api.universiter-attawoune.ml/api/v1"
@@ -856,37 +863,33 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
               )}
 
               {activeTab === "idcard" && (
-                <div className="space-y-6 flex flex-col items-center">
-                  <h3 className="text-xl font-bold text-gray-900">
-                    {t("students.details.idcard.title", "Carte d'Étudiant")}
-                  </h3>
+                <div className="flex flex-col items-center gap-5">
+                  <div className="text-center">
+                    <p className="text-xs font-black uppercase tracking-[0.16em] text-green-700">
+                      {t("students.details.idcard.official", "Document universitaire officiel")}
+                    </p>
+                    <h3 className="mt-1 text-xl font-black text-slate-950">
+                      {t("students.details.idcard.title", "Carte d'Étudiant")}
+                    </h3>
+                    <p className="mt-1 text-sm text-slate-500">
+                      {t("students.details.idcard.format", "Format professionnel prêt à imprimer en 300 DPI")}
+                    </p>
+                  </div>
                   {idCardUrl ? (
                     <>
-                      <div className="shadow-lg rounded-xl overflow-hidden border border-gray-200">
+                      <div className="w-full max-w-2xl overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-200 via-white to-blue-100 p-2 shadow-xl shadow-slate-900/15 sm:p-3">
                         <img
                           src={idCardUrl}
                           alt="Carte d'étudiant"
-                          className="max-w-md w-full h-auto"
+                          className="h-auto w-full rounded-xl"
                         />
                       </div>
                       <a
                         href={idCardUrl}
                         download={`carte_etudiant_${student.student_id}.png`}
-                        className="px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 flex items-center gap-2 shadow-md transition-all hover:scale-105"
+                        className="brand-button"
                       >
-                        <svg
-                          className="w-5 h-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                          />
-                        </svg>
+                        <ArrowDownTrayIcon className="h-5 w-5" />
                         {t(
                           "students.details.idcard.download",
                           "Télécharger la carte",
@@ -894,12 +897,17 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
                       </a>
                     </>
                   ) : (
-                    <p className="text-gray-500">
-                      {t(
-                        "students.details.idcard.loading",
-                        "Chargement de la carte...",
-                      )}
-                    </p>
+                    <div className="flex min-h-64 w-full max-w-2xl items-center justify-center rounded-2xl border border-slate-200 bg-slate-50">
+                      <div className="flex flex-col items-center gap-3 text-slate-500">
+                        <span className="h-9 w-9 animate-spin rounded-full border-4 border-green-200 border-t-green-600" />
+                        <p className="text-sm font-bold">
+                          {t(
+                            "students.details.idcard.loading",
+                            "Génération de la carte...",
+                          )}
+                        </p>
+                      </div>
+                    </div>
                   )}
                 </div>
               )}
