@@ -70,6 +70,22 @@
 }
 
 @layer components {
+  /*
+   * Mobile navigation slides away from the logical start edge. Keep this in
+   * CSS so the RTL transform cannot override the desktop sticky sidebar.
+   */
+  .app-sidebar {
+    transform: translateX(-100%);
+  }
+
+  html[dir='rtl'] .app-sidebar {
+    transform: translateX(100%);
+  }
+
+  .app-sidebar.app-sidebar-open {
+    transform: translateX(0);
+  }
+
   .app-canvas {
     background-color: var(--brand-canvas);
     background-image:
@@ -119,6 +135,14 @@
 
   .brand-badge {
     @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold;
+  }
+}
+
+@media (min-width: 1024px) {
+  .app-sidebar,
+  html[dir='rtl'] .app-sidebar,
+  .app-sidebar.app-sidebar-open {
+    transform: none;
   }
 }
 

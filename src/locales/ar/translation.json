@@ -111,6 +111,12 @@
     "form": {
       "title_new": "طالب جديد",
       "title_edit": "تعديل الطالب",
+      "new_eyebrow": "تسجيل جديد",
+      "edit_eyebrow": "تحديث ملف الطالب",
+      "steps": {
+        "identity": "الهوية",
+        "academic": "الدراسة"
+      },
       "sections": {
         "user_info": "معلومات المستخدم",
         "academic_info": "المعلومات الأكاديمية"
@@ -150,6 +156,7 @@
       }
     },
     "details": {
+      "profile": "ملف الطالب",
       "tabs": {
         "info": "معلومات",
         "enrollments": "التسجيلات",

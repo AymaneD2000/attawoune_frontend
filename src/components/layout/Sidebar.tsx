@@ -209,9 +209,9 @@ const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onMobileClose }) => {
         }`}
       />
 
-      <aside className={`fixed inset-y-0 start-0 z-50 flex h-screen w-[18rem] shrink-0 flex-col overflow-hidden bg-blue-950 text-white shadow-floating transition-all duration-300 lg:sticky lg:top-0 lg:z-50 lg:translate-x-0 ${
+      <aside className={`app-sidebar fixed inset-y-0 start-0 z-50 flex h-screen w-[18rem] shrink-0 flex-col overflow-hidden bg-blue-950 text-white shadow-floating transition-all duration-300 lg:sticky lg:top-0 lg:z-50 ${
         collapsed ? 'lg:w-24' : 'lg:w-[18rem]'
-      } ${mobileOpen ? 'translate-x-0' : '-translate-x-full rtl:translate-x-full'}`}>
+      } ${mobileOpen ? 'app-sidebar-open' : ''}`}>
         <div className="h-1.5 shrink-0 bg-gradient-to-r from-orange-500 via-green-500 to-blue-400" />
 
         <div className="flex min-h-[5.25rem] items-center gap-3 border-b border-white/10 px-4">

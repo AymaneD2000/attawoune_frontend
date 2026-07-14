@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { AcademicCapIcon, UserIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import universityService from '../../services/universityService';
 import userService from '../../services/userService';
 import studentService from '../../services/studentService';
@@ -162,7 +163,7 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({ onClose, onSuccess,
                     password: generatedPassword,
                     password_confirm: generatedPassword
                 };
-                
+
                 if (!userPayload.email) delete userPayload.email;
                 if (!userPayload.date_of_birth) delete userPayload.date_of_birth;
                 if (!userPayload.phone) delete userPayload.phone;
@@ -222,7 +223,7 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({ onClose, onSuccess,
     const renderStep1 = () => (
         <div className="space-y-4">
             <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">{t('students.form.sections.user_info', 'Informations Utilisateur')}</h3>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">{t('students.form.labels.first_name', 'Prénom')} *</label>
                     <input
@@ -258,7 +259,7 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({ onClose, onSuccess,
             <div className="p-4 bg-yellow-50 text-yellow-800 rounded-lg text-sm">
                 <span className="font-semibold">Note:</span> {student ? t('students.form.notes.password_admin') : t('students.form.notes.password_auto')}
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">{t('students.form.labels.date_of_birth', 'Date de naissance')}</label>
                     <input
@@ -309,7 +310,7 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({ onClose, onSuccess,
             <div className="p-4 bg-blue-50 text-blue-700 rounded-lg text-sm">
                 <span className="font-semibold">Note:</span> {t('students.form.notes.matricule_auto')}
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">{t('students.form.labels.program', 'Programme')} *</label>
                     <select
@@ -371,68 +372,98 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({ onClose, onSuccess,
     );
 
     return (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
-                <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white flex justify-between items-center">
-                    <h2 className="text-xl font-bold">{student ? t('students.form.title_edit', 'Modifier Étudiant') : t('students.form.title_new', 'Nouvel Étudiant')}</h2>
-                    <button onClick={onClose} className="text-white/80 hover:text-white">
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
+        <div
+            className="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto bg-slate-950/60 p-2 backdrop-blur-sm sm:p-4"
+            onMouseDown={(event) => {
+                if (event.target === event.currentTarget && !loading) onClose();
+            }}
+        >
+            <div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="student-form-title"
+                className="my-auto flex h-[calc(100dvh-1rem)] w-full max-w-3xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl shadow-slate-950/30 sm:h-[90dvh] sm:max-h-[780px]"
+            >
+                <header className="relative shrink-0 overflow-hidden bg-gradient-to-r from-blue-800 via-blue-700 to-green-700 px-5 py-5 text-white sm:px-7">
+                    <div className="absolute bottom-0 start-0 h-1 w-full bg-gradient-to-r from-green-400 via-orange-400 to-orange-600" />
+                    <div className="flex items-center justify-between gap-4">
+                        <div className="flex min-w-0 items-center gap-3">
+                            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/15 ring-1 ring-white/25">
+                                {step === 1 ? <UserIcon className="h-6 w-6" /> : <AcademicCapIcon className="h-6 w-6" />}
+                            </div>
+                            <div className="min-w-0">
+                                <p className="text-xs font-bold uppercase tracking-[0.16em] text-green-200">
+                                    {student ? t('students.form.edit_eyebrow', 'Mise à jour du dossier') : t('students.form.new_eyebrow', 'Nouvelle inscription')}
+                                </p>
+                                <h2 id="student-form-title" className="mt-1 truncate text-xl font-black">
+                                    {student ? t('students.form.title_edit', 'Modifier Étudiant') : t('students.form.title_new', 'Nouvel Étudiant')}
+                                </h2>
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            disabled={loading}
+                            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white/80 transition hover:bg-white/15 hover:text-white disabled:opacity-50"
+                            aria-label={t('common.close', 'Fermer')}
+                        >
+                            <XMarkIcon className="h-6 w-6" />
+                        </button>
+                    </div>
+                </header>
+
+                <div className="shrink-0 border-b border-slate-200 bg-white px-5 py-4 sm:px-7">
+                    <div className="mx-auto flex max-w-md items-center">
+                        <div className="flex min-w-0 flex-1 items-center gap-2">
+                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white">1</span>
+                            <span className={`truncate text-sm font-black ${step === 1 ? 'text-blue-700' : 'text-slate-500'}`}>
+                                {t('students.form.steps.identity', 'Identité')}
+                            </span>
+                        </div>
+                        <div className={`mx-3 h-1 flex-1 rounded-full ${step >= 2 ? 'bg-green-500' : 'bg-slate-200'}`} />
+                        <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
+                            <span className={`truncate text-sm font-black ${step === 2 ? 'text-green-700' : 'text-slate-400'}`}>
+                                {t('students.form.steps.academic', 'Scolarité')}
+                            </span>
+                            <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-black ${step >= 2 ? 'bg-green-500 text-white' : 'bg-slate-200 text-slate-500'}`}>2</span>
+                        </div>
+                    </div>
                 </div>
 
-                <div className="p-6 overflow-y-auto flex-1">
+                <div data-testid="student-form-scroll-body" className="min-h-0 flex-1 overflow-y-auto bg-slate-50/60 p-4 sm:p-6">
                     {error && (
-                        <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-lg text-sm">
+                        <div className="mb-4 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700" role="alert">
                             {error}
                         </div>
                     )}
-
-                    <div className="mb-6 flex items-center justify-center">
-                        <div className={`w-3 h-3 rounded-full ${step >= 1 ? 'bg-indigo-600' : 'bg-gray-300'}`}></div>
-                        <div className={`w-12 h-1 ${step >= 2 ? 'bg-indigo-600' : 'bg-gray-200'}`}></div>
-                        <div className={`w-3 h-3 rounded-full ${step >= 2 ? 'bg-indigo-600' : 'bg-gray-300'}`}></div>
-                    </div>
-
-                    {/* NO FORM ELEMENT - Prevents accidental submission */}
-                    <div>
+                    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
                         {step === 1 ? renderStep1() : renderStep2()}
                     </div>
-
-                    {/* Navigation Buttons - All are type="button", no form submission */}
-                    <div className="mt-8 flex justify-between">
-                        {step === 2 && (
-                            <button
-                                type="button"
-                                onClick={goToPreviousStep}
-                                className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
-                            >
-                                {t('students.form.buttons.prev', 'Précédent')}
-                            </button>
-                        )}
-                        {step === 1 ? (
-                            <button
-                                type="button"
-                                onClick={goToNextStep}
-                                className="ml-auto px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
-                                disabled={!userData.first_name || !userData.last_name}
-                            >
-                                {t('students.form.buttons.next', 'Suivant')}
-                            </button>
-                        ) : (
-                            <button
-                                type="button"
-                                onClick={handleFinalSubmit}
-                                disabled={loading}
-                                className="ml-auto px-6 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:shadow-lg disabled:opacity-50 flex items-center gap-2"
-                            >
-                                {loading && <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>}
-                                {student ? t('students.form.buttons.update', 'Enregistrer') : t('students.form.buttons.create', "Créer l'étudiant")}
-                            </button>
-                        )}
-                    </div>
                 </div>
+
+                <footer className="flex shrink-0 items-center justify-between gap-3 border-t border-slate-200 bg-white px-4 py-4 sm:px-6">
+                    {step === 2 ? (
+                        <button type="button" onClick={goToPreviousStep} disabled={loading} className="brand-button-secondary">
+                            {t('students.form.buttons.prev', 'Précédent')}
+                        </button>
+                    ) : <span />}
+
+                    {step === 1 ? (
+                        <button
+                            type="button"
+                            onClick={goToNextStep}
+                            className="brand-button ms-auto"
+                            disabled={!userData.first_name || !userData.last_name}
+                        >
+                            {t('students.form.buttons.next', 'Suivant')}
+                        </button>
+                    ) : (
+                        <button type="button" onClick={handleFinalSubmit} disabled={loading} className="brand-button ms-auto">
+                            {loading && <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />}
+                            {student ? t('students.form.buttons.update', 'Enregistrer') : t('students.form.buttons.create', "Créer l'étudiant")}
+                        </button>
+                    )}
+                </footer>
             </div>
         </div>
     );

@@ -87,8 +87,10 @@ module.exports = {
       },
       keyframes: {
         'fade-up': {
-          '0%': { opacity: '0', transform: 'translateY(8px)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
+          // Keep the application shell free of transforms: transformed
+          // ancestors change the containing block of fixed-position modals.
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
         },
       },
       animation: {

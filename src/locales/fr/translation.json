@@ -119,6 +119,12 @@
     "form": {
       "title_new": "Nouvel Étudiant",
       "title_edit": "Modifier Étudiant",
+      "new_eyebrow": "Nouvelle inscription",
+      "edit_eyebrow": "Mise à jour du dossier",
+      "steps": {
+        "identity": "Identité",
+        "academic": "Scolarité"
+      },
       "sections": {
         "user_info": "Informations Utilisateur",
         "academic_info": "Informations Académiques"
@@ -158,6 +164,7 @@
       }
     },
     "details": {
+      "profile": "Dossier étudiant",
       "tabs": {
         "info": "Informations",
         "enrollments": "Inscriptions",

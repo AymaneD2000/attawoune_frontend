@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
+import { XMarkIcon } from "@heroicons/react/24/outline";
 import api from "../../services/api";
 import { Student } from "../../types";
+import { EntityAvatar, StatusPill } from "../../components/common/EntityDisplay";
 
 interface StudentDetailModalProps {
   student: Student;
@@ -109,44 +111,51 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+    <div
+      className="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto bg-slate-950/60 p-2 backdrop-blur-sm sm:p-4"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="student-detail-title"
+        className="my-auto flex h-[calc(100dvh-1rem)] w-full max-w-6xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl shadow-slate-950/30 sm:h-[90dvh] sm:max-h-[900px]"
+      >
         {/* Header */}
-        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white">
+        <div className="relative shrink-0 overflow-hidden bg-gradient-to-r from-blue-800 via-blue-700 to-green-700 px-4 py-4 text-white sm:px-6 sm:py-5">
+          <div className="absolute bottom-0 start-0 h-1 w-full bg-gradient-to-r from-green-400 via-orange-400 to-orange-600" />
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center text-2xl font-bold">
-                {student.user_full_name?.charAt(0).toUpperCase() || "E"}
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold">{student.user_full_name}</h2>
-                <p className="text-white/80">{student.student_id}</p>
+            <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+              <EntityAvatar name={student.user_full_name || student.student_id} src={student.photo} tone="green" size="lg" />
+              <div className="min-w-0">
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-green-200">
+                  {t("students.details.profile", "Dossier étudiant")}
+                </p>
+                <h2 id="student-detail-title" className="mt-1 truncate text-lg font-black sm:text-2xl">{student.user_full_name}</h2>
+                <div className="mt-1 flex flex-wrap items-center gap-2">
+                  <span dir="ltr" className="truncate font-mono text-sm font-semibold text-blue-100">{student.student_id}</span>
+                  <StatusPill tone={student.status === "ACTIVE" ? "green" : "orange"} dot>
+                    {t(`students.filters.${student.status.toLowerCase()}`, student.status)}
+                  </StatusPill>
+                </div>
               </div>
             </div>
             <button
+              type="button"
               onClick={onClose}
-              className="p-2 hover:bg-white/20 rounded-full transition-colors"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white/80 transition hover:bg-white/15 hover:text-white"
+              aria-label={t("common.close", "Fermer")}
             >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
+              <XMarkIcon className="h-6 w-6" />
             </button>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="border-b">
-          <div className="flex overflow-x-auto">
+        <div className="shrink-0 border-b border-slate-200 bg-white px-2 sm:px-4">
+          <div className="flex overflow-x-auto" role="tablist" aria-label={t("students.details.profile", "Dossier étudiant")}>
             {(
               [
                 "info",
@@ -160,11 +169,14 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
             ).map((tab) => (
               <button
                 key={tab}
+                type="button"
+                role="tab"
+                aria-selected={activeTab === tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-6 py-4 font-medium transition-colors whitespace-nowrap ${
+                className={`whitespace-nowrap border-b-2 px-3 py-3 text-sm font-bold transition-colors sm:px-4 ${
                   activeTab === tab
-                    ? "text-indigo-600 border-b-2 border-indigo-600"
-                    : "text-gray-500 hover:text-gray-700"
+                    ? "border-blue-600 text-blue-700"
+                    : "border-transparent text-slate-500 hover:border-slate-200 hover:text-slate-800"
                 }`}
               >
                 {
@@ -196,10 +208,7 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
         </div>
 
         {/* Content */}
-        <div
-          className="p-6 overflow-y-auto"
-          style={{ maxHeight: "calc(90vh - 200px)" }}
-        >
+        <div data-testid="student-detail-scroll-body" className="min-h-0 flex-1 overflow-y-auto bg-slate-50/60 p-4 sm:p-6">
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
