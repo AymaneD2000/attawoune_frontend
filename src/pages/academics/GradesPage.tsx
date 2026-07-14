@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { ChartBarSquareIcon, ClipboardDocumentCheckIcon } from '@heroicons/react/24/outline';
 import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { Course, Semester, Student, AcademicYear, Level } from '../../types';
 import { gradesService } from '../../services/gradesService';
 import ImportGradesModal from './ImportGradesModal';
 import StudentGradesViewModal from './StudentGradesViewModal';
+import PageHeader from '../../components/common/PageHeader';
 
 interface CourseGrade {
   id: number;
@@ -188,6 +190,9 @@ const GradesPage: React.FC = () => {
   const [showImportModal, setShowImportModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [historyStudent, setHistoryStudent] = useState<Student | null>(null);
+  const currentStudent = user?.role === 'STUDENT'
+    ? allStudents.find((student) => student.user === user.id) || allStudents[0] || null
+    : null;
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -601,7 +606,7 @@ const GradesPage: React.FC = () => {
                 {viewMode === 'evaluation' && <th className="px-6 py-3 text-left tracking-wider">{t('grades.table.exam', 'Examen')}</th>}
                 <th className="px-6 py-3 text-center tracking-wider">{t('grades.table.score')}</th>
                 <th className="px-6 py-3 text-center tracking-wider">{t('grades.table.mention')}</th>
-                <th className="px-6 py-3 text-center tracking-wider">{t('grades.table.bulletin')}</th>
+                <th className="px-6 py-3 text-center tracking-wider">{t('common.actions', 'Actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -639,7 +644,23 @@ const GradesPage: React.FC = () => {
                     })()}
                   </td>
                   <td className="px-6 py-4 text-center">
-                    {viewMode === 'final' && <button onClick={() => generateBulletin(g.student)} className="text-indigo-600 hover:text-indigo-800 font-medium text-xs border border-indigo-200 px-2 py-1 rounded hover:bg-indigo-50">{t('grades.buttons.generate')}</button>}
+                    <div className="flex flex-wrap items-center justify-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const student = allStudents.find((item) => item.id === g.student);
+                          if (student) {
+                            setHistoryStudent(student);
+                            setShowHistoryModal(true);
+                          }
+                        }}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1.5 text-xs font-black text-blue-700 transition hover:border-blue-300 hover:bg-blue-100"
+                      >
+                        <ChartBarSquareIcon className="h-4 w-4" />
+                        {t('grades.buttons.progression', 'Progression')}
+                      </button>
+                      {viewMode === 'final' && <button onClick={() => generateBulletin(g.student)} className="rounded-lg border border-green-200 bg-green-50 px-2.5 py-1.5 text-xs font-black text-green-700 transition hover:border-green-300 hover:bg-green-100">{t('grades.buttons.generate')}</button>}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -688,12 +709,26 @@ const GradesPage: React.FC = () => {
   );
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-          {user?.role === 'STUDENT' ? t('grades.student.title', 'Mes Notes') : t('grades.title', 'Gestion des Notes')}
-        </h1>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        eyebrow={t('grades.header_eyebrow', 'Suivi académique')}
+        title={user?.role === 'STUDENT' ? t('grades.student.title', 'Mes Notes') : t('grades.title', 'Gestion des Notes')}
+        description={t('grades.subtitle', 'Suivez les résultats, les évaluations et la progression des étudiants.')}
+        icon={<ClipboardDocumentCheckIcon className="h-6 w-6" />}
+        actions={currentStudent && (
+          <button
+            type="button"
+            onClick={() => {
+              setHistoryStudent(currentStudent);
+              setShowHistoryModal(true);
+            }}
+            className="brand-button"
+          >
+            <ChartBarSquareIcon className="h-5 w-5" />
+            {t('grades.buttons.my_progression', 'Voir ma progression')}
+          </button>
+        )}
+      />
 
       {user?.role === 'STUDENT' ? renderStudentView() : renderTeacherView()}
 

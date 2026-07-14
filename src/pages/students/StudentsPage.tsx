@@ -1,15 +1,34 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
+import {
+  ArrowDownTrayIcon,
+  ArrowUpTrayIcon,
+  CreditCardIcon,
+  EyeIcon,
+  MagnifyingGlassIcon,
+  PencilSquareIcon,
+  PlusIcon,
+  UsersIcon,
+} from '@heroicons/react/24/outline';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
+import {
+  EmptyState,
+  EntityAvatar,
+  IconActionButton,
+  ListLoading,
+  PaginationBar,
+  StatusPill,
+} from '../../components/common/EntityDisplay';
+import PageHeader from '../../components/common/PageHeader';
 import api from '../../services/api';
-import { Student, PaginatedResponse } from '../../types';
 import studentService from '../../services/studentService';
-import StudentFormModal from './StudentFormModal';
-import StudentDetailModal from './StudentDetailsModal';
+import { PaginatedResponse, Student } from '../../types';
 import ExcelImportModal from './ExcelImportModal';
+import StudentDetailModal from './StudentDetailsModal';
+import StudentFormModal from './StudentFormModal';
 
 const StudentsPage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user: currentUser } = useAuth();
   const canManageUsers = ['ADMIN', 'DEAN', 'SECRETARY'].includes(currentUser?.role || '');
   const [students, setStudents] = useState<Student[]>([]);
@@ -25,6 +44,24 @@ const StudentsPage: React.FC = () => {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [showImportModal, setShowImportModal] = useState(false);
 
+  const getFullName = (student: Student) =>
+    [student.first_name, student.last_name].filter(Boolean).join(' ').trim()
+      || student.user_full_name
+      || student.student_id;
+
+  const getStatus = (status: Student['status']) => {
+    const tones: Record<Student['status'], 'green' | 'blue' | 'orange' | 'red'> = {
+      ACTIVE: 'green',
+      GRADUATED: 'blue',
+      SUSPENDED: 'orange',
+      DROPPED: 'red',
+    };
+    return {
+      tone: tones[status],
+      label: t(`students.filters.${status.toLowerCase()}`, status),
+    };
+  };
+
   const handleDownloadIDCard = async (student: Student) => {
     try {
       const blob = await studentService.downloadIdCard(student.id);
@@ -35,13 +72,13 @@ const StudentsPage: React.FC = () => {
       document.body.appendChild(link);
       link.click();
       link.remove();
+      window.URL.revokeObjectURL(url);
     } catch (err) {
       console.error('Error downloading ID card:', err);
-      alert('Erreur lors du téléchargement de la carte');
+      alert(t('students.errors.id_card', 'Erreur lors du téléchargement de la carte'));
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleBulkDownload = async () => {
     if (selectedIds.length === 0) return;
     try {
@@ -49,13 +86,14 @@ const StudentsPage: React.FC = () => {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `cartes_etudiantes.zip`);
+      link.setAttribute('download', 'cartes_etudiantes.zip');
       document.body.appendChild(link);
       link.click();
       link.remove();
+      window.URL.revokeObjectURL(url);
     } catch (err) {
       console.error('Error downloading bulk ID cards:', err);
-      alert('Erreur lors du téléchargement groupé');
+      alert(t('students.errors.bulk_id_cards', 'Erreur lors du téléchargement groupé'));
     }
   };
 
@@ -73,24 +111,21 @@ const StudentsPage: React.FC = () => {
       document.body.appendChild(link);
       link.click();
       link.remove();
+      window.URL.revokeObjectURL(url);
     } catch (err) {
       console.error('Error exporting students:', err);
-      alert('Erreur lors de l’exportation Excel');
+      alert(t('students.errors.export', 'Erreur lors de l’exportation Excel'));
     }
   };
 
-  const toggleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.checked) {
-      setSelectedIds(students.map(s => s.id));
-    } else {
-      setSelectedIds([]);
-    }
+  const toggleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSelectedIds(event.target.checked ? students.map((student) => student.id) : []);
   };
 
   const toggleSelection = (id: number) => {
-    setSelectedIds(prev =>
-      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
-    );
+    setSelectedIds((current) => current.includes(id)
+      ? current.filter((studentId) => studentId !== id)
+      : [...current, id]);
   };
 
   const fetchStudents = useCallback(async () => {
@@ -106,9 +141,10 @@ const StudentsPage: React.FC = () => {
       });
       setStudents(response.data.results || []);
       setTotalCount(response.data.count || 0);
+      setSelectedIds([]);
     } catch (error) {
       console.error('Error fetching students:', error);
-      setStudents([]); // Ensure empty array on error
+      setStudents([]);
     } finally {
       setLoading(false);
     }
@@ -118,88 +154,82 @@ const StudentsPage: React.FC = () => {
     fetchStudents();
   }, [fetchStudents]);
 
-  const getStatusBadge = (status: string) => {
-    const colors: Record<string, string> = {
-      ACTIVE: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-      GRADUATED: 'bg-blue-100 text-blue-800 border-blue-200',
-      SUSPENDED: 'bg-amber-100 text-amber-800 border-amber-200',
-      DROPPED: 'bg-red-100 text-red-800 border-red-200',
-    };
-    const labelKey = `students.filters.${status.toLowerCase()}`;
-    const label = t(labelKey, status);
-
-    return (
-      <span className={`px-3 py-1 rounded-full text-xs font-medium border ${colors[status] || 'bg-gray-100'}`}>
-        {label}
-      </span>
-    );
+  const openEdit = (student: Student) => {
+    setStudentToEdit(student);
+    setShowCreateModal(true);
   };
+
+  const studentActions = (student: Student) => (
+    <div className="flex items-center gap-1">
+      <IconActionButton label={t('common.view', 'Voir les détails')} tone="blue" onClick={() => setSelectedStudent(student)}>
+        <EyeIcon className="h-5 w-5" />
+      </IconActionButton>
+      {canManageUsers && (
+        <IconActionButton label={t('common.edit', 'Modifier')} tone="slate" onClick={() => openEdit(student)}>
+          <PencilSquareIcon className="h-5 w-5" />
+        </IconActionButton>
+      )}
+      <IconActionButton label={t('students.actions.id_card', "Carte d'étudiant")} tone="green" onClick={() => handleDownloadIDCard(student)}>
+        <CreditCardIcon className="h-5 w-5" />
+      </IconActionButton>
+    </div>
+  );
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">{t('students.title', 'Gestion des Étudiants')}</h1>
-          <p className="text-gray-500 mt-1">{t('students.subtitle', { count: totalCount, defaultValue: `${totalCount} étudiants au total` })}</p>
-        </div>
-        <div className="flex gap-2 text-sm md:text-base overflow-x-auto pb-2 md:pb-0">
+      <PageHeader
+        eyebrow={t('sidebar.academics', 'Scolarité')}
+        title={t('students.title', 'Gestion des Étudiants')}
+        description={t('students.subtitle', { count: totalCount, defaultValue: `${totalCount} étudiants au total` })}
+        icon={<UsersIcon className="h-6 w-6" />}
+        actions={<>
           {canManageUsers && (
-          <button
-            onClick={() => setShowImportModal(true)}
-            className="bg-white border border-gray-300 text-gray-700 px-4 py-3 rounded-xl font-medium hover:bg-gray-50 transition-all duration-200 flex items-center gap-2 whitespace-nowrap shadow-sm"
-          >
-            <svg className="w-5 h-5 rtl:mirror text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0l-4 4m4-4v12" />
-            </svg>
-            <span className="hidden sm:inline">{t('students.actions.import', 'Importer')}</span>
-          </button>
+            <button onClick={() => setShowImportModal(true)} className="brand-button-secondary whitespace-nowrap">
+              <ArrowUpTrayIcon className="h-5 w-5 text-blue-700" />
+              <span className="hidden sm:inline">{t('students.actions.import', 'Importer')}</span>
+            </button>
           )}
-          <button
-            onClick={handleExport}
-            className="bg-white border border-gray-300 text-gray-700 px-4 py-3 rounded-xl font-medium hover:bg-gray-50 transition-all duration-200 flex items-center gap-2 whitespace-nowrap shadow-sm"
-          >
-            <svg className="w-5 h-5 rtl:mirror text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
+          <button onClick={handleExport} className="brand-button-secondary whitespace-nowrap">
+            <ArrowDownTrayIcon className="h-5 w-5 text-green-700" />
             <span className="hidden sm:inline">{t('students.actions.export', 'Exporter')}</span>
           </button>
           {canManageUsers && (
-          <button
-            onClick={() => {
-              setStudentToEdit(null);
-              setShowCreateModal(true);
-            }}
-            className="bg-indigo-600 text-white px-4 py-3 rounded-xl font-medium hover:bg-indigo-700 transition-all duration-200 shadow-lg shadow-indigo-200 flex items-center gap-2 whitespace-nowrap transform hover:-translate-y-0.5 active:translate-y-0"
-          >
-            <svg className="w-5 h-5 rtl:mirror" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-            <span className="hidden sm:inline">{t('students.actions.add', 'Ajouter')}</span>
-          </button>
+            <button
+              onClick={() => {
+                setStudentToEdit(null);
+                setShowCreateModal(true);
+              }}
+              className="brand-button whitespace-nowrap"
+            >
+              <PlusIcon className="h-5 w-5" />
+              <span className="hidden sm:inline">{t('students.actions.add', 'Ajouter')}</span>
+            </button>
           )}
-        </div>
-      </div>
+        </>}
+      />
 
-      {/* Filters & Search */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="relative flex-1">
-            <svg className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
+      <div className="surface-panel p-4">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+          <div className="relative min-w-0 flex-1">
+            <MagnifyingGlassIcon className="pointer-events-none absolute start-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
             <input
-              type="text"
+              type="search"
               placeholder={t('students.search_placeholder', 'Rechercher par nom, matricule, email...')}
-              className="w-full pl-12 pr-4 rtl:pr-12 rtl:pl-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+              className="brand-input ps-12"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(event) => {
+                setSearchTerm(event.target.value);
+                setCurrentPage(1);
+              }}
             />
           </div>
           <select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+            onChange={(event) => {
+              setStatusFilter(event.target.value);
+              setCurrentPage(1);
+            }}
+            className="brand-input w-full lg:w-56"
           >
             <option value="">{t('students.filters.all_status', 'Tous les statuts')}</option>
             <option value="ACTIVE">{t('students.filters.active', 'Actif')}</option>
@@ -207,193 +237,170 @@ const StudentsPage: React.FC = () => {
             <option value="SUSPENDED">{t('students.filters.suspended', 'Suspendu')}</option>
             <option value="DROPPED">{t('students.filters.dropped', 'Abandonné')}</option>
           </select>
-          <div className="flex items-center space-x-2 bg-white px-4 py-3 border border-gray-200 rounded-xl">
+          <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold text-slate-700 transition hover:border-green-200 hover:bg-green-50">
             <input
               type="checkbox"
-              id="currentYearOnly"
               checked={currentYearOnly}
-              onChange={(e) => setCurrentYearOnly(e.target.checked)}
-              className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 h-5 w-5"
+              onChange={(event) => {
+                setCurrentYearOnly(event.target.checked);
+                setCurrentPage(1);
+              }}
+              className="h-5 w-5 rounded border-slate-300 text-green-600 focus:ring-green-500"
             />
-            <label htmlFor="currentYearOnly" className="text-sm font-medium text-gray-700 cursor-pointer select-none">
-              {t('students.filters.current_year_only', 'Année en cours seulement')}
-            </label>
-          </div>
+            {t('students.filters.current_year_only', 'Année en cours')}
+          </label>
         </div>
       </div>
 
-      {/* Table */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        {loading ? (
-          <div className="p-12 text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-indigo-500 border-t-transparent mx-auto"></div>
-            <p className="text-gray-500 mt-4">Chargement des étudiants...</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-start">
-              <thead>
-                <tr className="bg-gradient-to-r from-gray-50 to-gray-100">
-                  <th className="px-6 py-4 text-start">
-                    <input
-                      type="checkbox"
-                      className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                      onChange={toggleSelectAll}
-                      checked={students.length > 0 && selectedIds.length === students.length}
-                    />
-                  </th>
-                  <th className="px-6 py-4 text-start text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    {t('students.table.last_name', 'Nom')}
-                  </th>
-                  <th className="px-6 py-4 text-start text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    {t('students.table.first_name', 'Prénom')}
-                  </th>
-                  <th className="px-6 py-4 text-start text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    {t('students.table.program', 'Programme')}
-                  </th>
-                  <th className="px-6 py-4 text-start text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    {t('students.table.level', 'Niveau')}
-                  </th>
-                  <th className="px-6 py-4 text-start text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    {t('students.table.status', 'Statut')}
-                  </th>
-                  <th className="px-6 py-4 text-end text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    {t('students.table.actions', 'Actions')}
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {students?.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center">
-                      <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                      </svg>
-                      <p className="text-gray-500 text-lg">{t('students.empty.title', 'Aucun étudiant trouvé')}</p>
-                      <p className="text-gray-400 text-sm mt-1">{t('students.empty.subtitle', 'Essayez de modifier vos critères de recherche')}</p>
-                    </td>
-                  </tr>
-                ) : (
-                  students.map((student) => (
-                    <tr key={student.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4">
-                        <input
-                          type="checkbox"
-                          className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                          checked={selectedIds.includes(student.id)}
-                          onChange={() => toggleSelection(student.id)}
-                        />
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-semibold shadow-md overflow-hidden">
-                            {student.photo ? (
-                              <img src={student.photo} alt={student.last_name || student.user_full_name} className="w-full h-full object-cover" />
-                            ) : (
-                              (student.last_name || student.user_full_name || 'E').charAt(0).toUpperCase()
-                            )}
-                          </div>
-                          <div>
-                            <p className="font-semibold text-gray-900">{student.last_name || student.user_full_name}</p>
-                            <p className="text-sm text-gray-500">{student.student_id}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-gray-900 font-medium">
-                        {student.first_name || '-'}
-                      </td>
-                      <td className="px-6 py-4 text-gray-600">
-                        {student.program_name || 'N/A'}
-                      </td>
-                      <td className="px-6 py-4 text-gray-600">
-                        {student.level_display || 'N/A'}
-                      </td>
-                      <td className="px-6 py-4">
-                        {getStatusBadge(student.status)}
-                      </td>
-                      <td className="px-6 py-4 text-end">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => setSelectedStudent(student)}
-                            className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                            title="Voir détails"
-                          >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </svg>
-                          </button>
-                          <button
-                            onClick={() => {
-                              setStudentToEdit(student);
-                              setShowCreateModal(true);
-                            }}
-                            className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors" title="Modifier">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            </svg>
-                          </button>
-                          <button
-                            onClick={() => handleDownloadIDCard(student)}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                            title="Carte d'étudiant"
-                          >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm2 4a2 2 0 100-4 2 2 0 000 4z" />
-                            </svg>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {/* Pagination */}
-        <div className="px-6 py-4 border-t border-gray-100 flex flex-col md:flex-row items-center justify-between gap-4 bg-gray-50">
-          <span className="text-sm text-gray-600">
-            {t('common.showing', { current: students.length, total: totalCount, defaultValue: `Affichage de ${students.length} sur ${totalCount} étudiants` })}
-          </span>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-              className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
-            >
-              <svg className="w-4 h-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              {t('common.prev', 'Précédent')}
+      {selectedIds.length > 0 && (
+        <div className="flex flex-col gap-3 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm font-bold text-blue-900">
+            {selectedIds.length} {t('students.selection.selected', 'étudiant(s) sélectionné(s)')}
+          </p>
+          <div className="flex gap-2">
+            <button type="button" onClick={() => setSelectedIds([])} className="brand-button-secondary min-h-10">
+              {t('common.cancel', 'Annuler')}
             </button>
-            <span className="px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium">
-              {currentPage}
-            </span>
-            <button
-              onClick={() => setCurrentPage((p) => p + 1)}
-              disabled={students.length < 20}
-              className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
-            >
-              {t('common.next', 'Suivant')}
-              <svg className="w-4 h-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
+            <button type="button" onClick={handleBulkDownload} className="brand-button min-h-10">
+              <CreditCardIcon className="h-5 w-5" />
+              {t('students.actions.download_cards', 'Télécharger les cartes')}
             </button>
           </div>
         </div>
-      </div>
-
-      {/* Student Detail Modal */}
-      {selectedStudent && (
-        <StudentDetailModal
-          student={selectedStudent}
-          onClose={() => setSelectedStudent(null)}
-        />
       )}
 
-      {/* Create Student Modal */}
+      <section className="surface-panel overflow-hidden">
+        {loading ? (
+          <ListLoading />
+        ) : students.length === 0 ? (
+          <EmptyState
+            title={t('students.empty.title', 'Aucun étudiant trouvé')}
+            description={t('students.empty.subtitle', 'Modifiez les filtres ou ajoutez un nouvel étudiant.')}
+            action={canManageUsers && (
+              <button type="button" onClick={() => setShowCreateModal(true)} className="brand-button">
+                <PlusIcon className="h-5 w-5" />
+                {t('students.actions.add', 'Ajouter')}
+              </button>
+            )}
+          />
+        ) : (
+          <>
+            <div className="divide-y divide-slate-100 md:hidden">
+              {students.map((student) => {
+                const name = getFullName(student);
+                const status = getStatus(student.status);
+                return (
+                  <article key={student.id} className="p-4">
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="checkbox"
+                        className="mt-4 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                        checked={selectedIds.includes(student.id)}
+                        onChange={() => toggleSelection(student.id)}
+                      />
+                      <EntityAvatar name={name} src={student.photo} />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <h3 className="truncate font-black text-slate-950">{name}</h3>
+                            <p className="mt-0.5 text-xs font-bold text-blue-700">{student.student_id}</p>
+                          </div>
+                          <StatusPill tone={status.tone} dot>{status.label}</StatusPill>
+                        </div>
+                        <div className="mt-3 grid grid-cols-2 gap-3 rounded-xl bg-slate-50 p-3 text-sm">
+                          <div>
+                            <p className="text-xs font-semibold text-slate-400">{t('students.table.program', 'Programme')}</p>
+                            <p className="mt-1 truncate font-bold text-slate-700">{student.program_name || '—'}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs font-semibold text-slate-400">{t('students.table.level', 'Niveau')}</p>
+                            <p className="mt-1 truncate font-bold text-slate-700">{student.level_display || '—'}</p>
+                          </div>
+                        </div>
+                        <div className="mt-3 flex justify-end">{studentActions(student)}</div>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+
+            <div className="hidden overflow-x-auto md:block">
+              <table>
+                <thead>
+                  <tr>
+                    <th className="w-12 px-5 py-4 text-start">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                        onChange={toggleSelectAll}
+                        checked={students.length > 0 && selectedIds.length === students.length}
+                      />
+                    </th>
+                    <th className="px-5 py-4 text-start text-xs font-black uppercase tracking-wider text-slate-500">{t('students.table.student', 'Étudiant')}</th>
+                    <th className="px-5 py-4 text-start text-xs font-black uppercase tracking-wider text-slate-500">{t('students.table.academic', 'Parcours académique')}</th>
+                    <th className="px-5 py-4 text-start text-xs font-black uppercase tracking-wider text-slate-500">{t('students.table.enrollment', 'Inscription')}</th>
+                    <th className="px-5 py-4 text-start text-xs font-black uppercase tracking-wider text-slate-500">{t('students.table.status', 'Statut')}</th>
+                    <th className="px-5 py-4 text-end text-xs font-black uppercase tracking-wider text-slate-500">{t('students.table.actions', 'Actions')}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {students.map((student) => {
+                    const name = getFullName(student);
+                    const status = getStatus(student.status);
+                    return (
+                      <tr key={student.id}>
+                        <td className="px-5 py-4">
+                          <input
+                            type="checkbox"
+                            className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                            checked={selectedIds.includes(student.id)}
+                            onChange={() => toggleSelection(student.id)}
+                          />
+                        </td>
+                        <td className="px-5 py-4">
+                          <div className="flex min-w-[230px] items-center gap-3">
+                            <EntityAvatar name={name} src={student.photo} />
+                            <div className="min-w-0">
+                              <p className="truncate font-black text-slate-950">{name}</p>
+                              <p className="mt-0.5 text-xs font-bold text-blue-700">{student.student_id}</p>
+                              {student.user_email && <p className="mt-1 truncate text-xs text-slate-400">{student.user_email}</p>}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-5 py-4">
+                          <p className="max-w-[240px] truncate text-sm font-bold text-slate-800">{student.program_name || '—'}</p>
+                          <p className="mt-1 text-xs font-medium text-slate-500">{student.level_display || '—'}</p>
+                        </td>
+                        <td className="px-5 py-4 text-sm font-semibold text-slate-600">
+                          {student.enrollment_date
+                            ? new Date(student.enrollment_date).toLocaleDateString(i18n.language)
+                            : '—'}
+                        </td>
+                        <td className="px-5 py-4"><StatusPill tone={status.tone} dot>{status.label}</StatusPill></td>
+                        <td className="px-5 py-4"><div className="flex justify-end">{studentActions(student)}</div></td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            <PaginationBar
+              currentPage={currentPage}
+              currentCount={students.length}
+              total={totalCount}
+              onPrevious={() => setCurrentPage((page) => Math.max(1, page - 1))}
+              onNext={() => setCurrentPage((page) => page + 1)}
+            />
+          </>
+        )}
+      </section>
+
+      {selectedStudent && (
+        <StudentDetailModal student={selectedStudent} onClose={() => setSelectedStudent(null)} />
+      )}
+
       {showCreateModal && (
         <StudentFormModal
           student={studentToEdit}
@@ -409,7 +416,6 @@ const StudentsPage: React.FC = () => {
         />
       )}
 
-      {/* Excel Import Modal */}
       <ExcelImportModal
         isOpen={showImportModal}
         onClose={() => setShowImportModal(false)}

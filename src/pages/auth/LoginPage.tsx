@@ -1,174 +1,121 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useTranslation } from "react-i18next";
-import { useAuth } from "../../context/AuthContext";
-import logo from "../../assets/logo.jpg";
+import React, { useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { EyeIcon, EyeSlashIcon, LockClosedIcon, UserIcon } from '@heroicons/react/24/outline';
+import { useTranslation } from 'react-i18next';
+import AuthLayout from '../../components/auth/AuthLayout';
+import { useAuth } from '../../context/AuthContext';
+import { normalizeApiError } from '../../utils/apiError';
 
 const LoginPage: React.FC = () => {
-  const { t, i18n } = useTranslation();
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const { t } = useTranslation();
+  const location = useLocation();
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
-  const isArabic = i18n.language?.startsWith("ar");
+  const successMessage = (location.state as { message?: string } | null)?.message;
 
-  const switchLanguage = () => {
-    i18n.changeLanguage(isArabic ? "fr" : "ar");
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setError('');
     setLoading(true);
 
     try {
       await login(username.trim(), password);
-      navigate("/dashboard");
+      navigate('/dashboard');
     } catch (err: any) {
-      setError(
-        err.response?.data?.detail ||
-          t("auth.login.invalid_credentials", "Identifiants incorrects"),
-      );
+      setError(normalizeApiError(
+        err.response?.data,
+        t('auth.login.invalid_credentials', 'Identifiants incorrects'),
+      ).message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <div className="flex justify-end">
-            <button
-              type="button"
-              onClick={switchLanguage}
-              className="text-sm px-3 py-1 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100 transition-colors"
-            >
-              {isArabic ? "Français" : "العربية"}
-            </button>
+    <AuthLayout
+      eyebrow={t('auth.login.eyebrow', 'Bienvenue')}
+      title={t('auth.login.title', 'Connectez-vous')}
+      subtitle={t('auth.login.subtitle', 'Accédez à votre espace universitaire sécurisé.')}
+    >
+      <form className="space-y-5" onSubmit={handleSubmit}>
+        {successMessage && (
+          <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-semibold text-green-800">
+            {successMessage}
           </div>
+        )}
 
-          <div className="mt-2 flex justify-center">
-            <img
-              src={logo}
-              alt="Université Attawoune"
-              className="h-20 w-20 rounded-full object-cover shadow-md"
+        {error && (
+          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700" role="alert">
+            {error}
+          </div>
+        )}
+
+        <div>
+          <label htmlFor="username" className="brand-label">
+            {t('auth.login.username_label', "Nom d'utilisateur")}
+          </label>
+          <div className="relative">
+            <UserIcon className="pointer-events-none absolute start-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+            <input
+              id="username"
+              name="username"
+              type="text"
+              autoComplete="username"
+              required
+              className="brand-input ps-11"
+              placeholder={t('auth.login.username_placeholder', "Votre nom d'utilisateur")}
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
             />
           </div>
-
-          <h1 className="mt-4 text-center text-5xl font-extrabold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-            Attawoune
-          </h1>
-          <h2 className="mt-4 text-center text-3xl font-extrabold text-gray-900">
-            Université Attawoune
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            {t("auth.login.subtitle", "Connectez-vous à votre compte")}
-          </p>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="rounded-md bg-red-50 p-4">
-              <div className="text-sm text-red-700">{error}</div>
-            </div>
-          )}
-          <div className="rounded-md shadow-sm -space-y-px">
-            <div>
-              <label htmlFor="username" className="sr-only">
-                {t("auth.login.username_label", "Nom d'utilisateur")}
-              </label>
-              <input
-                id="username"
-                name="username"
-                type="text"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
-                placeholder={t(
-                  "auth.login.username_placeholder",
-                  "Nom d'utilisateur",
-                )}
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-              />
-            </div>
-            <div className="relative">
-              <label htmlFor="password" className="sr-only">
-                {t("auth.login.password_label", "Mot de passe")}
-              </label>
-              <input
-                id="password"
-                name="password"
-                type={showPassword ? "text" : "password"}
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 pr-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
-                placeholder={t(
-                  "auth.login.password_placeholder",
-                  "Mot de passe",
-                )}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 flex items-center pr-3 z-10 text-gray-400 hover:text-gray-600"
-              >
-                {showPassword ? (
-                  <svg
-                    className="h-5 w-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"
-                    />
-                  </svg>
-                ) : (
-                  <svg
-                    className="h-5 w-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                    />
-                  </svg>
-                )}
-              </button>
-            </div>
-          </div>
 
-          <div>
+        <div>
+          <label htmlFor="password" className="brand-label">
+            {t('auth.login.password_label', 'Mot de passe')}
+          </label>
+          <div className="relative">
+            <LockClosedIcon className="pointer-events-none absolute start-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+            <input
+              id="password"
+              name="password"
+              type={showPassword ? 'text' : 'password'}
+              autoComplete="current-password"
+              required
+              className="brand-input px-11"
+              placeholder={t('auth.login.password_placeholder', 'Votre mot de passe')}
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+            />
             <button
-              type="submit"
-              disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50"
+              type="button"
+              onClick={() => setShowPassword((visible) => !visible)}
+              className="absolute end-2 top-1/2 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-blue-700"
+              aria-label={showPassword ? t('auth.login.hide_password', 'Masquer le mot de passe') : t('auth.login.show_password', 'Afficher le mot de passe')}
             >
-              {loading
-                ? t("auth.login.loading", "Connexion...")
-                : t("auth.login.submit", "Se connecter")}
+              {showPassword ? <EyeSlashIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
             </button>
           </div>
-        </form>
-      </div>
-    </div>
+        </div>
+
+        <button type="submit" disabled={loading} className="brand-button w-full">
+          {loading && <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />}
+          {loading ? t('auth.login.loading', 'Connexion...') : t('auth.login.submit', 'Se connecter')}
+        </button>
+
+        <p className="text-center text-sm text-slate-500">
+          {t('auth.login.no_account', 'Vous ne possédez pas encore de compte ?')}{' '}
+          <Link to="/register" className="font-bold text-blue-700 hover:text-green-700">
+            {t('auth.login.create_account', 'Créer un compte')}
+          </Link>
+        </p>
+      </form>
+    </AuthLayout>
   );
 };
 

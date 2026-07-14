@@ -9,6 +9,43 @@ export interface DashboardData {
     pending_payments_count: number;
     outstanding_balances: number;
     net_balance: number;
+    expected_revenue: number;
+    collection_rate: number;
+    monthly_cash_flow: MonthlyCashFlow[];
+    expense_categories: ExpenseCategorySummary[];
+    payment_methods: PaymentMethodSummary[];
+    payment_statuses: PaymentStatusSummary[];
+}
+
+export interface MonthlyCashFlow {
+    month: string;
+    revenue: number | string;
+    salaries: number | string;
+    expenses: number | string;
+    net: number | string;
+}
+
+export interface ExpenseCategorySummary {
+    category: string;
+    label: string;
+    amount: number | string;
+    count: number;
+    percentage: number;
+}
+
+export interface PaymentMethodSummary {
+    method: string;
+    label: string;
+    amount: number | string;
+    count: number;
+    percentage: number;
+}
+
+export interface PaymentStatusSummary {
+    status: string;
+    label: string;
+    amount: number | string;
+    count: number;
 }
 
 export interface Salary {

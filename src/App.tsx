@@ -31,6 +31,7 @@ import LevelsPage from './pages/structure/LevelsPage';
 // Admin pages
 import UsersPage from './pages/admin/UsersPage';
 import AuditLogPage from './pages/admin/AuditLogPage';
+import StatusPage from './components/common/StatusPage';
 
 import './index.css';
 
@@ -101,33 +102,13 @@ function App() {
             {/* Unauthorized */}
             <Route
               path="/unauthorized"
-              element={
-                <div className="min-h-screen flex items-center justify-center">
-                  <div className="text-center">
-                    <h1 className="text-4xl font-bold text-red-600">403</h1>
-                    <p className="text-gray-500 mt-2">Accès non autorisé</p>
-                    <a href="/dashboard" className="text-primary-600 hover:underline mt-4 inline-block">
-                      Retour au tableau de bord
-                    </a>
-                  </div>
-                </div>
-              }
+              element={<StatusPage code="403" title="Accès non autorisé" description="Votre rôle ne permet pas d'accéder à cette section de la plateforme." />}
             />
 
             {/* 404 */}
             <Route
               path="*"
-              element={
-                <div className="min-h-screen flex items-center justify-center">
-                  <div className="text-center">
-                    <h1 className="text-4xl font-bold text-gray-900">404</h1>
-                    <p className="text-gray-500 mt-2">Page non trouvée</p>
-                    <a href="/dashboard" className="text-primary-600 hover:underline mt-4 inline-block">
-                      Retour au tableau de bord
-                    </a>
-                  </div>
-                </div>
-              }
+              element={<StatusPage code="404" title="Page introuvable" description="La page demandée n'existe pas ou a été déplacée." />}
             />
           </Routes>
         </Router>

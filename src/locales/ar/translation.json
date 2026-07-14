@@ -45,6 +45,11 @@
     "next": "التالي",
     "showing": "عرض {{current}} من {{total}}",
     "active": "نشط",
+    "inactive": "غير نشط",
+    "cancel": "إلغاء",
+    "saving": "جارٍ الحفظ...",
+    "close": "إغلاق",
+    "retry": "إعادة المحاولة",
     "user_manual": "دليل المستخدم"
   },
   "dashboard": {
@@ -293,28 +298,43 @@
   },
   "courses": {
     "title": "إدارة الدورات",
+    "subtitle": "تنظيم المواد والوحدات والحجم الساعي والمسارات الأكاديمية.",
     "actions": {
       "new_course": "دورة جديدة",
       "edit": "تعديل",
       "delete": "حذف"
     },
+    "delete_confirm": "هل تريد حذف المقرر {{code}} — {{name}} نهائيًا؟",
     "stats": {
-      "total": "إجمالي الدورات",
-      "required": "دورات إجبارية",
-      "elective": "دورات اختيارية",
-      "practical": "أعمال تطبيقية"
+      "total": "المقررات المطابقة",
+      "visible_active": "النشطة في هذه الصفحة",
+      "visible_credits": "الوحدات في هذه الصفحة",
+      "visible_hours": "الساعات في هذه الصفحة"
     },
-    "search_placeholder": "البحث عن دورة...",
+    "search_placeholder": "البحث بالرمز أو الاسم أو الوصف...",
     "filters": {
       "all_programs": "جميع البرامج",
+      "all_levels": "جميع المستويات",
+      "all_semesters": "جميع الفصول",
       "all_types": "جميع الأنواع",
       "required": "إجباري",
       "elective": "اختياري",
-      "practical": "تطبيقي"
+      "practical": "أعمال تطبيقية",
+      "program": "البرنامج",
+      "level": "المستوى",
+      "semester": "الفصل",
+      "type": "نوع المقرر",
+      "active_count": "{{count}} مرشح نشط",
+      "reset": "إعادة تعيين المرشحات"
+    },
+    "semesters": {
+      "s1": "الفصل الأول",
+      "s2": "الفصل الثاني"
     },
     "table": {
       "code": "الرمز",
       "name": "اسم الدورة",
+      "course": "المقرر",
       "program": "البرنامج",
       "level": "المستوى",
       "sem": "فصل",
@@ -322,11 +342,67 @@
       "credits": "الوحدات",
       "hours": "الساعات",
       "coef": "المعامل",
+      "academic_context": "المسار الأكاديمي",
+      "type_status": "النوع والحالة",
+      "value": "الوحدات / المعامل",
+      "workload": "الحجم الساعي",
+      "total": "في المجموع",
       "actions": "إجراءات"
     },
-    "empty": "لم يتم العثور على دورات"
+    "empty": "لم يتم العثور على مقررات",
+    "empty_description": "غيّر المرشحات أو أضف مادة جديدة إلى الدليل.",
+    "errors": {
+      "load": "تعذر تحميل المقررات.",
+      "delete": "تعذر حذف هذا المقرر."
+    },
+    "form": {
+      "eyebrow": "الدليل الأكاديمي",
+      "title_new": "مقرر جديد",
+      "title_edit": "تعديل المقرر",
+      "subtitle": "أدخل المسار والقيمة الأكاديمية والحجم الساعي.",
+      "sections": {
+        "identity": "تعريف المقرر",
+        "identity_hint": "رمز فريد واسم رسمي",
+        "academic": "التصنيف الأكاديمي",
+        "academic_hint": "البرنامج والمستوى والفصل ونوع المقرر",
+        "value": "الوحدات والحجم الساعي",
+        "value_hint": "الوزن والتوزيع البيداغوجي"
+      },
+      "labels": {
+        "code": "رمز المقرر",
+        "name": "اسم المقرر",
+        "program": "البرنامج",
+        "level": "المستوى",
+        "semester": "الفصل",
+        "type": "نوع المقرر",
+        "credits": "الوحدات",
+        "coefficient": "المعامل",
+        "hours_lecture": "ساعات المحاضرات",
+        "hours_tutorial": "ساعات الأعمال الموجهة",
+        "hours_practical": "ساعات الأعمال التطبيقية",
+        "description": "الوصف",
+        "is_active": "مقرر نشط"
+      },
+      "placeholders": {
+        "code": "مثال: INF101",
+        "name": "مثال: مقدمة في الإعلام الآلي",
+        "select_program": "اختر برنامجًا",
+        "select_level": "اختر مستوى",
+        "select_program_first": "اختر البرنامج أولًا",
+        "description": "الأهداف والمحتوى أو معلومات إضافية..."
+      },
+      "active_hint": "يظهر المقرر في الدليل وقوائم الاختيار.",
+      "total": "في المجموع",
+      "create": "إنشاء المقرر",
+      "update": "تحديث",
+      "errors": {
+        "save": "تعذر حفظ المقرر."
+      }
+    }
   },
   "grades": {
+    "header_eyebrow": "المتابعة الأكاديمية",
+    "subtitle": "متابعة النتائج والتقييمات وتطور أداء الطلاب.",
     "title_final": "الدرجات النهائية للطلاب",
     "title_evaluation": "الدرجات حسب التقييم",
     "entry_title": "إدخال الدرجات",
@@ -352,6 +428,8 @@
       "import_excel": "استيراد Excel",
       "export_excel": "تصدير Excel",
       "view_history": "عرض السجل",
+      "progression": "التطور",
+      "my_progression": "عرض تطوري",
       "generate": "توليد"
     },
     "import": {
@@ -371,6 +449,27 @@
       "absences": "الغتحانات",
       "best": "أفضل درجة",
       "no_data": "لم يتم العثور على بيانات"
+    },
+    "progress": {
+      "eyebrow": "التطور الأكاديمي",
+      "average": "المعدل الموحّد",
+      "pass_rate": "نسبة النجاح",
+      "evaluations": "التقييمات",
+      "trend": "الاتجاه الأخير",
+      "timeline": "التسلسل الزمني",
+      "chart_title": "تطور نتائج الامتحانات والاختبارات",
+      "chart_hint": "تم تحويل جميع الدرجات إلى مقياس من 20 للمقارنة العادلة.",
+      "pass_mark": "حد النجاح · 10/20",
+      "all_courses": "جميع المقررات",
+      "all_types": "جميع الأنواع",
+      "passed": "ناجح",
+      "not_passed": "دون المعدل",
+      "absent": "غائب",
+      "results": "نتيجة",
+      "by_type": "الأداء حسب نوع التقييم",
+      "details": "تفاصيل التقييمات",
+      "no_chart_data": "لا توجد تقييمات لهذه المرشحات.",
+      "load_error": "تعذر تحميل تطور أداء هذا الطالب."
     },
     "errors": {
       "select_exam_for_import": "يرجى اختيار امتحان موجود أولاً في نموذج الإدخال لاستيراد الدرجات.",
@@ -504,6 +603,7 @@
   "finance": {
     "title": "الإدارة المالية",
     "subtitle": "تتبع الإيرادات والمصروفات",
+    "header_eyebrow": "التسيير الإداري",
     "tabs": {
       "dashboard": "لوحة القيادة",
       "payments": "المدفوعات",
@@ -520,6 +620,28 @@
       "outstanding": "المتبقي للتحصيل",
       "financial_balance": "الميزانية المالية",
       "net_balance": "صافي الرصيد (الإيرادات - الرواتب - النفقات)"
+    },
+    "analytics": {
+      "cash_flow": "تطور التدفقات المالية",
+      "cash_flow_hint": "التحصيل والرواتب والمصروفات شهريًا.",
+      "flows": "التدفقات",
+      "net_trend": "صافي الرصيد",
+      "revenue": "التحصيل",
+      "salaries": "الرواتب",
+      "expenses": "المصروفات",
+      "collection": "التحصيل",
+      "collection_rate": "نسبة التحصيل",
+      "collected": "تم تحصيله",
+      "total_outflow": "إجمالي المدفوعات",
+      "expense_breakdown": "توزيع المصروفات",
+      "expense_breakdown_hint": "حصة كل فئة من إجمالي المصروفات.",
+      "payment_methods": "طرق الدفع",
+      "payment_methods_hint": "مصادر المدفوعات المكتملة.",
+      "transactions": "معاملة",
+      "pending": "قيد الانتظار",
+      "no_chart_data": "لا توجد بيانات لهذه الفترة بعد.",
+      "no_expenses": "لا توجد مصروفات مسجلة.",
+      "no_payments": "لا توجد مدفوعات مكتملة."
     },
     "payments": {
       "title": "سجل المدفوعات",

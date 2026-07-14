@@ -306,28 +306,43 @@
   },
   "courses": {
     "title": "Gestion des Cours",
+    "subtitle": "Organisez les matières, crédits, volumes horaires et parcours académiques.",
     "actions": {
       "new_course": "Nouveau Cours",
       "edit": "Modifier",
       "delete": "Supprimer"
     },
+    "delete_confirm": "Supprimer définitivement le cours {{code}} — {{name}} ?",
     "stats": {
-      "total": "Total des cours",
-      "required": "Cours obligatoires",
-      "elective": "Cours optionnels",
-      "practical": "Travaux pratiques"
+      "total": "Cours correspondants",
+      "visible_active": "Actifs sur cette page",
+      "visible_credits": "Crédits sur cette page",
+      "visible_hours": "Heures sur cette page"
     },
-    "search_placeholder": "Rechercher un cours...",
+    "search_placeholder": "Rechercher par code, nom ou description...",
     "filters": {
       "all_programs": "Tous les programmes",
+      "all_levels": "Tous les niveaux",
+      "all_semesters": "Tous les semestres",
       "all_types": "Tous les types",
       "required": "Obligatoire",
       "elective": "Optionnel",
-      "practical": "TP"
+      "practical": "Travaux pratiques",
+      "program": "Programme",
+      "level": "Niveau",
+      "semester": "Semestre",
+      "type": "Type de cours",
+      "active_count": "{{count}} filtre(s) actif(s)",
+      "reset": "Réinitialiser les filtres"
+    },
+    "semesters": {
+      "s1": "Semestre 1",
+      "s2": "Semestre 2"
     },
     "table": {
       "code": "Code",
       "name": "Nom du cours",
+      "course": "Cours",
       "program": "Programme",
       "level": "Niveau",
       "sem": "Sem.",
@@ -335,11 +350,67 @@
       "credits": "Crédits",
       "hours": "Heures",
       "coef": "Coef.",
+      "academic_context": "Parcours académique",
+      "type_status": "Type & statut",
+      "value": "Crédits / Coef.",
+      "workload": "Charge horaire",
+      "total": "au total",
       "actions": "Actions"
     },
-    "empty": "Aucun cours trouvé"
+    "empty": "Aucun cours trouvé",
+    "empty_description": "Modifiez les filtres ou ajoutez une nouvelle matière au catalogue.",
+    "errors": {
+      "load": "Impossible de charger les cours.",
+      "delete": "Impossible de supprimer ce cours."
+    },
+    "form": {
+      "eyebrow": "Catalogue académique",
+      "title_new": "Nouveau cours",
+      "title_edit": "Modifier le cours",
+      "subtitle": "Renseignez le parcours, la valeur académique et le volume horaire.",
+      "sections": {
+        "identity": "Identification du cours",
+        "identity_hint": "Code unique et intitulé officiel",
+        "academic": "Positionnement académique",
+        "academic_hint": "Programme, niveau, semestre et nature du cours",
+        "value": "Crédits et volume horaire",
+        "value_hint": "Pondération et répartition pédagogique"
+      },
+      "labels": {
+        "code": "Code du cours",
+        "name": "Nom du cours",
+        "program": "Programme",
+        "level": "Niveau",
+        "semester": "Semestre",
+        "type": "Type de cours",
+        "credits": "Crédits",
+        "coefficient": "Coefficient",
+        "hours_lecture": "Heures CM",
+        "hours_tutorial": "Heures TD",
+        "hours_practical": "Heures TP",
+        "description": "Description",
+        "is_active": "Cours actif"
+      },
+      "placeholders": {
+        "code": "Ex. INF101",
+        "name": "Ex. Introduction à l’informatique",
+        "select_program": "Sélectionner un programme",
+        "select_level": "Sélectionner un niveau",
+        "select_program_first": "Sélectionnez d’abord un programme",
+        "description": "Objectifs, contenu ou informations complémentaires..."
+      },
+      "active_hint": "Le cours apparaît dans le catalogue et les sélections.",
+      "total": "au total",
+      "create": "Créer le cours",
+      "update": "Mettre à jour",
+      "errors": {
+        "save": "Le cours n’a pas pu être enregistré."
+      }
+    }
   },
   "grades": {
+    "header_eyebrow": "Suivi académique",
+    "subtitle": "Suivez les résultats, les évaluations et la progression des étudiants.",
     "title_final": "Notes finales des étudiants",
     "title_evaluation": "Notes par évaluation",
     "entry_title": "Saisie des notes",
@@ -364,6 +435,8 @@
       "import_excel": "Importer Excel",
       "export_excel": "Exporter Excel",
       "view_history": "Voir historique",
+      "progression": "Progression",
+      "my_progression": "Voir ma progression",
       "generate": "Générer"
     },
     "table": {
@@ -421,6 +494,27 @@
       "absences": "Absences",
       "best": "Meilleure note",
       "no_data": "Aucune donnée trouvée"
+    },
+    "progress": {
+      "eyebrow": "Progression académique",
+      "average": "Moyenne normalisée",
+      "pass_rate": "Taux de réussite",
+      "evaluations": "Évaluations",
+      "trend": "Tendance récente",
+      "timeline": "Chronologie",
+      "chart_title": "Progression des examens et tests",
+      "chart_hint": "Toutes les notes sont ramenées sur 20 pour permettre une comparaison juste.",
+      "pass_mark": "Seuil de validation · 10/20",
+      "all_courses": "Tous les cours",
+      "all_types": "Tous les types",
+      "passed": "Validé",
+      "not_passed": "Sous la moyenne",
+      "absent": "Absent",
+      "results": "résultat(s)",
+      "by_type": "Performance par type d’évaluation",
+      "details": "Détail des évaluations",
+      "no_chart_data": "Aucune évaluation pour ces filtres.",
+      "load_error": "Impossible de charger la progression de cet étudiant."
     },
     "errors": {
       "select_exam_for_import": "Veuillez d'abord sélectionner un examen existant dans le formulaire de saisie pour importer des notes.",
@@ -546,6 +640,7 @@
   "finance": {
     "title": "Gestion Financière",
     "subtitle": "Suivi des revenus et dépenses",
+    "header_eyebrow": "Pilotage administratif",
     "tabs": {
       "dashboard": "Tableau de bord",
       "payments": "Paiements",
@@ -562,6 +657,28 @@
       "outstanding": "Reste à recouvrer",
       "financial_balance": "Bilan Financier",
       "net_balance": "Solde Net (Revenus - Salaires - Dépenses)"
+    },
+    "analytics": {
+      "cash_flow": "Évolution des flux financiers",
+      "cash_flow_hint": "Encaissements, salaires et dépenses mois par mois.",
+      "flows": "Flux",
+      "net_trend": "Solde net",
+      "revenue": "Encaissements",
+      "salaries": "Salaires",
+      "expenses": "Dépenses",
+      "collection": "Recouvrement",
+      "collection_rate": "Taux d’encaissement",
+      "collected": "encaissé",
+      "total_outflow": "Décaissements",
+      "expense_breakdown": "Répartition des dépenses",
+      "expense_breakdown_hint": "Poids de chaque catégorie dans les dépenses.",
+      "payment_methods": "Modes de paiement",
+      "payment_methods_hint": "Origine des encaissements complétés.",
+      "transactions": "transaction(s)",
+      "pending": "en attente",
+      "no_chart_data": "Pas encore de données pour cette période.",
+      "no_expenses": "Aucune dépense enregistrée.",
+      "no_payments": "Aucun paiement complété."
     },
     "payments": {
       "title": "Historique des paiements",

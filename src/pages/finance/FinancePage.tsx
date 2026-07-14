@@ -5,10 +5,7 @@ import universityService from '../../services/universityService';
 import api from '../../services/api';
 import { TuitionPayment, Level, Semester } from '../../types';
 import {
-  UserGroupIcon,
-  CreditCardIcon,
-  ArrowTrendingDownIcon,
-  ArrowTrendingUpIcon,
+  BanknotesIcon,
   PlusIcon,
   MagnifyingGlassIcon,
   XMarkIcon,
@@ -18,9 +15,14 @@ import {
 import SearchableSelect, { Option } from '../../components/common/SearchableSelect';
 import PaymentExcelImportModal from './PaymentExcelImportModal';
 import FinanceExcelImportModal from './FinanceExcelImportModal';
+import FinanceAnalytics from './FinanceAnalytics';
+import PageHeader from '../../components/common/PageHeader';
+import { useAuth } from '../../context/AuthContext';
 
 const FinancePage: React.FC = () => {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const canManageFinance = ['ADMIN', 'ACCOUNTANT'].includes(user?.role || '');
   const [activeTab, setActiveTab] = useState<'dashboard' | 'payments' | 'salaries' | 'expenses' | 'recovery'>('dashboard');
   const [loading, setLoading] = useState(true);
 
@@ -428,88 +430,7 @@ const FinancePage: React.FC = () => {
     </div>
   );
 
-  const renderDashboard = () => (
-    <div className="space-y-6">
-      {/* Summary cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-green-50 rounded-lg">
-              <ArrowTrendingUpIcon className="h-6 w-6 text-green-600" />
-            </div>
-            <span className="text-sm font-medium text-gray-400">{t('finance.dashboard.annual')}</span>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500">{t('finance.dashboard.collected_revenue')}</p>
-            <p className="text-2xl font-bold text-gray-900">{formatCurrency(dashboardData?.total_tuition_collected || 0)}</p>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-red-50 rounded-lg">
-              <ArrowTrendingDownIcon className="h-6 w-6 text-red-600" />
-            </div>
-            <span className="text-sm font-medium text-gray-400">{t('finance.dashboard.annual')}</span>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500">{t('finance.dashboard.total_expenses')}</p>
-            <p className="text-2xl font-bold text-gray-900">{formatCurrency(dashboardData?.total_expenses || 0)}</p>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-purple-50 rounded-lg">
-              <UserGroupIcon className="h-6 w-6 text-purple-600" />
-            </div>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500">{t('finance.dashboard.expected_revenue')}</p>
-            <p className="text-2xl font-bold text-gray-900">
-              {formatCurrency(Number(dashboardData?.total_tuition_collected || 0) + Number(dashboardData?.outstanding_balances || 0))}
-            </p>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-blue-50 rounded-lg">
-              <UserGroupIcon className="h-6 w-6 text-blue-600" />
-            </div>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500">{t('finance.dashboard.salaries_paid')}</p>
-            <p className="text-2xl font-bold text-gray-900">{formatCurrency(dashboardData?.total_salaries_paid || 0)}</p>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-orange-50 rounded-lg">
-              <CreditCardIcon className="h-6 w-6 text-orange-600" />
-            </div>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500">{t('finance.dashboard.outstanding')}</p>
-            <p className="text-2xl font-bold text-orange-600">{formatCurrency(dashboardData?.outstanding_balances || 0)}</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <h3 className="text-lg font-bold text-gray-900 mb-4">{t('finance.dashboard.financial_balance')}</h3>
-        <div className="flex items-center justify-center h-32 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
-          <div className="text-center">
-            <p className="text-gray-500 mb-1">{t('finance.dashboard.net_balance')}</p>
-            <p className={`text-3xl font-bold ${dashboardData?.net_balance && dashboardData.net_balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {formatCurrency(dashboardData?.net_balance || 0)}
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  const renderDashboard = () => <FinanceAnalytics data={dashboardData} />;
 
   const renderPayments = () => (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200">
@@ -536,20 +457,24 @@ const FinancePage: React.FC = () => {
             <ArrowDownTrayIcon className="h-4 w-4 mr-1" />
             {t('finance.payments.export', 'Exporter')}
           </button>
-          <button
-            onClick={() => setShowImportModal(true)}
-            className="flex items-center px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 text-sm font-medium"
-          >
-            <DocumentArrowUpIcon className="h-4 w-4 mr-1" />
-            {t('finance.payments.import', 'Importer')}
-          </button>
-          <button
-            onClick={() => setShowPaymentModal(true)}
-            className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium"
-          >
-            <PlusIcon className="h-5 w-5 mr-2" />
-            {t('finance.payments.new')}
-          </button>
+          {canManageFinance && (
+            <>
+              <button
+                onClick={() => setShowImportModal(true)}
+                className="flex items-center px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 text-sm font-medium"
+              >
+                <DocumentArrowUpIcon className="h-4 w-4 mr-1" />
+                {t('finance.payments.import', 'Importer')}
+              </button>
+              <button
+                onClick={() => setShowPaymentModal(true)}
+                className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium"
+              >
+                <PlusIcon className="h-5 w-5 mr-2" />
+                {t('finance.payments.new')}
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -713,7 +638,7 @@ const FinancePage: React.FC = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">{getStatusBadge(payment.status)}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-                    {payment.status === 'PENDING' && (
+                    {canManageFinance && payment.status === 'PENDING' && (
                       <button
                         onClick={() => handleApprovePayment(payment.id)}
                         className="text-indigo-600 hover:text-indigo-900 font-medium"
@@ -728,7 +653,7 @@ const FinancePage: React.FC = () => {
           </tbody>
         </table>
       </div>
-      
+
       {/* Pagination Payments */}
       <div className="p-4 border-t border-gray-200 bg-gray-50 flex flex-col md:flex-row justify-between items-center gap-4 rounded-b-xl">
         <div className="text-sm text-gray-500">
@@ -813,20 +738,24 @@ const FinancePage: React.FC = () => {
               <ArrowDownTrayIcon className="h-4 w-4 mr-1" />
               {t('finance.salaries.export', 'Exporter')}
             </button>
-            <button
-              onClick={() => setShowSalaryImportModal(true)}
-              className="flex items-center px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 text-sm font-medium"
-            >
-              <DocumentArrowUpIcon className="h-4 w-4 mr-1" />
-              {t('finance.salaries.import', 'Importer')}
-            </button>
-            <button
-              onClick={() => setShowSalaryModal(true)}
-              className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium"
-            >
-              <PlusIcon className="h-5 w-5 mr-2" />
-              {t('finance.salaries.new')}
-            </button>
+            {canManageFinance && (
+              <>
+                <button
+                  onClick={() => setShowSalaryImportModal(true)}
+                  className="flex items-center px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 text-sm font-medium"
+                >
+                  <DocumentArrowUpIcon className="h-4 w-4 mr-1" />
+                  {t('finance.salaries.import', 'Importer')}
+                </button>
+                <button
+                  onClick={() => setShowSalaryModal(true)}
+                  className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium"
+                >
+                  <PlusIcon className="h-5 w-5 mr-2" />
+                  {t('finance.salaries.new')}
+                </button>
+              </>
+            )}
           </div>
         </div>
         <div className="overflow-x-auto">
@@ -866,7 +795,7 @@ const FinancePage: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold text-gray-900">{formatCurrency(salary.net_salary)}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-center">{getStatusBadge(salary.status)}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-                      {salary.status === 'PENDING' && (
+                      {canManageFinance && salary.status === 'PENDING' && (
                         <button
                           onClick={() => handlePaySalary(salary.id)}
                           className="text-indigo-600 hover:text-indigo-900 font-medium"
@@ -935,20 +864,24 @@ const FinancePage: React.FC = () => {
               <ArrowDownTrayIcon className="h-4 w-4 mr-1" />
               {t('finance.expenses.export', 'Exporter')}
             </button>
-            <button
-              onClick={() => setShowExpenseImportModal(true)}
-              className="flex items-center px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 text-sm font-medium"
-            >
-              <DocumentArrowUpIcon className="h-4 w-4 mr-1" />
-              {t('finance.expenses.import', 'Importer')}
-            </button>
-            <button
-              onClick={() => setShowExpenseModal(true)}
-              className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium"
-            >
-              <PlusIcon className="h-5 w-5 mr-2" />
-              {t('finance.expenses.new')}
-            </button>
+            {canManageFinance && (
+              <>
+                <button
+                  onClick={() => setShowExpenseImportModal(true)}
+                  className="flex items-center px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 text-sm font-medium"
+                >
+                  <DocumentArrowUpIcon className="h-4 w-4 mr-1" />
+                  {t('finance.expenses.import', 'Importer')}
+                </button>
+                <button
+                  onClick={() => setShowExpenseModal(true)}
+                  className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium"
+                >
+                  <PlusIcon className="h-5 w-5 mr-2" />
+                  {t('finance.expenses.new')}
+                </button>
+              </>
+            )}
           </div>
         </div>
         <div className="overflow-x-auto">
@@ -1068,7 +1001,7 @@ const FinancePage: React.FC = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button
+                        {canManageFinance && <button
                           onClick={() => {
                             setPaymentForm(prev => ({ ...prev, student: item.student || item.student_id, amount: item.balance }));
                             setShowPaymentModal(true);
@@ -1076,7 +1009,7 @@ const FinancePage: React.FC = () => {
                           className="text-indigo-600 hover:text-indigo-900"
                         >
                           {t('common.actions.pay', 'Payer')}
-                        </button>
+                        </button>}
                       </td>
                     </tr>
                   );
@@ -1085,7 +1018,7 @@ const FinancePage: React.FC = () => {
             </tbody>
           </table>
         </div>
-        
+
         {/* Pagination Recovery */}
         <div className="p-4 border-t border-gray-200 bg-gray-50 flex flex-col md:flex-row justify-between items-center gap-4 rounded-b-xl">
           <div className="text-sm text-gray-500">
@@ -1451,17 +1384,17 @@ const FinancePage: React.FC = () => {
 
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t('finance.title')}</h1>
-          <p className="text-gray-500">{t('finance.subtitle')}</p>
-        </div>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        eyebrow={t('finance.header_eyebrow', 'Pilotage administratif')}
+        title={t('finance.title')}
+        description={t('finance.subtitle')}
+        icon={<BanknotesIcon className="h-6 w-6" />}
+      />
 
       {/* Tabs */}
-      <div className="border-b border-gray-200 mb-6">
-        <nav className="-mb-px flex space-x-8">
+      <div className="surface-panel overflow-x-auto p-2">
+        <nav className="flex min-w-max gap-1">
           {[
             { key: 'dashboard', label: t('finance.tabs.dashboard') },
             { key: 'payments', label: t('finance.tabs.payments') },
@@ -1473,10 +1406,10 @@ const FinancePage: React.FC = () => {
               key={tab.key}
               onClick={() => setActiveTab(tab.key as any)}
               className={`
-                whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors
+                whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-bold transition-colors
                 ${activeTab === tab.key
-                  ? 'border-indigo-500 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-900/10'
+                  : 'text-slate-500 hover:bg-blue-50 hover:text-blue-700'}
               `}
             >
               {tab.label}
@@ -1486,8 +1419,8 @@ const FinancePage: React.FC = () => {
       </div>
 
       {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-indigo-500 border-t-transparent"></div>
+        <div className="surface-panel flex h-64 items-center justify-center">
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-100 border-t-blue-600"></div>
         </div>
       ) : (
         <>
