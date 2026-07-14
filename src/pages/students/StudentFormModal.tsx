@@ -373,7 +373,7 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({ onClose, onSuccess,
 
     return (
         <div
-            className="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto bg-slate-950/60 p-2 backdrop-blur-sm sm:p-4"
+            className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/60 p-2 backdrop-blur-sm sm:p-4"
             onMouseDown={(event) => {
                 if (event.target === event.currentTarget && !loading) onClose();
             }}
@@ -382,10 +382,10 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({ onClose, onSuccess,
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="student-form-title"
-                className="my-auto flex h-[calc(100dvh-1rem)] w-full max-w-3xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl shadow-slate-950/30 sm:h-[90dvh] sm:max-h-[780px]"
+                className="flex max-h-[calc(100dvh-1rem)] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl shadow-slate-950/30 sm:max-h-[90dvh]"
             >
-                <header className="relative shrink-0 overflow-hidden bg-gradient-to-r from-blue-800 via-blue-700 to-green-700 px-5 py-5 text-white sm:px-7">
-                    <div className="absolute bottom-0 start-0 h-1 w-full bg-gradient-to-r from-green-400 via-orange-400 to-orange-600" />
+                <header className="relative shrink-0 overflow-hidden bg-gradient-to-r from-green-700 via-green-600 to-green-500 px-5 py-5 text-white sm:px-6">
+                    <div className="absolute bottom-0 start-0 h-1 w-full bg-gradient-to-r from-blue-500 via-orange-400 to-orange-600" />
                     <div className="flex items-center justify-between gap-4">
                         <div className="flex min-w-0 items-center gap-3">
                             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/15 ring-1 ring-white/25">

@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import StudentDetailModal from './StudentDetailsModal';
 import StudentFormModal from './StudentFormModal';
 import { Student } from '../../types';
@@ -69,9 +69,18 @@ describe('Student modals remain inside the viewport', () => {
     const dialog = screen.getByRole('dialog');
     const scrollBody = screen.getByTestId('student-detail-scroll-body');
 
-    expect(dialog).toHaveClass('flex-col', 'overflow-hidden');
+    expect(dialog).toHaveClass('flex-col', 'overflow-hidden', 'max-w-3xl', 'sm:max-h-[90dvh]');
     expect(scrollBody).toHaveClass('min-h-0', 'flex-1', 'overflow-y-auto');
     expect(screen.getByRole('tablist')).toBeInTheDocument();
+  });
+
+  it('opens editing from the same header action used by the teacher modal', () => {
+    const onEdit = jest.fn();
+    render(<StudentDetailModal student={student} onClose={jest.fn()} onEdit={onEdit} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Modifier' }));
+
+    expect(onEdit).toHaveBeenCalledTimes(1);
   });
 
   it('keeps form navigation outside the scrollable form body', async () => {
@@ -84,7 +93,7 @@ describe('Student modals remain inside the viewport', () => {
     const scrollBody = screen.getByTestId('student-form-scroll-body');
     const nextButton = screen.getByRole('button', { name: 'Suivant' });
 
-    expect(dialog).toHaveClass('flex-col', 'overflow-hidden');
+    expect(dialog).toHaveClass('flex-col', 'overflow-hidden', 'max-w-2xl', 'sm:max-h-[90dvh]');
     expect(scrollBody).toHaveClass('min-h-0', 'flex-1', 'overflow-y-auto');
     expect(scrollBody.contains(nextButton)).toBe(false);
   });

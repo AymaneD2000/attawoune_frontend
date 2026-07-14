@@ -1,20 +1,26 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { XMarkIcon } from "@heroicons/react/24/outline";
+import { PencilSquareIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import api from "../../services/api";
 import { Student } from "../../types";
-import { EntityAvatar, StatusPill } from "../../components/common/EntityDisplay";
+import { StatusPill } from "../../components/common/EntityDisplay";
 
 interface StudentDetailModalProps {
   student: Student;
   onClose: () => void;
+  onEdit?: () => void;
 }
 
 const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
   student,
   onClose,
+  onEdit,
 }) => {
   const { t } = useTranslation();
+  const displayName =
+    [student.first_name, student.last_name].filter(Boolean).join(" ").trim() ||
+    student.user_full_name ||
+    student.student_id;
   const [activeTab, setActiveTab] = useState<
     | "info"
     | "enrollments"
@@ -112,7 +118,7 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto bg-slate-950/60 p-2 backdrop-blur-sm sm:p-4"
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/60 p-2 backdrop-blur-sm sm:p-4"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
@@ -121,21 +127,37 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
         role="dialog"
         aria-modal="true"
         aria-labelledby="student-detail-title"
-        className="my-auto flex h-[calc(100dvh-1rem)] w-full max-w-6xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl shadow-slate-950/30 sm:h-[90dvh] sm:max-h-[900px]"
+        className="flex max-h-[calc(100dvh-1rem)] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl shadow-slate-950/30 sm:max-h-[90dvh]"
       >
         {/* Header */}
-        <div className="relative shrink-0 overflow-hidden bg-gradient-to-r from-blue-800 via-blue-700 to-green-700 px-4 py-4 text-white sm:px-6 sm:py-5">
-          <div className="absolute bottom-0 start-0 h-1 w-full bg-gradient-to-r from-green-400 via-orange-400 to-orange-600" />
-          <div className="flex items-center justify-between">
-            <div className="flex min-w-0 items-center gap-3 sm:gap-4">
-              <EntityAvatar name={student.user_full_name || student.student_id} src={student.photo} tone="green" size="lg" />
+        <div className="relative shrink-0 overflow-hidden bg-gradient-to-r from-green-700 via-green-600 to-green-500 p-5 text-white sm:p-6">
+          <div className="absolute bottom-0 start-0 h-1 w-full bg-gradient-to-r from-blue-500 via-orange-400 to-orange-600" />
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex min-w-0 items-center gap-4">
+              <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white/20 text-2xl font-black text-white ring-1 ring-white/20">
+                {student.photo ? (
+                  <img
+                    src={student.photo}
+                    alt={displayName}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  (displayName.trim().charAt(0) || "E").toUpperCase()
+                )}
+              </div>
               <div className="min-w-0">
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-green-200">
-                  {t("students.details.profile", "Dossier étudiant")}
+                <h2 id="student-detail-title" className="truncate text-xl font-black sm:text-2xl">
+                  {displayName}
+                </h2>
+                <p dir="ltr" className="mt-0.5 truncate font-mono text-sm font-semibold text-green-100">
+                  {student.student_id}
                 </p>
-                <h2 id="student-detail-title" className="mt-1 truncate text-lg font-black sm:text-2xl">{student.user_full_name}</h2>
-                <div className="mt-1 flex flex-wrap items-center gap-2">
-                  <span dir="ltr" className="truncate font-mono text-sm font-semibold text-blue-100">{student.student_id}</span>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  {student.level_display && (
+                    <span className="inline-flex rounded-full bg-white/20 px-3 py-1 text-xs font-bold text-white ring-1 ring-white/10">
+                      {student.level_display}
+                    </span>
+                  )}
                   <StatusPill tone={student.status === "ACTIVE" ? "green" : "orange"} dot>
                     {t(`students.filters.${student.status.toLowerCase()}`, student.status)}
                   </StatusPill>
@@ -151,10 +173,21 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
               <XMarkIcon className="h-6 w-6" />
             </button>
           </div>
+
+          {onEdit && (
+            <button
+              type="button"
+              onClick={onEdit}
+              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-white/20 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/30"
+            >
+              <PencilSquareIcon className="h-4 w-4" />
+              {t("common.edit", "Modifier")}
+            </button>
+          )}
         </div>
 
         {/* Tabs */}
-        <div className="shrink-0 border-b border-slate-200 bg-white px-2 sm:px-4">
+        <div className="shrink-0 border-b border-slate-200 bg-white">
           <div className="flex overflow-x-auto" role="tablist" aria-label={t("students.details.profile", "Dossier étudiant")}>
             {(
               [
@@ -173,9 +206,9 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
                 role="tab"
                 aria-selected={activeTab === tab}
                 onClick={() => setActiveTab(tab)}
-                className={`whitespace-nowrap border-b-2 px-3 py-3 text-sm font-bold transition-colors sm:px-4 ${
+                className={`shrink-0 whitespace-nowrap border-b-2 px-3 py-3 text-xs font-bold transition-colors sm:flex-1 sm:px-3 sm:text-sm ${
                   activeTab === tab
-                    ? "border-blue-600 text-blue-700"
+                    ? "border-green-600 bg-green-50/60 text-green-700"
                     : "border-transparent text-slate-500 hover:border-slate-200 hover:text-slate-800"
                 }`}
               >
@@ -208,7 +241,7 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
         </div>
 
         {/* Content */}
-        <div data-testid="student-detail-scroll-body" className="min-h-0 flex-1 overflow-y-auto bg-slate-50/60 p-4 sm:p-6">
+        <div data-testid="student-detail-scroll-body" className="min-h-0 flex-1 overflow-y-auto bg-white p-4 sm:p-6">
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
@@ -216,14 +249,14 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
           ) : (
             <>
               {activeTab === "info" && (
-                <div className="space-y-6">
+                <div className="space-y-5">
                   <h3 className="text-lg font-bold text-gray-900 border-b pb-2">
                     {t(
                       "students.details.info.personal_info",
                       "Informations Personnelles",
                     )}
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <InfoCard
                       label={t("students.details.info.last_name", "Nom")}
                       value={student.last_name || "N/A"}
@@ -258,7 +291,7 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
                       "Informations Académiques",
                     )}
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <InfoCard
                       label={t("students.details.info.program", "Programme")}
                       value={student.program_name || "N/A"}

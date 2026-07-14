@@ -398,7 +398,14 @@ const StudentsPage: React.FC = () => {
       </section>
 
       {selectedStudent && (
-        <StudentDetailModal student={selectedStudent} onClose={() => setSelectedStudent(null)} />
+        <StudentDetailModal
+          student={selectedStudent}
+          onClose={() => setSelectedStudent(null)}
+          onEdit={canManageUsers ? () => {
+            setSelectedStudent(null);
+            openEdit(selectedStudent);
+          } : undefined}
+        />
       )}
 
       {showCreateModal && (
