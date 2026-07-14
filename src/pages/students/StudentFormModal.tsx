@@ -4,6 +4,7 @@ import universityService from '../../services/universityService';
 import userService from '../../services/userService';
 import studentService from '../../services/studentService';
 import { Program, Level, Student, User } from '../../types';
+import { normalizeApiError } from '../../utils/apiError';
 
 interface StudentFormModalProps {
     onClose: () => void;
@@ -209,30 +210,10 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({ onClose, onSuccess,
             onClose();
         } catch (err: any) {
             console.error('Error saving student:', err);
-            
-            let errorMessage = t('students.form.errors.save_error', 'Erreur lors de la sauvegarde');
-            if (err.response?.data) {
-                if (typeof err.response.data === 'string') {
-                    errorMessage = err.response.data;
-                } else if (typeof err.response.data.detail === 'string') {
-                    errorMessage = err.response.data.detail;
-                } else if (typeof err.response.data.error === 'string') {
-                    errorMessage = err.response.data.error;
-                } else if (err.response.data.message && typeof err.response.data.message === 'string') {
-                    errorMessage = err.response.data.message;
-                } else {
-                    const firstKey = Object.keys(err.response.data)[0];
-                    if (firstKey) {
-                        if (Array.isArray(err.response.data[firstKey])) {
-                            errorMessage = `${firstKey}: ${err.response.data[firstKey][0]}`;
-                        } else if (typeof err.response.data[firstKey] === 'string') {
-                            errorMessage = err.response.data[firstKey];
-                        }
-                    }
-                }
-            }
-
-            setError(errorMessage);
+            setError(normalizeApiError(
+                err.response?.data,
+                t('students.form.errors.save_error', 'Erreur lors de la sauvegarde'),
+            ).message);
         } finally {
             setLoading(false);
         }

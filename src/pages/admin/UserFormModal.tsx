@@ -4,6 +4,7 @@ import { XMarkIcon } from '@heroicons/react/24/outline';
 import userService from '../../services/userService';
 import { User } from '../../types';
 import { useAuth } from '../../context/AuthContext';
+import { getFieldError, normalizeApiError, NormalizedApiError } from '../../utils/apiError';
 
 interface UserFormModalProps {
     user?: User | null;
@@ -16,7 +17,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ user, onClose, onSuccess 
     const { user: currentUser } = useAuth();
     const isAdmin = currentUser?.role === 'ADMIN';
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<any>(null);
+    const [error, setError] = useState<NormalizedApiError | null>(null);
 
     const [formData, setFormData] = useState({
         username: '',
@@ -93,12 +94,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ user, onClose, onSuccess 
             onSuccess();
         } catch (err: any) {
             console.error('Error saving user:', err);
-            const errorData = err.response?.data;
-            if (typeof errorData === 'object') {
-                setError(errorData);
-            } else {
-                setError({ detail: errorData || 'Une erreur est survenue' });
-            }
+            setError(normalizeApiError(err.response?.data));
         } finally {
             setLoading(false);
         }
@@ -119,9 +115,9 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ user, onClose, onSuccess 
                 </div>
 
                 <form onSubmit={handleSubmit} className="p-6">
-                    {error && error.detail && (
+                    {error && (
                         <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm border border-red-100">
-                            {error.detail}
+                            {error.message}
                         </div>
                     )}
 
@@ -137,9 +133,9 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ user, onClose, onSuccess 
                                         required
                                         value={formData.username}
                                         onChange={handleChange}
-                                        className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all ${error?.username ? 'border-red-500' : 'border-gray-300'}`}
+                                        className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all ${getFieldError(error, 'username') ? 'border-red-500' : 'border-gray-300'}`}
                                     />
-                                    {error?.username && <p className="mt-1 text-xs text-red-500">{error.username}</p>}
+                                    {getFieldError(error, 'username') && <p className="mt-1 text-xs text-red-500">{getFieldError(error, 'username')}</p>}
                                 </div>
                             )}
 
@@ -151,9 +147,9 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ user, onClose, onSuccess 
                                     disabled={!!user && !isAdmin}
                                     value={formData.email}
                                     onChange={handleChange}
-                                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all ${(user && !isAdmin) ? 'bg-gray-50 bg-opacity-50 cursor-not-allowed' : ''} ${error?.email ? 'border-red-500' : 'border-gray-300'}`}
+                                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all ${(user && !isAdmin) ? 'bg-gray-50 bg-opacity-50 cursor-not-allowed' : ''} ${getFieldError(error, 'email') ? 'border-red-500' : 'border-gray-300'}`}
                                 />
-                                {error?.email && <p className="mt-1 text-xs text-red-500">{error.email}</p>}
+                                {getFieldError(error, 'email') && <p className="mt-1 text-xs text-red-500">{getFieldError(error, 'email')}</p>}
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
@@ -209,9 +205,9 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ user, onClose, onSuccess 
                                     required={!user}
                                     value={formData.password}
                                     onChange={handleChange}
-                                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all ${error?.password ? 'border-red-500' : 'border-gray-300'}`}
+                                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all ${getFieldError(error, 'password') ? 'border-red-500' : 'border-gray-300'}`}
                                 />
-                                {error?.password && <p className="mt-1 text-xs text-red-500">{error.password}</p>}
+                                {getFieldError(error, 'password') && <p className="mt-1 text-xs text-red-500">{getFieldError(error, 'password')}</p>}
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.users.modal.password_confirm')}</label>

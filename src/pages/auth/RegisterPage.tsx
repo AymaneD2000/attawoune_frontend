@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../../services/api';
+import { normalizeApiError } from '../../utils/apiError';
 
 
 const RegisterPage: React.FC = () => {
@@ -35,13 +36,7 @@ const RegisterPage: React.FC = () => {
       await api.post('/accounts/register/', formData);
       navigate('/login', { state: { message: 'Compte créé avec succès. Vous pouvez maintenant vous connecter.' } });
     } catch (err: any) {
-      if (err.response?.data) {
-        const errors = err.response.data;
-        const firstError = Object.values(errors)[0];
-        setError(Array.isArray(firstError) ? firstError[0] : String(firstError));
-      } else {
-        setError('Une erreur est survenue');
-      }
+      setError(normalizeApiError(err.response?.data).message);
     } finally {
       setLoading(false);
     }
