@@ -96,6 +96,10 @@ export const financeService = {
         return response.data;
     },
 
+    deletePayment: async (id: number) => {
+        await api.delete(`/finance/tuition-payments/${id}/`);
+    },
+
     // Salaries
     getSalaries: async (params?: any) => {
         const response = await api.get<PaginatedResponse<Salary>>('/finance/salaries/', { params });

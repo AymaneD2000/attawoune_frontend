@@ -690,6 +690,14 @@
     "payments": {
       "title": "Historique des paiements",
       "new": "Nouveau Paiement",
+      "delete": "Supprimer",
+      "destructive_action": "Action définitive",
+      "delete_title": "Supprimer ce paiement ?",
+      "delete_message": "Cette opération supprimera définitivement le paiement sélectionné.",
+      "delete_balance_notice": "Le solde financier de l’étudiant sera recalculé automatiquement.",
+      "confirm_delete": "Supprimer le paiement",
+      "deleting": "Suppression...",
+      "delete_error": "Impossible de supprimer ce paiement. Veuillez réessayer.",
       "table": {
         "reference": "Référence",
         "student": "Étudiant",

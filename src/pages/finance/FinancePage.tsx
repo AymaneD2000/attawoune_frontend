@@ -10,7 +10,9 @@ import {
   MagnifyingGlassIcon,
   XMarkIcon,
   ArrowDownTrayIcon,
-  DocumentArrowUpIcon
+  DocumentArrowUpIcon,
+  ExclamationTriangleIcon,
+  TrashIcon
 } from '@heroicons/react/24/outline';
 import SearchableSelect, { Option } from '../../components/common/SearchableSelect';
 import PaymentExcelImportModal from './PaymentExcelImportModal';
@@ -73,6 +75,8 @@ const FinancePage: React.FC = () => {
   const [showImportModal, setShowImportModal] = useState(false);
   const [showSalaryImportModal, setShowSalaryImportModal] = useState(false);
   const [showExpenseImportModal, setShowExpenseImportModal] = useState(false);
+  const [paymentToDelete, setPaymentToDelete] = useState<TuitionPayment | null>(null);
+  const [deletingPaymentId, setDeletingPaymentId] = useState<number | null>(null);
 
   // Forms
   const [expenseForm, setExpenseForm] = useState({
@@ -303,6 +307,33 @@ const FinancePage: React.FC = () => {
     } catch (error) {
       console.error("Error approving payment", error);
       window.alert(t('common.errors.validation_error', "Erreur lors de la validation."));
+    }
+  };
+
+  const handleDeletePayment = async () => {
+    if (!paymentToDelete || deletingPaymentId !== null) return;
+
+    const paymentId = paymentToDelete.id;
+    setDeletingPaymentId(paymentId);
+    try {
+      await financeService.deletePayment(paymentId);
+      setPaymentToDelete(null);
+
+      if (payments.length === 1 && paymentsPage > 1) {
+        setPaymentsPage((page) => Math.max(1, page - 1));
+      } else {
+        await fetchData();
+      }
+    } catch (error) {
+      console.error('Error deleting payment:', error);
+      window.alert(
+        t(
+          'finance.payments.delete_error',
+          "Impossible de supprimer ce paiement. Veuillez réessayer.",
+        ),
+      );
+    } finally {
+      setDeletingPaymentId(null);
     }
   };
 
@@ -638,13 +669,27 @@ const FinancePage: React.FC = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">{getStatusBadge(payment.status)}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-                    {canManageFinance && payment.status === 'PENDING' && (
-                      <button
-                        onClick={() => handleApprovePayment(payment.id)}
-                        className="text-indigo-600 hover:text-indigo-900 font-medium"
-                      >
-                        {t('common.actions.validate', 'Valider')}
-                      </button>
+                    {canManageFinance && (
+                      <div className="inline-flex items-center justify-end gap-2">
+                        {payment.status === 'PENDING' && (
+                          <button
+                            type="button"
+                            onClick={() => handleApprovePayment(payment.id)}
+                            className="rounded-lg px-3 py-2 font-bold text-indigo-600 transition-colors hover:bg-indigo-50 hover:text-indigo-900"
+                          >
+                            {t('common.actions.validate', 'Valider')}
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => setPaymentToDelete(payment)}
+                          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-600 transition-colors hover:border-red-300 hover:bg-red-100 hover:text-red-700"
+                          aria-label={`${t('finance.payments.delete', 'Supprimer')} ${payment.reference}`}
+                          title={t('finance.payments.delete', 'Supprimer')}
+                        >
+                          <TrashIcon className="h-4 w-4" />
+                        </button>
+                      </div>
                     )}
                   </td>
                 </tr>
@@ -1436,6 +1481,114 @@ const FinancePage: React.FC = () => {
       {renderPaymentModal()}
       {renderExpenseModal()}
       {renderSalaryModal()}
+      {paymentToDelete && (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget && deletingPaymentId === null) {
+              setPaymentToDelete(null);
+            }
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-payment-title"
+            className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl shadow-slate-950/30"
+          >
+            <div className="flex items-start gap-4 border-b border-slate-100 p-6">
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-red-600 ring-1 ring-red-100">
+                <ExclamationTriangleIcon className="h-7 w-7" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-black uppercase tracking-[0.14em] text-red-600">
+                  {t('finance.payments.destructive_action', 'Action définitive')}
+                </p>
+                <h2 id="delete-payment-title" className="mt-1 text-xl font-black text-slate-950">
+                  {t('finance.payments.delete_title', 'Supprimer ce paiement ?')}
+                </h2>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  {t(
+                    'finance.payments.delete_message',
+                    "Cette opération supprimera définitivement le paiement sélectionné.",
+                  )}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPaymentToDelete(null)}
+                disabled={deletingPaymentId !== null}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+                aria-label={t('common.close', 'Fermer')}
+              >
+                <XMarkIcon className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4 p-6">
+              <dl className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+                <div className="flex items-center justify-between gap-4 border-b border-slate-200 px-4 py-3">
+                  <dt className="text-xs font-bold uppercase tracking-wide text-slate-500">
+                    {t('finance.payments.table.reference', 'Référence')}
+                  </dt>
+                  <dd dir="ltr" className="truncate font-mono text-sm font-bold text-slate-900">
+                    {paymentToDelete.reference}
+                  </dd>
+                </div>
+                <div className="flex items-center justify-between gap-4 border-b border-slate-200 px-4 py-3">
+                  <dt className="text-xs font-bold uppercase tracking-wide text-slate-500">
+                    {t('finance.payments.table.student', 'Étudiant')}
+                  </dt>
+                  <dd className="truncate text-sm font-bold text-slate-900">
+                    {paymentToDelete.student_name}
+                  </dd>
+                </div>
+                <div className="flex items-center justify-between gap-4 px-4 py-3">
+                  <dt className="text-xs font-bold uppercase tracking-wide text-slate-500">
+                    {t('finance.payments.table.amount', 'Montant')}
+                  </dt>
+                  <dd className="text-sm font-black text-slate-950">
+                    {formatCurrency(paymentToDelete.amount)}
+                  </dd>
+                </div>
+              </dl>
+
+              <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium leading-6 text-amber-900">
+                {t(
+                  'finance.payments.delete_balance_notice',
+                  "Le solde financier de l’étudiant sera recalculé automatiquement.",
+                )}
+              </p>
+
+              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                <button
+                  type="button"
+                  onClick={() => setPaymentToDelete(null)}
+                  disabled={deletingPaymentId !== null}
+                  className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {t('common.cancel', 'Annuler')}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDeletePayment}
+                  disabled={deletingPaymentId !== null}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-red-900/15 transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {deletingPaymentId === paymentToDelete.id ? (
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                  ) : (
+                    <TrashIcon className="h-4 w-4" />
+                  )}
+                  {deletingPaymentId === paymentToDelete.id
+                    ? t('finance.payments.deleting', 'Suppression...')
+                    : t('finance.payments.confirm_delete', 'Supprimer le paiement')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       <PaymentExcelImportModal
         isOpen={showImportModal}
         onClose={() => setShowImportModal(false)}

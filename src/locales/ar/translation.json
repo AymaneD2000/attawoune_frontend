@@ -653,6 +653,14 @@
     "payments": {
       "title": "سجل المدفوعات",
       "new": "دفع جديد",
+      "delete": "حذف",
+      "destructive_action": "إجراء نهائي",
+      "delete_title": "حذف هذه الدفعة؟",
+      "delete_message": "سيؤدي هذا الإجراء إلى حذف الدفعة المحددة نهائيًا.",
+      "delete_balance_notice": "سيُعاد احتساب الرصيد المالي للطالب تلقائيًا.",
+      "confirm_delete": "حذف الدفعة",
+      "deleting": "جارٍ الحذف...",
+      "delete_error": "تعذر حذف هذه الدفعة. يرجى المحاولة مرة أخرى.",
       "table": {
         "reference": "المرجع",
         "student": "الطالب",
