@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowDownTrayIcon, PencilSquareIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { ArrowDownTrayIcon, ArrowPathIcon, ExclamationTriangleIcon, PencilSquareIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import api from "../../services/api";
 import { Student } from "../../types";
 import { StatusPill } from "../../components/common/EntityDisplay";
@@ -46,10 +46,63 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
   const [reportCards, setReportCards] = useState<any[]>([]);
   const [financialStatement, setFinancialStatement] = useState<any>(null);
   const [idCardUrl, setIdCardUrl] = useState<string | null>(null);
+  const [idCardLoading, setIdCardLoading] = useState(false);
+  const [idCardError, setIdCardError] = useState<string | null>(null);
+  const idCardUrlRef = useRef<string | null>(null);
+  const idCardRequestInFlightRef = useRef(false);
   const [loading, setLoading] = useState(false);
+  const idCardTimeoutMessage = t(
+    "students.details.idcard.timeout",
+    "La génération prend trop de temps. Réessayez dans quelques secondes.",
+  );
+  const idCardErrorMessage = t(
+    "students.details.idcard.error",
+    "Impossible de générer la carte. Vérifiez le backend puis réessayez.",
+  );
+
+  const loadIdCard = useCallback(async (force = false) => {
+    if (
+      !student?.id ||
+      idCardRequestInFlightRef.current ||
+      (idCardUrlRef.current && !force)
+    ) {
+      return;
+    }
+
+    idCardRequestInFlightRef.current = true;
+    setIdCardLoading(true);
+    setIdCardError(null);
+    try {
+      const response = await api.get(
+        `/students/${student.id}/generate_id_card/`,
+        { responseType: "blob", timeout: 15000 },
+      );
+      const url = window.URL.createObjectURL(
+        new Blob([response.data], { type: "image/png" }),
+      );
+      if (idCardUrlRef.current) {
+        window.URL.revokeObjectURL(idCardUrlRef.current);
+      }
+      idCardUrlRef.current = url;
+      setIdCardUrl(url);
+    } catch (error: any) {
+      setIdCardError(
+        error?.code === "ECONNABORTED"
+          ? idCardTimeoutMessage
+          : idCardErrorMessage,
+      );
+    } finally {
+      idCardRequestInFlightRef.current = false;
+      setIdCardLoading(false);
+    }
+  }, [idCardErrorMessage, idCardTimeoutMessage, student?.id]);
 
   const fetchData = useCallback(async () => {
     if (!student?.id) return;
+    if (activeTab === "idcard") {
+      await loadIdCard();
+      return;
+    }
     setLoading(true);
     try {
       if (activeTab === "enrollments") {
@@ -71,26 +124,13 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
           params: { student_id: student.id },
         });
         setFinancialStatement(res.data);
-      } else if (activeTab === "idcard") {
-        // Use imported studentService if available, otherwise direct api call.
-        // Since I cannot easily add import here without checking if it exists, I'll use direct API for now or partial import.
-        // Actually StudentDetailsModal doesn't import studentService yet. I should use api.
-        const response = await api.get(
-          `/students/${student.id}/generate_id_card/`,
-          { responseType: "blob" },
-        );
-        const url = window.URL.createObjectURL(new Blob([response.data]));
-        setIdCardUrl((previousUrl) => {
-          if (previousUrl) window.URL.revokeObjectURL(previousUrl);
-          return url;
-        });
       }
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
       setLoading(false);
     }
-  }, [student?.id, activeTab]);
+  }, [student?.id, activeTab, loadIdCard]);
 
   useEffect(() => {
     if (activeTab !== "info") {
@@ -99,8 +139,11 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
   }, [activeTab, fetchData]);
 
   useEffect(() => () => {
-    if (idCardUrl) window.URL.revokeObjectURL(idCardUrl);
-  }, [idCardUrl]);
+    if (idCardUrlRef.current) {
+      window.URL.revokeObjectURL(idCardUrlRef.current);
+      idCardUrlRef.current = null;
+    }
+  }, []);
 
   const API_BASE_URL = (
     process.env.REACT_APP_API_URL || "https://api.universiter-attawoune.ml/api/v1"
@@ -896,6 +939,19 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
                         )}
                       </a>
                     </>
+                  ) : idCardError ? (
+                    <div className="flex min-h-64 w-full max-w-2xl items-center justify-center rounded-2xl border border-red-200 bg-red-50 px-6 text-center" role="alert">
+                      <div className="flex max-w-md flex-col items-center gap-3">
+                        <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-red-600 shadow-sm">
+                          <ExclamationTriangleIcon className="h-7 w-7" />
+                        </span>
+                        <p className="text-sm font-bold leading-6 text-red-800">{idCardError}</p>
+                        <button type="button" onClick={() => loadIdCard(true)} className="brand-button-secondary">
+                          <ArrowPathIcon className={`h-5 w-5 ${idCardLoading ? "animate-spin" : ""}`} />
+                          {t("common.retry", "Réessayer")}
+                        </button>
+                      </div>
+                    </div>
                   ) : (
                     <div className="flex min-h-64 w-full max-w-2xl items-center justify-center rounded-2xl border border-slate-200 bg-slate-50">
                       <div className="flex flex-col items-center gap-3 text-slate-500">

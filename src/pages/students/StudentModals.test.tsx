@@ -3,6 +3,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import StudentDetailModal from './StudentDetailsModal';
 import StudentFormModal from './StudentFormModal';
 import { Student } from '../../types';
+import api from '../../services/api';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -63,6 +64,11 @@ const student: Student = {
 };
 
 describe('Student modals remain inside the viewport', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (api.get as jest.Mock).mockResolvedValue({ data: { results: [] } });
+  });
+
   it('keeps the detail header and tabs fixed while only the body scrolls', () => {
     render(<StudentDetailModal student={student} onClose={jest.fn()} />);
 
@@ -81,6 +87,17 @@ describe('Student modals remain inside the viewport', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Modifier' }));
 
     expect(onEdit).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows a retry action instead of an endless ID-card spinner after a timeout', async () => {
+    (api.get as jest.Mock).mockRejectedValueOnce({ code: 'ECONNABORTED' });
+    render(<StudentDetailModal student={student} onClose={jest.fn()} />);
+
+    fireEvent.click(screen.getByRole('tab', { name: "Carte d'étudiant" }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('La génération prend trop de temps');
+    expect(screen.getByRole('button', { name: 'Réessayer' })).toBeInTheDocument();
+    expect(api.get).toHaveBeenCalledTimes(1);
   });
 
   it('keeps form navigation outside the scrollable form body', async () => {
