@@ -137,6 +137,7 @@
         "date_of_birth": "Date de naissance",
         "gender": "Sexe",
         "photo": "Photo de profil",
+        "photo_preview": "Aperçu de la photo",
         "program": "Programme",
         "level": "Niveau",
         "enrollment_date": "Date d'inscription",
@@ -156,11 +157,14 @@
       "notes": {
         "password_admin": "La modification du mot de passe doit se faire via l'administration des utilisateurs.",
         "password_auto": "Le mot de passe sera généré automatiquement (PrénomNom@Année).",
-        "matricule_auto": "Le matricule sera généré automatiquement (ex: FST1920MA007817)."
+        "matricule_auto": "Le matricule sera généré automatiquement (ex: FST1920MA007817).",
+        "photo_hint": "JPG, PNG ou WebP, 5 Mo maximum. La carte d’étudiant sera actualisée automatiquement."
       },
       "errors": {
         "required_fields": "Veuillez remplir tous les champs obligatoires",
-        "save_error": "Erreur lors de la sauvegarde"
+        "save_error": "Erreur lors de la sauvegarde",
+        "photo_type": "Veuillez sélectionner une image valide.",
+        "photo_size": "La photo ne doit pas dépasser 5 Mo."
       }
     },
     "details": {

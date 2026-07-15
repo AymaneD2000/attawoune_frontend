@@ -9,7 +9,7 @@ import { normalizeApiError } from '../../utils/apiError';
 
 interface StudentFormModalProps {
     onClose: () => void;
-    onSuccess: () => void;
+    onSuccess: (savedStudent?: Student) => void;
     student?: Student | null;
 }
 
@@ -43,6 +43,7 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({ onClose, onSuccess,
     });
 
     const [photo, setPhoto] = useState<File | null>(null);
+    const [photoPreview, setPhotoPreview] = useState<string | null>(student?.photo || null);
 
     // Options
     const [programs, setPrograms] = useState<Program[]>([]);
@@ -111,7 +112,31 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({ onClose, onSuccess,
             };
             populateForm();
         }
+        setPhoto(null);
+        setPhotoPreview(student?.photo || null);
     }, [student]);
+
+    const handlePhotoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const selectedPhoto = event.target.files?.[0];
+        if (!selectedPhoto) return;
+
+        if (!selectedPhoto.type.startsWith('image/')) {
+            setError(t('students.form.errors.photo_type', 'Veuillez sélectionner une image valide.'));
+            event.target.value = '';
+            return;
+        }
+        if (selectedPhoto.size > 5 * 1024 * 1024) {
+            setError(t('students.form.errors.photo_size', 'La photo ne doit pas dépasser 5 Mo.'));
+            event.target.value = '';
+            return;
+        }
+
+        setError(null);
+        setPhoto(selectedPhoto);
+        const reader = new FileReader();
+        reader.onload = () => setPhotoPreview(String(reader.result || ''));
+        reader.readAsDataURL(selectedPhoto);
+    };
 
     const handleUserChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         setUserData({ ...userData, [e.target.name]: e.target.value });
@@ -201,13 +226,14 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({ onClose, onSuccess,
                 studentPayload.append('photo', photo);
             }
 
+            let savedStudent: Student;
             if (student) {
-                await studentService.updateStudent(student.id, studentPayload);
+                savedStudent = await studentService.updateStudent(student.id, studentPayload);
             } else {
-                await studentService.createStudent(studentPayload);
+                savedStudent = await studentService.createStudent(studentPayload);
             }
 
-            onSuccess();
+            onSuccess(savedStudent);
             onClose();
         } catch (err: any) {
             console.error('Error saving student:', err);
@@ -284,22 +310,40 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({ onClose, onSuccess,
                 </div>
             </div>
             <div className="mt-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">{t('students.form.labels.photo', 'Photo de profil')}</label>
-                <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                        if (e.target.files && e.target.files[0]) {
-                            setPhoto(e.target.files[0]);
-                        }
-                    }}
-                    className="w-full text-sm text-gray-500
-                        file:mr-4 file:py-2 file:px-4
-                        file:rounded-full file:border-0
-                        file:text-sm file:font-semibold
-                        file:bg-indigo-50 file:text-indigo-700
-                        hover:file:bg-indigo-100"
-                />
+                <label htmlFor="student-photo" className="block text-sm font-medium text-gray-700 mb-1">{t('students.form.labels.photo', 'Photo de profil')}</label>
+                <div className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center">
+                    <div className="flex h-24 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-blue-100 to-green-100 text-blue-700 ring-4 ring-white shadow-md">
+                        {photoPreview ? (
+                            <img
+                                src={photoPreview}
+                                alt={t('students.form.labels.photo_preview', 'Aperçu de la photo')}
+                                className="h-full w-full object-cover"
+                            />
+                        ) : (
+                            <UserIcon className="h-10 w-10" />
+                        )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                        <input
+                            id="student-photo"
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            onChange={handlePhotoChange}
+                            className="block w-full text-sm text-slate-500
+                                file:me-3 file:rounded-xl file:border-0 file:bg-blue-50
+                                file:px-4 file:py-2.5 file:text-sm file:font-bold file:text-blue-700
+                                hover:file:bg-blue-100"
+                        />
+                        <p className="mt-2 text-xs font-medium leading-5 text-slate-500">
+                            {t('students.form.notes.photo_hint', 'JPG, PNG ou WebP, 5 Mo maximum. La carte d’étudiant sera actualisée automatiquement.')}
+                        </p>
+                        {photo && (
+                            <p className="mt-1 truncate text-xs font-bold text-green-700">
+                                {photo.name}
+                            </p>
+                        )}
+                    </div>
+                </div>
             </div>
         </div >
     );

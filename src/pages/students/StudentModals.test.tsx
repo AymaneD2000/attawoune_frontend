@@ -4,6 +4,8 @@ import StudentDetailModal from './StudentDetailsModal';
 import StudentFormModal from './StudentFormModal';
 import { Student } from '../../types';
 import api from '../../services/api';
+import studentService from '../../services/studentService';
+import userService from '../../services/userService';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -113,5 +115,59 @@ describe('Student modals remain inside the viewport', () => {
     expect(dialog).toHaveClass('flex-col', 'overflow-hidden', 'max-w-2xl', 'sm:max-h-[90dvh]');
     expect(scrollBody).toHaveClass('min-h-0', 'flex-1', 'overflow-y-auto');
     expect(scrollBody.contains(nextButton)).toBe(false);
+  });
+
+  it('uploads a replacement profile photo as multipart student data', async () => {
+    (userService.getUser as jest.Mock).mockResolvedValue({
+      id: 2,
+      first_name: 'Mariam',
+      last_name: 'Diallo',
+      email: 'mariam@example.com',
+      username: 'mariam',
+      phone: '70000000',
+      address: '',
+      date_of_birth: '2005-01-01',
+    });
+    (userService.updateUser as jest.Mock).mockResolvedValue({});
+    (studentService.updateStudent as jest.Mock).mockResolvedValue({
+      ...student,
+      photo: 'https://api.example.test/media/students/photos/new-profile.png',
+    });
+    const onSuccess = jest.fn();
+    const onClose = jest.fn();
+
+    render(
+      <StudentFormModal
+        student={student}
+        onClose={onClose}
+        onSuccess={onSuccess}
+      />,
+    );
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    const replacement = new File(['photo-bytes'], 'new-profile.png', {
+      type: 'image/png',
+    });
+    fireEvent.change(screen.getByLabelText('Photo de profil'), {
+      target: { files: [replacement] },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Suivant' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Enregistrer' }));
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(studentService.updateStudent).toHaveBeenCalledTimes(1);
+    const [, payload] = (studentService.updateStudent as jest.Mock).mock.calls[0];
+    expect(payload).toBeInstanceOf(FormData);
+    expect(payload.get('photo')).toBe(replacement);
+    expect(onSuccess).toHaveBeenCalledWith(
+      expect.objectContaining({ photo: expect.stringContaining('new-profile.png') }),
+    );
+    expect(onClose).toHaveBeenCalled();
   });
 });

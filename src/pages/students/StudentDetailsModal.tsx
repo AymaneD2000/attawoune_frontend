@@ -75,7 +75,11 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
     try {
       const response = await api.get(
         `/students/${student.id}/generate_id_card/`,
-        { responseType: "blob", timeout: 15000 },
+        {
+          responseType: "blob",
+          timeout: 15000,
+          params: { refresh: Date.now() },
+        },
       );
       const url = window.URL.createObjectURL(
         new Blob([response.data], { type: "image/png" }),

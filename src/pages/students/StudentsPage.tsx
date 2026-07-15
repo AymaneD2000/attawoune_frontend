@@ -415,7 +415,14 @@ const StudentsPage: React.FC = () => {
             setShowCreateModal(false);
             setStudentToEdit(null);
           }}
-          onSuccess={() => {
+          onSuccess={(savedStudent) => {
+            if (savedStudent?.id) {
+              setStudents((current) => current.map((listedStudent) => (
+                listedStudent.id === savedStudent.id
+                  ? { ...listedStudent, ...savedStudent }
+                  : listedStudent
+              )));
+            }
             fetchStudents();
             setShowCreateModal(false);
             setStudentToEdit(null);

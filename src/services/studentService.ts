@@ -13,16 +13,13 @@ export const studentService = {
     },
 
     createStudent: async (data: Partial<Student> | FormData) => {
-        const response = await api.post<Student>('/students/', data, {
-            headers: data instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : undefined
-        });
+        // Axios must set the multipart boundary itself for FormData uploads.
+        const response = await api.post<Student>('/students/', data);
         return response.data;
     },
 
     updateStudent: async (id: number, data: Partial<Student> | FormData) => {
-        const response = await api.patch<Student>(`/students/${id}/`, data, {
-            headers: data instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : undefined
-        });
+        const response = await api.patch<Student>(`/students/${id}/`, data);
         return response.data;
     },
 
@@ -32,7 +29,8 @@ export const studentService = {
 
     downloadIdCard: async (id: number) => {
         const response = await api.get(`/students/${id}/generate_id_card/`, {
-            responseType: 'blob'
+            responseType: 'blob',
+            params: { refresh: Date.now() },
         });
         return response.data;
     },
