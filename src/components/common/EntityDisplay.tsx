@@ -1,10 +1,6 @@
 import React from 'react';
-import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  MagnifyingGlassIcon,
-} from '@heroicons/react/24/outline';
-import { useTranslation } from 'react-i18next';
+import { EmptyState as FeedbackEmptyState, PageSkeleton } from '../ui/Feedback';
+import { Pagination } from '../ui/Pagination';
 
 type Tone = 'blue' | 'green' | 'orange' | 'red' | 'slate' | 'earth';
 
@@ -92,19 +88,7 @@ interface ListLoadingProps {
 }
 
 export const ListLoading: React.FC<ListLoadingProps> = ({ cards = false }) => (
-  <div className={`grid animate-pulse gap-4 p-5 ${cards ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1'}`}>
-    {Array.from({ length: cards ? 6 : 5 }).map((_, index) => (
-      <div key={index} className={`rounded-2xl border border-slate-100 bg-white ${cards ? 'h-52 p-5' : 'h-20 p-4'}`}>
-        <div className="flex items-center gap-4">
-          <div className="h-12 w-12 rounded-2xl bg-slate-100" />
-          <div className="flex-1 space-y-2">
-            <div className="h-3 w-1/3 rounded bg-slate-100" />
-            <div className="h-3 w-1/2 rounded bg-slate-100" />
-          </div>
-        </div>
-      </div>
-    ))}
-  </div>
+  <PageSkeleton rows={cards ? 6 : 5} />
 );
 
 interface EmptyStateProps {
@@ -114,14 +98,7 @@ interface EmptyStateProps {
 }
 
 export const EmptyState: React.FC<EmptyStateProps> = ({ title, description, action }) => (
-  <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
-    <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-blue-700 ring-8 ring-blue-50/60">
-      <MagnifyingGlassIcon className="h-8 w-8" />
-    </div>
-    <h3 className="mt-6 text-lg font-black text-slate-900">{title}</h3>
-    <p className="mt-2 max-w-sm text-sm leading-6 text-slate-500">{description}</p>
-    {action && <div className="mt-5">{action}</div>}
-  </div>
+  <FeedbackEmptyState title={title} description={description} action={action} />
 );
 
 interface PaginationBarProps {
@@ -143,39 +120,15 @@ export const PaginationBar: React.FC<PaginationBarProps> = ({
   onNext,
   nextDisabled,
 }) => {
-  const { t } = useTranslation();
-  const start = total === 0 ? 0 : (currentPage - 1) * pageSize + 1;
-  const end = total === 0 ? 0 : Math.min(start + currentCount - 1, total);
-
   return (
-    <div className="flex flex-col gap-4 border-t border-slate-100 bg-slate-50/70 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-      <p className="text-sm font-medium text-slate-500">
-        <span className="font-black text-slate-900">{start}–{end}</span>{' '}
-        {t('common.of', 'sur')} <span className="font-black text-slate-900">{total}</span>
-      </p>
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={onPrevious}
-          disabled={currentPage === 1}
-          className="brand-button-secondary min-h-10 px-3"
-        >
-          <ChevronLeftIcon className="h-4 w-4 rtl:rotate-180" />
-          <span className="hidden sm:inline">{t('common.prev', 'Précédent')}</span>
-        </button>
-        <span className="inline-flex h-10 min-w-10 items-center justify-center rounded-xl bg-blue-600 px-3 text-sm font-black text-white shadow-md shadow-blue-900/10">
-          {currentPage}
-        </span>
-        <button
-          type="button"
-          onClick={onNext}
-          disabled={nextDisabled ?? end >= total}
-          className="brand-button-secondary min-h-10 px-3"
-        >
-          <span className="hidden sm:inline">{t('common.next', 'Suivant')}</span>
-          <ChevronRightIcon className="h-4 w-4 rtl:rotate-180" />
-        </button>
-      </div>
-    </div>
+    <Pagination
+      page={currentPage}
+      pageSize={pageSize}
+      currentCount={currentCount}
+      total={total}
+      onPrevious={onPrevious}
+      onNext={onNext}
+      nextDisabled={nextDisabled}
+    />
   );
 };

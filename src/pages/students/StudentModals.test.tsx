@@ -1,28 +1,71 @@
 import React from 'react';
-import { act, fireEvent, render, screen } from '@testing-library/react';
-import StudentDetailModal from './StudentDetailsModal';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  waitForElementToBeRemoved,
+  within,
+} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import StudentFormModal from './StudentFormModal';
 import { Student } from '../../types';
-import api from '../../services/api';
 import studentService from '../../services/studentService';
 import userService from '../../services/userService';
+import universityService from '../../services/universityService';
+import { studentQueryKeys } from './studentQueries';
+
+const getAnimationsDescriptor = Object.getOwnPropertyDescriptor(
+  Element.prototype,
+  'getAnimations',
+);
+let consoleError: jest.SpyInstance;
+
+beforeAll(() => {
+  Object.defineProperty(Element.prototype, 'getAnimations', {
+    configurable: true,
+    value: () => [],
+  });
+});
+
+afterAll(() => {
+  if (getAnimationsDescriptor) {
+    Object.defineProperty(Element.prototype, 'getAnimations', getAnimationsDescriptor);
+  } else {
+    Reflect.deleteProperty(Element.prototype, 'getAnimations');
+  }
+});
+
+beforeEach(() => {
+  consoleError = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+});
+
+afterEach(() => {
+  const unexpectedErrors = consoleError.mock.calls.filter(
+    ([message]) => message !== 'Error saving student:',
+  );
+  expect(unexpectedErrors).toEqual([]);
+  consoleError.mockRestore();
+});
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (_key: string, fallback?: string) => fallback || _key,
+    t: (key: string, fallback?: string) => {
+      const labels: Record<string, string> = {
+        'common.close': 'Fermer',
+      };
+      return labels[key] || fallback || key;
+    },
   }),
-}));
-
-jest.mock('../../services/api', () => ({
-  __esModule: true,
-  default: { get: jest.fn() },
 }));
 
 jest.mock('../../services/universityService', () => ({
   __esModule: true,
   default: {
-    getPrograms: async () => ({ results: [] }),
-    getLevels: async () => ({ results: [] }),
+    getPrograms: jest.fn(() => new Promise(() => {})),
+    getLevels: jest.fn(() => new Promise(() => {})),
   },
 }));
 
@@ -39,6 +82,7 @@ jest.mock('../../services/studentService', () => ({
   __esModule: true,
   default: {
     createStudent: jest.fn(),
+    getStudent: jest.fn(),
     updateStudent: jest.fn(),
   },
 }));
@@ -65,88 +109,283 @@ const student: Student = {
   photo: null,
 };
 
-describe('Student modals remain inside the viewport', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    (api.get as jest.Mock).mockResolvedValue({ data: { results: [] } });
+const user = {
+  id: 2,
+  first_name: 'Mariam',
+  last_name: 'Diallo',
+  email: 'mariam@example.com',
+  username: 'mariam',
+  phone: '70000000',
+  address: '',
+  date_of_birth: '2005-01-01',
+  gender: 'M',
+};
+
+const renderStudentForm = (
+  props: Partial<React.ComponentProps<typeof StudentFormModal>> = {},
+) => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
   });
+  const invalidateQueries = jest
+    .spyOn(queryClient, 'invalidateQueries')
+    .mockResolvedValue(undefined);
+  const onClose = props.onClose || jest.fn();
+  const onSuccess = props.onSuccess || jest.fn();
 
-  it('keeps the detail header and tabs fixed while only the body scrolls', () => {
-    render(<StudentDetailModal student={student} onClose={jest.fn()} />);
-
-    const dialog = screen.getByRole('dialog');
-    const scrollBody = screen.getByTestId('student-detail-scroll-body');
-
-    expect(dialog).toHaveClass('flex-col', 'overflow-hidden', 'max-w-3xl', 'sm:max-h-[90dvh]');
-    expect(scrollBody).toHaveClass('min-h-0', 'flex-1', 'overflow-y-auto');
-    expect(screen.getByRole('tablist')).toBeInTheDocument();
-  });
-
-  it('opens editing from the same header action used by the teacher modal', () => {
-    const onEdit = jest.fn();
-    render(<StudentDetailModal student={student} onClose={jest.fn()} onEdit={onEdit} />);
-
-    fireEvent.click(screen.getByRole('button', { name: 'Modifier' }));
-
-    expect(onEdit).toHaveBeenCalledTimes(1);
-  });
-
-  it('shows a retry action instead of an endless ID-card spinner after a timeout', async () => {
-    (api.get as jest.Mock).mockRejectedValueOnce({ code: 'ECONNABORTED' });
-    render(<StudentDetailModal student={student} onClose={jest.fn()} />);
-
-    fireEvent.click(screen.getByRole('tab', { name: "Carte d'étudiant" }));
-
-    expect(await screen.findByRole('alert')).toHaveTextContent('La génération prend trop de temps');
-    expect(screen.getByRole('button', { name: 'Réessayer' })).toBeInTheDocument();
-    expect(api.get).toHaveBeenCalledTimes(1);
-  });
-
-  it('keeps form navigation outside the scrollable form body', async () => {
-    render(<StudentFormModal onClose={jest.fn()} onSuccess={jest.fn()} />);
-    await act(async () => {
-      await Promise.resolve();
-    });
-
-    const dialog = screen.getByRole('dialog');
-    const scrollBody = screen.getByTestId('student-form-scroll-body');
-    const nextButton = screen.getByRole('button', { name: 'Suivant' });
-
-    expect(dialog).toHaveClass('flex-col', 'overflow-hidden', 'max-w-2xl', 'sm:max-h-[90dvh]');
-    expect(scrollBody).toHaveClass('min-h-0', 'flex-1', 'overflow-y-auto');
-    expect(scrollBody.contains(nextButton)).toBe(false);
-  });
-
-  it('uploads a replacement profile photo as multipart student data', async () => {
-    (userService.getUser as jest.Mock).mockResolvedValue({
-      id: 2,
-      first_name: 'Mariam',
-      last_name: 'Diallo',
-      email: 'mariam@example.com',
-      username: 'mariam',
-      phone: '70000000',
-      address: '',
-      date_of_birth: '2005-01-01',
-    });
-    (userService.updateUser as jest.Mock).mockResolvedValue({});
-    (studentService.updateStudent as jest.Mock).mockResolvedValue({
-      ...student,
-      photo: 'https://api.example.test/media/students/photos/new-profile.png',
-    });
-    const onSuccess = jest.fn();
-    const onClose = jest.fn();
-
-    render(
+  const view = render(
+    <QueryClientProvider client={queryClient}>
       <StudentFormModal
-        student={student}
         onClose={onClose}
         onSuccess={onSuccess}
-      />,
-    );
+        {...props}
+      />
+    </QueryClientProvider>,
+  );
 
+  return {
+    ...view,
+    invalidateQueries,
+    onClose,
+    onSuccess,
+    queryClient,
+  };
+};
+
+const waitForEditValues = async () => {
+  await waitFor(() => {
+    expect(screen.getByRole('textbox', { name: /Prénom/ })).toHaveValue('Mariam');
+  });
+};
+
+describe('Student form modal UI foundation migration', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (universityService.getPrograms as jest.Mock).mockImplementation(
+      () => new Promise(() => {}),
+    );
+    (universityService.getLevels as jest.Mock).mockImplementation(
+      () => new Promise(() => {}),
+    );
+    (userService.getUser as jest.Mock).mockResolvedValue(user);
+    (userService.createUser as jest.Mock).mockResolvedValue({ id: 2 });
+    (userService.updateUser as jest.Mock).mockResolvedValue({});
+    (studentService.createStudent as jest.Mock).mockResolvedValue(student);
+    (studentService.getStudent as jest.Mock).mockResolvedValue(student);
+    (studentService.updateStudent as jest.Mock).mockResolvedValue(student);
+  });
+
+  it('uses the shared dialog semantics and keeps sticky actions outside the only scroll body', async () => {
+    renderStudentForm();
     await act(async () => {
-      await Promise.resolve();
+      await new Promise<void>((resolve) => window.requestAnimationFrame(() => resolve()));
     });
+
+    const dialog = screen.getByRole('dialog', { name: 'Nouvel Étudiant' });
+    expect(dialog).toHaveAccessibleDescription('Nouvelle inscription');
+
+    const scrollBody = screen.getByTestId('dialog-scroll-body');
+    const nextButton = screen.getByRole('button', { name: 'Suivant' });
+    expect(scrollBody).toHaveClass('min-h-0', 'flex-1', 'overflow-y-auto');
+    expect(scrollBody.contains(nextButton)).toBe(false);
+    expect(nextButton).toHaveClass('min-h-11');
+    expect(screen.getByRole('group', { name: 'Informations Utilisateur' })).toBeInTheDocument();
+  });
+
+  it.each(['close button', 'Escape', 'backdrop'] as const)(
+    'protects dirty data from %s dismissal until discard is confirmed',
+    async (dismissalPath) => {
+      const { container, onClose, unmount } = renderStudentForm();
+      fireEvent.change(screen.getByRole('textbox', { name: /Prénom/ }), {
+        target: { value: 'Mariam' },
+      });
+
+      if (dismissalPath === 'close button') {
+        fireEvent.click(screen.getByRole('button', { name: 'Fermer' }));
+      } else if (dismissalPath === 'Escape') {
+        await userEvent.keyboard('{Escape}');
+      } else {
+        const backdrop = Array.from(container.ownerDocument.querySelectorAll('div')).find(
+          (element) => element.className.includes('bg-ui-primary-strong/60'),
+        );
+        expect(backdrop).toBeDefined();
+        await userEvent.click(backdrop!);
+      }
+
+      expect(await screen.findByRole('dialog', {
+        name: 'Modifications non enregistrées',
+      })).toBeInTheDocument();
+      expect(onClose).not.toHaveBeenCalled();
+
+      fireEvent.click(screen.getByRole('button', {
+        name: 'Abandonner les modifications',
+      }));
+      expect(onClose).toHaveBeenCalledTimes(1);
+      unmount();
+    },
+  );
+
+  it('cancels only the discard confirmation and preserves dirty form data', async () => {
+    const { onClose } = renderStudentForm();
+    fireEvent.change(screen.getByRole('textbox', { name: /Prénom/ }), {
+      target: { value: 'Mariam' },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Fermer' }));
+    expect(screen.getByRole('dialog', { name: 'Modifications non enregistrées' })).toBeInTheDocument();
+    expect(onClose).not.toHaveBeenCalled();
+    const confirmationRemoval = waitForElementToBeRemoved(() => screen.queryByRole(
+      'dialog',
+      { name: 'Modifications non enregistrées' },
+    ));
+    await userEvent.click(screen.getByRole('button', { name: 'Continuer la modification' }));
+    await confirmationRemoval;
+    expect(onClose).not.toHaveBeenCalled();
+    expect(screen.getByRole('textbox', { name: /Prénom/ })).toHaveValue('Mariam');
+  });
+
+  it('announces validation errors beside required controls and focuses the first invalid field', async () => {
+    renderStudentForm();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Suivant' }));
+
+    const summary = await screen.findByRole('alert');
+    const firstName = screen.getByRole('textbox', { name: /Prénom/ });
+    expect(summary).toHaveTextContent('Veuillez remplir tous les champs obligatoires');
+    expect(firstName).toHaveAttribute('aria-invalid', 'true');
+    expect(firstName).toHaveAccessibleDescription('Veuillez remplir tous les champs obligatoires');
+    expect(firstName).toHaveFocus();
+  });
+
+  it('normalizes API field errors, links them to controls, and focuses the first rejected field', async () => {
+    (userService.updateUser as jest.Mock).mockRejectedValue({
+      response: {
+        data: {
+          error: {
+            message: 'Les données sont invalides.',
+            details: {
+              first_name: ['Ce prénom est indisponible.'],
+              email: ['Cette adresse est invalide.'],
+            },
+          },
+        },
+      },
+    });
+    renderStudentForm({ student });
+    await waitForEditValues();
+
+    const firstName = screen.getByRole('textbox', { name: /Prénom/ });
+    fireEvent.change(firstName, { target: { value: 'Aïssata' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Enregistrer les modifications' }));
+
+    const summary = await screen.findByRole('alert');
+    const email = screen.getByRole('textbox', { name: 'Email' });
+    expect(summary).toHaveTextContent('Ce prénom est indisponible.');
+    expect(firstName).toHaveAttribute('aria-invalid', 'true');
+    expect(firstName).toHaveAccessibleDescription('Ce prénom est indisponible.');
+    await waitFor(() => expect(firstName).toHaveFocus());
+
+    const emailSummaryLink = within(summary).getByRole('link', {
+      name: 'Cette adresse est invalide.',
+    });
+    expect(emailSummaryLink).toHaveAttribute('href', '#student-email');
+    fireEvent.click(emailSummaryLink);
+    expect(email).toHaveFocus();
+  });
+
+  it('focuses the error summary when an API failure has no field keys', async () => {
+    (userService.updateUser as jest.Mock).mockRejectedValue({
+      response: {
+        data: {
+          error: { message: 'Le dossier étudiant ne peut pas être enregistré.' },
+        },
+      },
+    });
+    renderStudentForm({ student });
+    await waitForEditValues();
+
+    fireEvent.change(screen.getByRole('textbox', { name: /Prénom/ }), {
+      target: { value: 'Aïssata' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Enregistrer les modifications' }));
+
+    const summary = await screen.findByRole('alert');
+    expect(summary).toHaveTextContent('Le dossier étudiant ne peut pas être enregistré.');
+    await waitFor(() => expect(summary).toHaveFocus());
+  });
+
+  it('keeps explicit summary navigation on the target step instead of returning to the first error', async () => {
+    (studentService.updateStudent as jest.Mock).mockRejectedValue({
+      response: {
+        data: {
+          error: {
+            message: 'Les données sont invalides.',
+            details: {
+              first_name: ['Le prénom doit être vérifié.'],
+              program: ['Le programme doit être vérifié.'],
+            },
+          },
+        },
+      },
+    });
+    renderStudentForm({ student });
+    await waitForEditValues();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Suivant' }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Nom du tuteur' }), {
+      target: { value: 'Parent Diallo' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Enregistrer' }));
+
+    const firstName = await screen.findByRole('textbox', { name: /Prénom/ });
+    await waitFor(() => expect(firstName).toHaveFocus());
+    const summary = screen.getByRole('alert');
+    const programLink = within(summary).getByRole('link', {
+      name: 'Le programme doit être vérifié.',
+    });
+    expect(programLink).toHaveAttribute('href', '#student-program');
+
+    fireEvent.click(programLink);
+
+    await waitFor(() => {
+      expect(screen.getByRole('group', {
+        name: 'Informations Académiques',
+      })).toBeInTheDocument();
+      expect(screen.getByRole('combobox', { name: /Programme/ })).toHaveFocus();
+    });
+  });
+
+  it('PATCHes only the changed user attribute when saving from the identity step', async () => {
+    const { onClose, onSuccess } = renderStudentForm({ student });
+    await waitForEditValues();
+
+    fireEvent.change(screen.getByRole('textbox', { name: /Prénom/ }), {
+      target: { value: 'Aïssata' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Enregistrer les modifications' }));
+
+    await waitFor(() => {
+      expect(userService.updateUser).toHaveBeenCalledWith(2, {
+        first_name: 'Aïssata',
+      });
+    });
+    expect(studentService.updateStudent).not.toHaveBeenCalled();
+    expect(studentService.getStudent).toHaveBeenCalledWith(1);
+    expect(onSuccess).toHaveBeenCalledWith(student);
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('uploads only the replacement photo and invalidates exact affected queries', async () => {
+    const savedStudent = {
+      ...student,
+      photo: 'https://api.example.test/media/students/photos/new-profile.png',
+    };
+    (studentService.updateStudent as jest.Mock).mockResolvedValue(savedStudent);
+    const { invalidateQueries, onClose, onSuccess } = renderStudentForm({ student });
+    await waitForEditValues();
 
     const replacement = new File(['photo-bytes'], 'new-profile.png', {
       type: 'image/png',
@@ -155,19 +394,69 @@ describe('Student modals remain inside the viewport', () => {
       target: { files: [replacement] },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Suivant' }));
+    expect(screen.getByRole('group', { name: 'Informations Académiques' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Enregistrer' }));
 
-    await act(async () => {
-      await Promise.resolve();
-    });
-
-    expect(studentService.updateStudent).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(studentService.updateStudent).toHaveBeenCalledTimes(1));
     const [, payload] = (studentService.updateStudent as jest.Mock).mock.calls[0];
     expect(payload).toBeInstanceOf(FormData);
     expect(payload.get('photo')).toBe(replacement);
-    expect(onSuccess).toHaveBeenCalledWith(
-      expect.objectContaining({ photo: expect.stringContaining('new-profile.png') }),
-    );
-    expect(onClose).toHaveBeenCalled();
+    expect(Array.from(payload.keys())).toEqual(['photo']);
+    expect(userService.updateUser).not.toHaveBeenCalled();
+
+    await waitFor(() => expect(invalidateQueries).toHaveBeenCalledTimes(4));
+    expect(invalidateQueries.mock.calls.map(([filters]) => filters)).toEqual([
+      { queryKey: studentQueryKeys.lists() },
+      { queryKey: studentQueryKeys.summaries() },
+      { queryKey: studentQueryKeys.detail(1), exact: true },
+      { queryKey: studentQueryKeys.idCard(1), exact: true },
+    ]);
+    expect(invalidateQueries).not.toHaveBeenCalledWith({
+      queryKey: studentQueryKeys.all,
+    });
+    expect(onSuccess).toHaveBeenCalledWith(savedStudent);
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('invalidates list and summary prefixes after create without invalidating all student data', async () => {
+    const { invalidateQueries } = renderStudentForm();
+    fireEvent.change(screen.getByRole('textbox', { name: /Prénom/ }), {
+      target: { value: 'Mariam' },
+    });
+    fireEvent.change(screen.getByRole('textbox', { name: /Nom/ }), {
+      target: { value: 'Diallo' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Suivant' }));
+    fireEvent.click(screen.getByRole('button', { name: "Créer l'étudiant" }));
+
+    await waitFor(() => expect(studentService.createStudent).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(invalidateQueries).toHaveBeenCalledTimes(2));
+    expect(invalidateQueries.mock.calls.map(([filters]) => filters)).toEqual([
+      { queryKey: studentQueryKeys.lists() },
+      { queryKey: studentQueryKeys.summaries() },
+    ]);
+  });
+
+  it('keeps create invalidation to list and summary prefixes when a photo is selected', async () => {
+    const { invalidateQueries } = renderStudentForm();
+    fireEvent.change(screen.getByRole('textbox', { name: /Prénom/ }), {
+      target: { value: 'Mariam' },
+    });
+    fireEvent.change(screen.getByRole('textbox', { name: /Nom/ }), {
+      target: { value: 'Diallo' },
+    });
+    const photo = new File(['photo-bytes'], 'profile.png', { type: 'image/png' });
+    fireEvent.change(screen.getByLabelText('Photo de profil'), {
+      target: { files: [photo] },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Suivant' }));
+    fireEvent.click(screen.getByRole('button', { name: "Créer l'étudiant" }));
+
+    await waitFor(() => expect(studentService.createStudent).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(invalidateQueries).toHaveBeenCalledTimes(2));
+    expect(invalidateQueries.mock.calls.map(([filters]) => filters)).toEqual([
+      { queryKey: studentQueryKeys.lists() },
+      { queryKey: studentQueryKeys.summaries() },
+    ]);
   });
 });

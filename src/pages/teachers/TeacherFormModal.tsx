@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import universityService from '../../services/universityService';
 import userService from '../../services/userService';
 import teacherService from '../../services/teacherService';
 import { Department, Teacher } from '../../types';
 import { normalizeApiError } from '../../utils/apiError';
+import { changedFields, hasChangedFields } from '../../utils/partialUpdate';
 
 interface TeacherFormModalProps {
     onClose: () => void;
@@ -41,6 +42,8 @@ const TeacherFormModal: React.FC<TeacherFormModalProps> = ({ onClose, onSuccess,
         office_location: '',
         is_active: true
     });
+    const initialUserDataRef = useRef(userData);
+    const initialTeacherDataRef = useRef(teacherData);
 
     // Options
     const [departments, setDepartments] = useState<Department[]>([]);
@@ -60,7 +63,7 @@ const TeacherFormModal: React.FC<TeacherFormModalProps> = ({ onClose, onSuccess,
     // Pre-fill data when editing
     useEffect(() => {
         if (teacher) {
-            setUserData({
+            const populatedUserData = {
                 first_name: teacher.first_name || '',
                 last_name: teacher.last_name || '',
                 email: teacher.user_email || '',
@@ -70,8 +73,8 @@ const TeacherFormModal: React.FC<TeacherFormModalProps> = ({ onClose, onSuccess,
                 address: teacher.user_address || '',
                 date_of_birth: teacher.user_date_of_birth || '',
                 gender: teacher.user_gender || 'M'
-            });
-            setTeacherData({
+            };
+            const populatedTeacherData = {
                 department: teacher.department?.toString() || '',
                 rank: teacher.rank || 'ASSISTANT',
                 contract_type: teacher.contract_type || 'PERMANENT',
@@ -79,7 +82,11 @@ const TeacherFormModal: React.FC<TeacherFormModalProps> = ({ onClose, onSuccess,
                 specialization: teacher.specialization || '',
                 office_location: teacher.office_location || '',
                 is_active: teacher.is_active ?? true
-            });
+            };
+            setUserData(populatedUserData);
+            setTeacherData(populatedTeacherData);
+            initialUserDataRef.current = populatedUserData;
+            initialTeacherDataRef.current = populatedTeacherData;
         }
     }, [teacher]);
 
@@ -118,17 +125,40 @@ const TeacherFormModal: React.FC<TeacherFormModalProps> = ({ onClose, onSuccess,
 
         try {
             if (isEditMode && teacher) {
-                await teacherService.updateTeacher(teacher.id, {
-                    ...teacherData,
-                    department: teacherData.department ? parseInt(teacherData.department) : null,
-                    first_name: userData.first_name,
-                    last_name: userData.last_name,
-                    user_email: userData.email,
-                    user_phone: userData.phone,
-                    user_address: userData.address,
-                    user_date_of_birth: userData.date_of_birth || null,
-                    user_gender: userData.gender as 'M' | 'F',
-                } as any);
+                const teacherChanges: Record<string, any> = changedFields(
+                    teacherData,
+                    initialTeacherDataRef.current,
+                );
+                if ('department' in teacherChanges) {
+                    teacherChanges.department = teacherData.department
+                        ? parseInt(teacherData.department)
+                        : null;
+                }
+
+                const userChanges = changedFields(
+                    userData,
+                    initialUserDataRef.current,
+                );
+                const userFieldMap: Record<string, string> = {
+                    first_name: 'first_name',
+                    last_name: 'last_name',
+                    email: 'user_email',
+                    phone: 'user_phone',
+                    address: 'user_address',
+                    date_of_birth: 'user_date_of_birth',
+                    gender: 'user_gender',
+                };
+                Object.entries(userChanges).forEach(([field, value]) => {
+                    const apiField = userFieldMap[field];
+                    if (!apiField) return;
+                    teacherChanges[apiField] = field === 'date_of_birth' && !value
+                        ? null
+                        : value;
+                });
+
+                if (hasChangedFields(teacherChanges)) {
+                    await teacherService.updateTeacher(teacher.id, teacherChanges);
+                }
             } else {
                 // Create new teacher
                 const randomNum = Math.floor(Math.random() * 900) + 100;
@@ -413,14 +443,27 @@ const TeacherFormModal: React.FC<TeacherFormModalProps> = ({ onClose, onSuccess,
                             </button>
                         )}
                         {step === 1 ? (
-                            <button
-                                type="button"
-                                onClick={goToNextStep}
-                                className="ml-auto px-6 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 disabled:opacity-50"
-                                disabled={!userData.first_name || !userData.last_name}
-                            >
-                                {t('teachers.form.buttons.next', 'Suivant')}
-                            </button>
+                            <div className="ml-auto flex items-center gap-2">
+                                {isEditMode && (
+                                    <button
+                                        type="button"
+                                        onClick={handleFinalSubmit}
+                                        disabled={loading || !userData.first_name || !userData.last_name}
+                                        className="px-5 py-2 border border-teal-200 bg-teal-50 text-teal-700 font-bold rounded-lg hover:bg-teal-100 disabled:opacity-50 flex items-center gap-2"
+                                    >
+                                        {loading && <div className="animate-spin rounded-full h-4 w-4 border-2 border-teal-200 border-t-teal-700"></div>}
+                                        {t('teachers.form.buttons.save', 'Enregistrer les modifications')}
+                                    </button>
+                                )}
+                                <button
+                                    type="button"
+                                    onClick={goToNextStep}
+                                    className="px-6 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 disabled:opacity-50"
+                                    disabled={!userData.first_name || !userData.last_name}
+                                >
+                                    {t('teachers.form.buttons.next', 'Suivant')}
+                                </button>
+                            </div>
                         ) : (
                             <button
                                 type="button"

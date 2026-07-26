@@ -9,12 +9,12 @@ interface PageHeaderProps {
 }
 
 const PageHeader: React.FC<PageHeaderProps> = ({ eyebrow, title, description, actions, icon }) => (
-  <section className="surface-panel relative overflow-hidden p-5 sm:p-6">
-    <div className="absolute inset-y-0 start-0 w-1.5 bg-gradient-to-b from-blue-600 via-green-500 to-orange-500" />
+  <section className="relative overflow-hidden rounded-[var(--radius-panel)] border border-ui-border bg-ui-surface p-5 shadow-panel sm:p-6">
+    <div className="absolute inset-y-0 start-0 w-1.5 bg-gradient-to-b from-ui-primary via-ui-success to-ui-warning" />
     <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex min-w-0 items-start gap-4">
         {icon && (
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-700 ring-1 ring-blue-100">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[var(--radius-control)] bg-ui-surface-muted text-ui-primary ring-1 ring-ui-primary/15">
             {icon}
           </div>
         )}

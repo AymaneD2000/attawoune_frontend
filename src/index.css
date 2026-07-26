@@ -1,17 +1,8 @@
+@import './styles/tokens.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-:root {
-  --brand-blue: #1a4c91;
-  --brand-blue-dark: #142e54;
-  --brand-green: #1bab53;
-  --brand-orange: #e59741;
-  --brand-earth: #6a310d;
-  --brand-ink: #101820;
-  --brand-canvas: #f6f8f6;
-  --brand-border: #dfe7e3;
-}
 
 @layer base {
   * {
@@ -20,17 +11,23 @@
 
   html {
     min-width: 320px;
-    background: var(--brand-canvas);
+    background: rgb(var(--ui-canvas));
+    color: rgb(var(--ui-foreground));
+    font-family: var(--font-sans);
     scroll-behavior: smooth;
+  }
+
+  html[dir='rtl'] {
+    font-family: var(--font-arabic);
   }
 
   body {
     margin: 0;
     min-width: 320px;
     min-height: 100vh;
-    background: var(--brand-canvas);
-    color: var(--brand-ink);
-    font-family: Inter, 'Noto Sans Arabic', 'Segoe UI', Tahoma, Arial, sans-serif;
+    background: rgb(var(--ui-canvas));
+    color: rgb(var(--ui-foreground));
+    font-family: inherit;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -50,18 +47,19 @@
     -webkit-tap-highlight-color: transparent;
   }
 
-  button:focus-visible,
-  a:focus-visible,
-  input:focus-visible,
-  select:focus-visible,
-  textarea:focus-visible {
-    outline: 3px solid rgba(26, 76, 145, 0.2);
+  :focus-visible {
+    outline: 3px solid rgb(var(--ui-ring) / 0.35);
     outline-offset: 2px;
   }
 
+  .tabular-nums,
+  [data-numeric='true'] {
+    font-variant-numeric: tabular-nums;
+  }
+
   ::selection {
-    background: rgba(27, 171, 83, 0.2);
-    color: var(--brand-blue-dark);
+    background: rgb(var(--ui-success) / 0.2);
+    color: rgb(var(--ui-primary-strong));
   }
 
   code {
@@ -70,6 +68,27 @@
 }
 
 @layer components {
+  .skip-link {
+    position: fixed;
+    inset-block-start: var(--space-4);
+    inset-inline-start: var(--space-4);
+    z-index: 100;
+    min-height: 44px;
+    transform: translateY(-200%);
+    border-radius: var(--radius-control);
+    background: rgb(var(--ui-primary-strong));
+    color: rgb(var(--ui-on-primary));
+    padding: 0.75rem 1rem;
+    font-weight: 700;
+    box-shadow: var(--elevation-floating);
+    transition: transform var(--motion-fast) ease;
+  }
+
+  .skip-link:focus,
+  .skip-link:focus-visible {
+    transform: translateY(0);
+  }
+
   /*
    * Mobile navigation slides away from the logical start edge. Keep this in
    * CSS so the RTL transform cannot override the desktop sticky sidebar.
@@ -87,10 +106,10 @@
   }
 
   .app-canvas {
-    background-color: var(--brand-canvas);
+    background-color: rgb(var(--ui-canvas));
     background-image:
-      radial-gradient(circle at 92% 4%, rgba(27, 171, 83, 0.1), transparent 24rem),
-      radial-gradient(circle at 10% 92%, rgba(229, 151, 65, 0.09), transparent 22rem);
+      radial-gradient(circle at 92% 4%, rgb(var(--ui-success) / 0.1), transparent 24rem),
+      radial-gradient(circle at 10% 92%, rgb(var(--ui-warning) / 0.09), transparent 22rem);
   }
 
   .app-content {
@@ -98,39 +117,47 @@
   }
 
   .surface-panel {
-    @apply rounded-2xl border border-slate-200/80 bg-white shadow-panel;
+    @apply border border-ui-border/80 bg-ui-surface;
+    border-radius: var(--radius-panel);
+    box-shadow: var(--elevation-panel);
   }
 
   .surface-subtle {
-    @apply rounded-xl border border-slate-200/70 bg-slate-50/80;
+    @apply rounded-xl border border-ui-border/70 bg-ui-surface-muted/80;
   }
 
   .brand-kicker {
-    @apply text-xs font-bold uppercase tracking-[0.18em] text-green-700;
+    @apply text-xs font-bold uppercase tracking-[0.18em] text-ui-success-strong;
   }
 
   .brand-title {
-    @apply text-2xl font-extrabold tracking-tight text-slate-950 sm:text-3xl;
+    @apply text-2xl font-extrabold tracking-tight text-ui-foreground sm:text-3xl;
   }
 
   .brand-subtitle {
-    @apply mt-1 text-sm leading-6 text-slate-500 sm:text-base;
+    @apply mt-1 text-sm leading-6 text-ui-muted sm:text-base;
   }
 
   .brand-button {
-    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white shadow-md shadow-blue-900/10 transition duration-200 hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex min-h-11 items-center justify-center gap-2 bg-ui-primary px-4 py-2.5 text-sm font-bold text-ui-on-primary shadow-md transition hover:-translate-y-0.5 hover:bg-ui-primary-strong hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50;
+    border-radius: var(--radius-control);
+    transition-duration: var(--motion-standard);
   }
 
   .brand-button-secondary {
-    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 shadow-sm transition duration-200 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex min-h-11 items-center justify-center gap-2 border border-ui-border bg-ui-surface px-4 py-2.5 text-sm font-bold text-ui-foreground shadow-sm transition hover:border-ui-primary hover:bg-ui-surface-muted hover:text-ui-primary disabled:cursor-not-allowed disabled:opacity-50;
+    border-radius: var(--radius-control);
+    transition-duration: var(--motion-standard);
   }
 
   .brand-input {
-    @apply block min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100;
+    @apply block min-h-11 w-full border border-ui-border bg-ui-surface px-3.5 py-2.5 text-sm text-ui-foreground shadow-sm outline-none transition placeholder:text-ui-muted focus:border-ui-primary focus:ring-4 focus:ring-ui-primary/15;
+    border-radius: var(--radius-control);
+    transition-duration: var(--motion-standard);
   }
 
   .brand-label {
-    @apply mb-1.5 block text-sm font-semibold text-slate-700;
+    @apply mb-1.5 block text-sm font-semibold text-ui-foreground;
   }
 
   .brand-badge {
@@ -154,33 +181,33 @@
 }
 
 .app-main thead {
-  background: linear-gradient(90deg, #f4f7fb, #f3faf6);
+  background: linear-gradient(90deg, rgb(var(--ui-surface-muted)), rgb(var(--ui-success) / 0.06));
 }
 
 .app-main tbody tr {
-  transition: background-color 160ms ease, transform 160ms ease;
+  transition: background-color var(--motion-fast) ease, transform var(--motion-fast) ease;
 }
 
 .app-main tbody tr:hover {
-  background-color: rgba(241, 246, 252, 0.75);
+  background-color: rgb(var(--ui-surface-muted) / 0.75);
 }
 
 .app-main input:not([type='checkbox']):not([type='radio']):not([type='file']),
 .app-main select,
 .app-main textarea {
-  border-color: #d8e1df;
+  border-color: rgb(var(--ui-border));
 }
 
 .app-main input:not([type='checkbox']):not([type='radio']):not([type='file']):focus,
 .app-main select:focus,
 .app-main textarea:focus {
-  border-color: var(--brand-blue);
-  box-shadow: 0 0 0 4px rgba(26, 76, 145, 0.1);
+  border-color: rgb(var(--ui-primary));
+  box-shadow: 0 0 0 4px rgb(var(--ui-ring) / 0.1);
 }
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(26, 76, 145, 0.35) transparent;
+  scrollbar-color: rgb(var(--ui-primary) / 0.35) transparent;
 }
 
 *::-webkit-scrollbar {
@@ -190,7 +217,7 @@
 
 *::-webkit-scrollbar-thumb {
   border-radius: 999px;
-  background: rgba(26, 76, 145, 0.3);
+  background: rgb(var(--ui-primary) / 0.3);
 }
 
 *::-webkit-scrollbar-track {
@@ -205,5 +232,13 @@
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+@media (max-width: 767px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
   }
 }

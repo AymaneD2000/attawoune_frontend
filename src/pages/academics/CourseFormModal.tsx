@@ -9,6 +9,7 @@ import {
 import academicsService, { CourseMutationPayload } from '../../services/academicsService';
 import { Course, Level, Program } from '../../types';
 import { getFieldError, normalizeApiError, NormalizedApiError } from '../../utils/apiError';
+import { changedFields } from '../../utils/partialUpdate';
 
 interface CourseFormModalProps {
   course: Course | null;
@@ -48,6 +49,22 @@ const createInitialState = (course: Course | null): CourseFormState => ({
   hours_practical: String(course?.hours_practical ?? 0),
   description: course?.description || '',
   is_active: course?.is_active ?? true,
+});
+
+const createMutationPayload = (formData: CourseFormState): CourseMutationPayload => ({
+  code: formData.code.trim().toUpperCase(),
+  name: formData.name.trim(),
+  program: Number(formData.program),
+  level: Number(formData.level),
+  semester_type: formData.semester_type,
+  course_type: formData.course_type,
+  credits: Number(formData.credits),
+  coefficient: Number(formData.coefficient),
+  hours_lecture: Number(formData.hours_lecture),
+  hours_tutorial: Number(formData.hours_tutorial),
+  hours_practical: Number(formData.hours_practical),
+  description: formData.description.trim(),
+  is_active: formData.is_active,
 });
 
 const CourseFormModal: React.FC<CourseFormModalProps> = ({ course, programs, levels, onClose, onSuccess }) => {
@@ -110,25 +127,14 @@ const CourseFormModal: React.FC<CourseFormModalProps> = ({ course, programs, lev
     setLoading(true);
     setError(null);
 
-    const payload: CourseMutationPayload = {
-      code: formData.code.trim().toUpperCase(),
-      name: formData.name.trim(),
-      program: Number(formData.program),
-      level: Number(formData.level),
-      semester_type: formData.semester_type,
-      course_type: formData.course_type,
-      credits: Number(formData.credits),
-      coefficient: Number(formData.coefficient),
-      hours_lecture: Number(formData.hours_lecture),
-      hours_tutorial: Number(formData.hours_tutorial),
-      hours_practical: Number(formData.hours_practical),
-      description: formData.description.trim(),
-      is_active: formData.is_active,
-    };
+    const payload = createMutationPayload(formData);
 
     try {
       if (course) {
-        await academicsService.updateCourse(course.id, payload);
+        await academicsService.updateCourse(
+          course.id,
+          changedFields(payload, createMutationPayload(createInitialState(course))),
+        );
       } else {
         await academicsService.createCourse(payload);
       }

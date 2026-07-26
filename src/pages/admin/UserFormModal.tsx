@@ -5,12 +5,28 @@ import userService from '../../services/userService';
 import { User } from '../../types';
 import { useAuth } from '../../context/AuthContext';
 import { getFieldError, normalizeApiError, NormalizedApiError } from '../../utils/apiError';
+import { changedFields, hasChangedFields } from '../../utils/partialUpdate';
 
 interface UserFormModalProps {
     user?: User | null;
     onClose: () => void;
     onSuccess: () => void;
 }
+
+const createUserFormData = (user?: User | null) => ({
+    username: user?.username || '',
+    email: user?.email || '',
+    password: '',
+    password_confirm: '',
+    first_name: user?.first_name || '',
+    last_name: user?.last_name || '',
+    role: user?.role || 'STUDENT',
+    phone: user?.phone || '',
+    address: user?.address || '',
+    gender: user?.gender || 'M',
+    date_of_birth: user?.date_of_birth || '',
+    is_active: user?.is_active ?? true,
+});
 
 const UserFormModal: React.FC<UserFormModalProps> = ({ user, onClose, onSuccess }) => {
     const { t } = useTranslation();
@@ -19,36 +35,10 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ user, onClose, onSuccess 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<NormalizedApiError | null>(null);
 
-    const [formData, setFormData] = useState({
-        username: '',
-        email: '',
-        password: '',
-        password_confirm: '',
-        first_name: '',
-        last_name: '',
-        role: 'STUDENT',
-        phone: '',
-        address: '',
-        gender: 'M',
-        date_of_birth: '',
-        is_active: true,
-    });
+    const [formData, setFormData] = useState(() => createUserFormData(user));
 
     useEffect(() => {
-        if (user) {
-            setFormData(prev => ({
-                ...prev,
-                username: user.username,
-                email: user.email,
-                first_name: user.first_name,
-                last_name: user.last_name,
-                role: user.role,
-                phone: user.phone || '',
-                address: user.address || '',
-                date_of_birth: user.date_of_birth || '',
-                is_active: user.is_active,
-            }));
-        }
+        setFormData(createUserFormData(user));
     }, [user]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -63,20 +53,21 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ user, onClose, onSuccess 
         setError(null);
 
         try {
-            const payload: any = { 
-                ...formData, 
+            const payload: any = {
+                ...formData,
                 username: formData.username.trim(),
                 email: formData.email.trim()
             };
-            if (!payload.email) delete payload.email;
-            if (!payload.date_of_birth) delete payload.date_of_birth;
-            if (!payload.phone) delete payload.phone;
-            if (!payload.address) delete payload.address;
 
             if (user) {
-                // Update
-                const { username, ...updateData } = payload;
-                
+                const initialPayload: any = {
+                    ...createUserFormData(user),
+                    username: user.username.trim(),
+                    email: (user.email || '').trim(),
+                };
+                const updateData: any = changedFields(payload, initialPayload);
+                delete updateData.username;
+
                 if (!isAdmin) {
                     delete updateData.role;
                     delete updateData.is_active;
@@ -85,10 +76,19 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ user, onClose, onSuccess 
                     delete updateData.password;
                     delete updateData.password_confirm;
                 }
+                if ('date_of_birth' in updateData && !updateData.date_of_birth) {
+                    updateData.date_of_birth = null;
+                }
 
-                await userService.updateUser(user.id, updateData as any);
+                if (hasChangedFields(updateData)) {
+                    await userService.updateUser(user.id, updateData as any);
+                }
             } else {
                 // Create
+                if (!payload.email) delete payload.email;
+                if (!payload.date_of_birth) delete payload.date_of_birth;
+                if (!payload.phone) delete payload.phone;
+                if (!payload.address) delete payload.address;
                 await userService.createUser(payload);
             }
             onSuccess();

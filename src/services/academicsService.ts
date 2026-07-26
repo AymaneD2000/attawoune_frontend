@@ -33,7 +33,7 @@ export const academicsService = {
         return response.data;
     },
 
-    updateCourse: async (id: number, data: CourseMutationPayload) => {
+    updateCourse: async (id: number, data: Partial<CourseMutationPayload>) => {
         const response = await api.patch<Course>(`/academics/courses/${id}/`, data);
         return response.data;
     },

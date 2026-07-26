@@ -30,6 +30,10 @@
     "payments": "المدفوعات",
     "salaries": "الرواتب",
     "expenses": "النفقات",
+    "recovery": "التحصيل",
+    "grades": "الدرجات",
+    "deliberation": "المداولات",
+    "announcements": "الإعلانات",
     "scheduling": "الجداول الزمنية",
     "planning": "التخطيط",
     "settings": "الإعدادات",
@@ -46,11 +50,25 @@
     "showing": "عرض {{current}} من {{total}}",
     "active": "نشط",
     "inactive": "غير نشط",
+    "edit": "تعديل",
     "cancel": "إلغاء",
+    "save": "حفظ",
     "saving": "جارٍ الحفظ...",
     "close": "إغلاق",
+    "note": "ملاحظة",
+    "skip_to_content": "الانتقال إلى المحتوى الرئيسي",
+    "open_menu": "فتح القائمة",
+    "close_menu": "إغلاق القائمة",
+    "main_navigation": "التنقل الرئيسي",
+    "expand": "توسيع",
+    "collapse": "طيّ",
     "retry": "إعادة المحاولة",
-    "user_manual": "دليل المستخدم"
+    "user_manual": "دليل المستخدم",
+    "loading": "جارٍ التحميل...",
+    "success": "نجاح",
+    "error": "خطأ",
+    "no_data": "لا توجد بيانات متاحة",
+    "all": "الكل"
   },
   "dashboard": {
     "welcome": {
@@ -85,28 +103,119 @@
   "students": {
     "title": "إدارة الطلاب",
     "subtitle": "إجمالي {{count}} طالب",
+    "profile": {
+      "back": "العودة إلى الطلاب",
+      "eyebrow": "ملف الطالب",
+      "loading": "جارٍ تحميل ملف الطالب",
+      "not_found": {
+        "title": "الطالب غير موجود",
+        "description": "ملف الطالب المطلوب غير موجود أو أن رابطه غير صالح."
+      },
+      "restricted": {
+        "title": "ملف مقيّد",
+        "description": "دورك لا يسمح بعرض ملف هذا الطالب."
+      },
+      "error": {
+        "title": "تعذر تحميل ملف الطالب",
+        "description": "تحقق من اتصالك ثم أعد المحاولة."
+      }
+    },
     "actions": {
+      "add": "إضافة",
+      "import": "استيراد",
+      "export": "تصدير",
+      "id_card": "بطاقة الطالب",
       "download_cards": "تحميل البطاقات",
       "new_student": "طالب جديد"
     },
+    "summary": {
+      "label": "ملخص الطلاب",
+    "total": "الإجمالي",
+    "active": "النشطون",
+    "graduated": "الخريجون",
+    "suspended": "الموقوفون",
+    "loading": "جارٍ تحميل ملخص الطلاب",
+    "error_title": "تعذر تحميل الملخص",
+    "error_description": "المؤشرات غير متاحة. تظل قائمة الطلاب متاحة."
+    },
     "search_placeholder": "البحث بالاسم، الرقم الجامعي، البريد الإلكتروني...",
     "filters": {
-      "all_status": "جميع الحالات",
-      "active": "نشط",
-      "graduated": "تخرج",
-      "suspended": "موثوق",
-      "dropped": "منقطع"
-    },
-    "table": {
-      "student": "الطالب",
+      "label": "مرشحات الطلاب",
+      "search": "البحث",
       "program": "البرنامج",
       "level": "المستوى",
       "status": "الحالة",
+      "scope": "الفترة",
+      "all_programs": "جميع البرامج",
+      "all_levels": "جميع المستويات",
+      "all_status": "جميع الحالات",
+      "current_year_only": "السنة الحالية فقط",
+      "all_years": "جميع السنوات",
+      "clear": "مسح المرشحات",
+      "active": "نشط",
+      "graduated": "تخرج",
+      "suspended": "موقوف",
+      "dropped": "منقطع",
+      "chips": {
+        "search": "البحث: {{value}}",
+        "program": "البرنامج: {{value}}",
+        "level": "المستوى: {{value}}",
+        "status": "الحالة: {{value}}"
+      }
+    },
+    "table": {
+      "student": "الطالب",
+      "matricule": "الرقم الجامعي",
+      "academic": "المسار الأكاديمي",
+      "program": "البرنامج",
+      "level": "المستوى",
+      "enrollment": "التسجيل",
+      "status": "الحالة",
       "actions": "إجراءات"
+    },
+    "selection": {
+      "actions": "إجراءات العناصر المحددة",
+      "selected": "تم تحديد {{count}} طالب",
+      "select_all": "تحديد جميع الطلاب",
+      "select_student": "تحديد {{name}}"
+    },
+    "loading": "جارٍ تحميل الطلاب",
+    "refreshing": "جارٍ تحديث الطلاب",
+    "error": {
+      "title": "تعذر تحميل الطلاب",
+      "description": "تحقق من اتصالك ثم أعد المحاولة."
+    },
+    "restricted": {
+      "title": "وصول مقيّد",
+      "description": "دورك لا يسمح بعرض هذه القائمة."
     },
     "empty": {
       "title": "لم يتم العثور على طلاب",
-      "subtitle": "حاول تعديل معايير البحث الخاصة بك"
+      "subtitle": "عدّل المرشحات أو أضف طالبًا جديدًا."
+    },
+    "errors": {
+      "options": "تعذر تحميل خيارات البرنامج والمستوى.",
+      "id_card": "حدث خطأ أثناء تحميل بطاقة الطالب.",
+      "bulk_id_cards": "حدث خطأ أثناء التحميل الجماعي للبطاقات.",
+      "export": "حدث خطأ أثناء تصدير ملف Excel."
+    },
+    "import_dialog": {
+      "title": "استيراد الطلاب (Excel)",
+      "description": "استورد الطلاب من نموذج Excel الرسمي.",
+      "instruction": "استخدم النموذج الرسمي لضمان تنسيق البيانات بشكل صحيح.",
+      "download_template": "تحميل النموذج",
+      "file_label": "ملف Excel (.xlsx)",
+      "choose_file": "اختيار ملف",
+      "drag_hint": "أو اسحب الملف وأفلته",
+      "file_limit": "ملف XLSX حتى 10 ميغابايت",
+      "selected_file": "الملف المحدد: {{name}}",
+      "missing_file": "يرجى اختيار ملف Excel.",
+      "generic_error": "حدث خطأ أثناء الاستيراد.",
+      "results_title": "نتائج الاستيراد",
+      "success_count": "تم إنشاء أو تحديث {{count}} طالب(ة) بنجاح.",
+      "errors_count": "الأخطاء ({{count}}):",
+      "close": "إغلاق",
+      "start": "بدء الاستيراد"
     },
     "form": {
       "title_new": "طالب جديد",
@@ -115,11 +224,14 @@
       "edit_eyebrow": "تحديث ملف الطالب",
       "steps": {
         "identity": "الهوية",
-        "academic": "الدراسة"
+        "academic": "الدراسة",
+        "progress": "تقدم النموذج"
       },
       "sections": {
         "user_info": "معلومات المستخدم",
-        "academic_info": "المعلومات الأكاديمية"
+        "user_description": "هوية الطالب وبيانات الاتصال والصورة الشخصية.",
+        "academic_info": "المعلومات الأكاديمية",
+        "academic_description": "البرنامج والمستوى ومعلومات التسجيل."
       },
       "labels": {
         "first_name": "الاسم الأول",
@@ -144,7 +256,8 @@
         "next": "التالي",
         "prev": "السابق",
         "create": "إنشاء الطالب",
-        "update": "حفظ"
+        "update": "حفظ",
+        "save_changes": "حفظ التعديلات"
       },
       "notes": {
         "password_admin": "يجب تغيير كلمة المرور من خلال إدارة المستخدمين.",
@@ -156,7 +269,14 @@
         "required_fields": "يرجى ملء جميع الحقول المطلوبة",
         "save_error": "خطأ أثناء الحفظ",
         "photo_type": "يرجى اختيار صورة صالحة.",
-        "photo_size": "يجب ألا يتجاوز حجم الصورة 5 ميغابايت."
+        "photo_size": "يجب ألا يتجاوز حجم الصورة 5 ميغابايت.",
+        "summary_label": "أخطاء النموذج"
+      },
+      "unsaved": {
+        "title": "تغييرات غير محفوظة",
+        "description": "ستفقد تعديلاتك إذا أغلقت هذا النموذج.",
+        "discard": "تجاهل التعديلات",
+        "keep_editing": "متابعة التعديل"
       }
     },
     "details": {
@@ -198,6 +318,12 @@
         "empty": "لا توجد كشوف متاحة",
         "refresh": "تحديث",
         "bulletin": "كشف",
+        "count_zero": "لا كشوف",
+        "count_one": "كشف واحد",
+        "count_two": "كشفان",
+        "count_few": "{{count}} كشوف",
+        "count_many": "{{count}} كشفًا",
+        "count_other": "{{count}} كشف",
         "published": "منشور",
         "average": "المعدل",
         "credits": "الأرصدة",

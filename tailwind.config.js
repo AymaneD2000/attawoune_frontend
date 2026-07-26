@@ -47,6 +47,25 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        ui: {
+          primary: 'rgb(var(--ui-primary) / <alpha-value>)',
+          'primary-strong': 'rgb(var(--ui-primary-strong) / <alpha-value>)',
+          'on-primary': 'rgb(var(--ui-on-primary) / <alpha-value>)',
+          success: 'rgb(var(--ui-success) / <alpha-value>)',
+          'success-strong': 'rgb(var(--ui-success-strong) / <alpha-value>)',
+          info: 'rgb(var(--ui-info) / <alpha-value>)',
+          warning: 'rgb(var(--ui-warning) / <alpha-value>)',
+          danger: 'rgb(var(--ui-danger) / <alpha-value>)',
+          earth: 'rgb(var(--ui-earth) / <alpha-value>)',
+          canvas: 'rgb(var(--ui-canvas) / <alpha-value>)',
+          surface: 'rgb(var(--ui-surface) / <alpha-value>)',
+          'surface-muted': 'rgb(var(--ui-surface-muted) / <alpha-value>)',
+          foreground: 'rgb(var(--ui-foreground) / <alpha-value>)',
+          muted: 'rgb(var(--ui-muted) / <alpha-value>)',
+          border: 'rgb(var(--ui-border) / <alpha-value>)',
+          ring: 'rgb(var(--ui-ring) / <alpha-value>)',
+          disabled: 'rgb(var(--ui-disabled) / <alpha-value>)',
+        },
         primary: brandBlue,
         blue: brandBlue,
         indigo: brandBlue,
@@ -67,14 +86,8 @@ module.exports = {
         },
       },
       fontFamily: {
-        sans: [
-          'Inter',
-          'Noto Sans Arabic',
-          'Segoe UI',
-          'Tahoma',
-          'Arial',
-          'sans-serif',
-        ],
+        sans: ['var(--font-sans)'],
+        arabic: ['var(--font-arabic)'],
       },
       boxShadow: {
         soft: '0 12px 36px rgba(20, 46, 84, 0.08)',

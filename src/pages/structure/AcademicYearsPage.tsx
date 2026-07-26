@@ -8,6 +8,7 @@ import {
     CheckCircleIcon,
     XMarkIcon
 } from '@heroicons/react/24/outline';
+import { changedFields } from '../../utils/partialUpdate';
 
 const AcademicYearsPage: React.FC = () => {
     const { t } = useTranslation();
@@ -50,7 +51,15 @@ const AcademicYearsPage: React.FC = () => {
         e.preventDefault();
         try {
             if (editingYear) {
-                await universityService.updateAcademicYear(editingYear.id, formData);
+                await universityService.updateAcademicYear(
+                    editingYear.id,
+                    changedFields(formData, {
+                        name: editingYear.name,
+                        start_date: editingYear.start_date,
+                        end_date: editingYear.end_date,
+                        is_current: editingYear.is_current,
+                    }),
+                );
             } else {
                 await universityService.createAcademicYear(formData);
             }

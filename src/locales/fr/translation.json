@@ -38,10 +38,20 @@
     "next": "Suivant",
     "showing": "Affichage de {{current}} sur {{total}}",
     "active": "Actif",
+    "inactive": "Inactif",
+    "edit": "Modifier",
     "cancel": "Annuler",
     "save": "Enregistrer",
     "saving": "Enregistrement...",
     "close": "Fermer",
+    "note": "Note",
+    "skip_to_content": "Aller au contenu principal",
+    "open_menu": "Ouvrir le menu",
+    "close_menu": "Fermer le menu",
+    "main_navigation": "Navigation principale",
+    "expand": "Développer",
+    "collapse": "Réduire",
+    "retry": "Réessayer",
     "loading": "Chargement...",
     "success": "Succès",
     "error": "Erreur",
@@ -93,28 +103,119 @@
   "students": {
     "title": "Gestion des Étudiants",
     "subtitle": "{{count}} étudiants au total",
+    "profile": {
+      "back": "Retour aux étudiants",
+      "eyebrow": "Dossier étudiant",
+      "loading": "Chargement du dossier étudiant",
+      "not_found": {
+        "title": "Étudiant introuvable",
+        "description": "Le dossier étudiant demandé n'existe pas ou son adresse est invalide."
+      },
+      "restricted": {
+        "title": "Dossier restreint",
+        "description": "Votre rôle ne permet pas d'afficher ce dossier étudiant."
+      },
+      "error": {
+        "title": "Impossible de charger le dossier étudiant",
+        "description": "Vérifiez votre connexion puis réessayez."
+      }
+    },
     "actions": {
-      "download_cards": "Télécharger Cartes",
+      "add": "Ajouter",
+      "import": "Importer",
+      "export": "Exporter",
+      "id_card": "Carte d'étudiant",
+      "download_cards": "Télécharger les cartes",
       "new_student": "Nouvel Étudiant"
+    },
+    "summary": {
+      "label": "Résumé des étudiants",
+    "total": "Total",
+    "active": "Actifs",
+    "graduated": "Diplômés",
+    "suspended": "Suspendus",
+    "loading": "Chargement du résumé des étudiants",
+    "error_title": "Impossible de charger le résumé",
+    "error_description": "Les indicateurs sont indisponibles. La liste reste accessible."
     },
     "search_placeholder": "Rechercher par nom, matricule, email...",
     "filters": {
-      "all_status": "Tous les statuts",
-      "active": "Actif",
-      "graduated": "Diplômé",
-      "suspended": "Suspendu",
-      "dropped": "Abandonné"
-    },
-    "table": {
-      "student": "Étudiant",
+      "label": "Filtres étudiants",
+      "search": "Recherche",
       "program": "Programme",
       "level": "Niveau",
       "status": "Statut",
+      "scope": "Période",
+      "all_programs": "Tous les programmes",
+      "all_levels": "Tous les niveaux",
+      "all_status": "Tous les statuts",
+      "current_year_only": "Année en cours uniquement",
+      "all_years": "Toutes les années",
+      "clear": "Effacer les filtres",
+      "active": "Actif",
+      "graduated": "Diplômé",
+      "suspended": "Suspendu",
+      "dropped": "Abandonné",
+      "chips": {
+        "search": "Recherche : {{value}}",
+        "program": "Programme : {{value}}",
+        "level": "Niveau : {{value}}",
+        "status": "Statut : {{value}}"
+      }
+    },
+    "table": {
+      "student": "Étudiant",
+      "matricule": "Matricule",
+      "academic": "Parcours académique",
+      "program": "Programme",
+      "level": "Niveau",
+      "enrollment": "Inscription",
+      "status": "Statut",
       "actions": "Actions"
+    },
+    "selection": {
+      "actions": "Actions sur la sélection",
+      "selected": "{{count}} étudiant(s) sélectionné(s)",
+      "select_all": "Sélectionner tous les étudiants",
+      "select_student": "Sélectionner {{name}}"
+    },
+    "loading": "Chargement des étudiants",
+    "refreshing": "Actualisation des étudiants",
+    "error": {
+      "title": "Impossible de charger les étudiants",
+      "description": "Vérifiez votre connexion puis réessayez."
+    },
+    "restricted": {
+      "title": "Accès restreint",
+      "description": "Votre rôle ne permet pas d'afficher cette liste."
     },
     "empty": {
       "title": "Aucun étudiant trouvé",
-      "subtitle": "Essayez de modifier vos critères de recherche"
+      "subtitle": "Modifiez les filtres ou ajoutez un nouvel étudiant."
+    },
+    "errors": {
+      "options": "Impossible de charger les options de programme et de niveau.",
+      "id_card": "Erreur lors du téléchargement de la carte étudiante.",
+      "bulk_id_cards": "Erreur lors du téléchargement groupé des cartes.",
+      "export": "Erreur lors de l'exportation Excel."
+    },
+    "import_dialog": {
+      "title": "Importer des Étudiants (Excel)",
+      "description": "Importez les étudiants depuis le modèle Excel officiel.",
+      "instruction": "Veuillez utiliser le template officiel pour vous assurer que les données sont correctement formatées.",
+      "download_template": "Télécharger le template",
+      "file_label": "Fichier Excel (.xlsx)",
+      "choose_file": "Choisir un fichier",
+      "drag_hint": "ou glisser-déposer",
+      "file_limit": "XLSX jusqu'à 10 Mo",
+      "selected_file": "Fichier sélectionné : {{name}}",
+      "missing_file": "Veuillez sélectionner un fichier Excel.",
+      "generic_error": "Une erreur est survenue lors de l'importation.",
+      "results_title": "Résultats de l'importation",
+      "success_count": "Succès : {{count}} étudiant(s) créé(s) ou mis à jour.",
+      "errors_count": "Erreurs ({{count}}) :",
+      "close": "Fermer",
+      "start": "Lancer l'importation"
     },
     "form": {
       "title_new": "Nouvel Étudiant",
@@ -123,11 +224,14 @@
       "edit_eyebrow": "Mise à jour du dossier",
       "steps": {
         "identity": "Identité",
-        "academic": "Scolarité"
+        "academic": "Scolarité",
+        "progress": "Progression du formulaire"
       },
       "sections": {
         "user_info": "Informations Utilisateur",
-        "academic_info": "Informations Académiques"
+        "user_description": "Identité, coordonnées et photo du dossier étudiant.",
+        "academic_info": "Informations Académiques",
+        "academic_description": "Programme, niveau et informations d’inscription."
       },
       "labels": {
         "first_name": "Prénom",
@@ -152,7 +256,8 @@
         "next": "Suivant",
         "prev": "Précédent",
         "create": "Créer l'étudiant",
-        "update": "Enregistrer"
+        "update": "Enregistrer",
+        "save_changes": "Enregistrer les modifications"
       },
       "notes": {
         "password_admin": "La modification du mot de passe doit se faire via l'administration des utilisateurs.",
@@ -164,7 +269,14 @@
         "required_fields": "Veuillez remplir tous les champs obligatoires",
         "save_error": "Erreur lors de la sauvegarde",
         "photo_type": "Veuillez sélectionner une image valide.",
-        "photo_size": "La photo ne doit pas dépasser 5 Mo."
+        "photo_size": "La photo ne doit pas dépasser 5 Mo.",
+        "summary_label": "Erreurs du formulaire"
+      },
+      "unsaved": {
+        "title": "Modifications non enregistrées",
+        "description": "Vos modifications seront perdues si vous fermez ce formulaire.",
+        "discard": "Abandonner les modifications",
+        "keep_editing": "Continuer la modification"
       }
     },
     "details": {
@@ -206,6 +318,12 @@
         "empty": "Aucun bulletin disponible",
         "refresh": "Actualiser",
         "bulletin": "bulletin",
+        "count_zero": "Aucun bulletin",
+        "count_one": "{{count}} bulletin",
+        "count_two": "{{count}} bulletins",
+        "count_few": "{{count}} bulletins",
+        "count_many": "{{count}} bulletins",
+        "count_other": "{{count}} bulletins",
         "published": "Publié",
         "average": "Moyenne",
         "credits": "Crédits",

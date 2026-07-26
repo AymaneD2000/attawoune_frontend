@@ -10,6 +10,7 @@ import {
     XMarkIcon,
     FunnelIcon
 } from '@heroicons/react/24/outline';
+import { changedFields } from '../../utils/partialUpdate';
 
 const ProgramsPage: React.FC = () => {
     const { t } = useTranslation();
@@ -79,7 +80,25 @@ const ProgramsPage: React.FC = () => {
             };
 
             if (editingProgram) {
-                await universityService.updateProgram(editingProgram.id, data as any);
+                const initialFees = editingProgram.fees
+                    ? editingProgram.fees.reduce(
+                        (fees, fee) => ({ ...fees, [fee.level]: fee.amount }),
+                        {} as Record<number, string>,
+                    )
+                    : {};
+                await universityService.updateProgram(
+                    editingProgram.id,
+                    changedFields(data, {
+                        name: editingProgram.name,
+                        code: editingProgram.code,
+                        department: editingProgram.department,
+                        levels: editingProgram.levels || [],
+                        duration_years: editingProgram.duration_years,
+                        description: editingProgram.description || '',
+                        tuition_fee: editingProgram.tuition_fee,
+                        fees_config: initialFees,
+                    }) as any,
+                );
             } else {
                 await universityService.createProgram(data as any);
             }

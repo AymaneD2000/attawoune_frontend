@@ -11,6 +11,7 @@ export interface User {
   address: string;
   profile_picture: string | null;
   date_of_birth: string | null;
+  gender?: 'M' | 'F';
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -146,6 +147,104 @@ export interface Student {
   emergency_contact: string;
   photo: string | null;
 }
+
+export interface StudentListParams {
+  page: number;
+  search: string;
+  program: number | null;
+  current_level: number | null;
+  status: '' | Student['status'];
+  current_year_only: boolean;
+  ordering: '' | 'student_id' | '-student_id' | 'enrollment_date' | '-enrollment_date' | 'created_at' | '-created_at';
+}
+
+export interface StudentSummary {
+  total: number;
+  active: number;
+  graduated: number;
+  suspended: number;
+}
+
+export interface StudentEnrollmentSummary {
+  id: number;
+  academic_year: number;
+  academic_year_name: string;
+  program: number;
+  program_name: string;
+  level: number;
+  level_display: string;
+  status: string;
+  student?: number;
+  student_name?: string;
+  student_matricule?: string;
+  status_display?: string;
+  enrollment_date?: string;
+  is_active?: boolean;
+}
+
+export interface StudentGradesResponse {
+  exam_grades: CountedResponse<Grade>;
+  course_grades: CountedResponse<CourseGrade>;
+}
+
+export interface StudentAttendanceStatistics {
+  student_id: number;
+  student_name: string;
+  statistics: {
+    total_sessions: number;
+    present: number;
+    absent: number;
+    late: number;
+    excused: number;
+    attendance_rate: number;
+  };
+}
+
+export interface StudentReportCard {
+  id: number;
+  academic_year_name?: string;
+  academic_year?: string;
+  student?: number;
+  student_name?: string;
+  student_matricule?: string;
+  program_name?: string;
+  semester?: number;
+  semester_name?: string;
+  gpa?: string;
+  total_credits?: number;
+  credits_earned?: number;
+  rank?: number;
+  is_published?: boolean;
+  published_at?: string | null;
+  generated_by?: number | null;
+  generated_by_name?: string;
+  generated_at?: string;
+}
+
+export interface StudentFinancialTransaction {
+  id?: number;
+  date?: string;
+  payment_date?: string;
+  description?: string;
+  amount?: string;
+  type?: string;
+  payment_method?: string;
+  reference?: string;
+  status?: string;
+}
+
+export interface StudentFinancialStatement {
+  total_due: string;
+  total_paid: string;
+  balance: string;
+  transactions: StudentFinancialTransaction[];
+  student_name?: string;
+  program?: string;
+  academic_year?: string;
+  status?: string;
+}
+
+export type StudentProfileTab = 'info' | 'enrollments' | 'grades' | 'attendance' | 'bulletins' | 'finance' | 'idcard';
 
 // Teacher types
 export interface Teacher {
@@ -292,6 +391,11 @@ export interface Schedule {
 }
 
 // API Response types
+export interface CountedResponse<T> {
+  count: number;
+  results: T[];
+}
+
 export interface PaginatedResponse<T> {
   count: number;
   next: string | null;

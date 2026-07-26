@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import MainLayout from './components/layout/MainLayout';
+import { ToastProvider } from './components/ui/ToastProvider';
 
 // Auth pages
 import LoginPage from './pages/auth/LoginPage';
@@ -12,6 +13,7 @@ import RegisterPage from './pages/auth/RegisterPage';
 // Main pages
 import DashboardPage from './pages/dashboard/DashboardPage';
 import StudentsPage from './pages/students/StudentsPage';
+import StudentProfilePage from './pages/students/profile/StudentProfilePage';
 import TeachersPage from './pages/teachers/TeachersPage';
 import CoursesPage from './pages/academics/CoursesPage';
 import GradesPage from './pages/academics/GradesPage';
@@ -47,8 +49,9 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <Router>
+      <ToastProvider>
+        <AuthProvider>
+          <Router>
           <Routes>
             {/* Public routes */}
             <Route path="/login" element={<LoginPage />} />
@@ -68,6 +71,7 @@ function App() {
 
               {/* Students */}
               <Route path="students" element={<StudentsPage />} />
+              <Route path="students/:studentId" element={<StudentProfilePage />} />
 
               {/* Teachers */}
               <Route path="teachers" element={<TeachersPage />} />
@@ -111,8 +115,9 @@ function App() {
               element={<StatusPage code="404" title="Page introuvable" description="La page demandée n'existe pas ou a été déplacée." />}
             />
           </Routes>
-        </Router>
-      </AuthProvider>
+          </Router>
+        </AuthProvider>
+      </ToastProvider>
     </QueryClientProvider>
   );
 }
