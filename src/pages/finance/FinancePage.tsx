@@ -18,6 +18,7 @@ import SearchableSelect, { Option } from '../../components/common/SearchableSele
 import PaymentExcelImportModal from './PaymentExcelImportModal';
 import FinanceExcelImportModal from './FinanceExcelImportModal';
 import FinanceAnalytics from './FinanceAnalytics';
+import FinanceDebtsTab from './FinanceDebtsTab';
 import PageHeader from '../../components/common/PageHeader';
 import { useAuth } from '../../context/AuthContext';
 
@@ -25,7 +26,7 @@ const FinancePage: React.FC = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const canManageFinance = ['ADMIN', 'ACCOUNTANT'].includes(user?.role || '');
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'payments' | 'salaries' | 'expenses' | 'recovery'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'payments' | 'salaries' | 'expenses' | 'debts' | 'recovery'>('dashboard');
   const [loading, setLoading] = useState(true);
 
   // Filters
@@ -1445,6 +1446,7 @@ const FinancePage: React.FC = () => {
             { key: 'payments', label: t('finance.tabs.payments') },
             { key: 'salaries', label: t('finance.tabs.salaries') },
             { key: 'expenses', label: t('finance.tabs.expenses') },
+            { key: 'debts', label: t('finance.tabs.debts', 'Dettes') },
             { key: 'recovery', label: t('finance.tabs.recovery') },
           ].map((tab) => (
             <button
@@ -1473,6 +1475,7 @@ const FinancePage: React.FC = () => {
           {activeTab === 'payments' && renderPayments()}
           {activeTab === 'salaries' && renderSalaries()}
           {activeTab === 'expenses' && renderExpenses()}
+          {activeTab === 'debts' && <FinanceDebtsTab canManage={canManageFinance} />}
           {activeTab === 'recovery' && renderRecovery()}
         </>
       )}

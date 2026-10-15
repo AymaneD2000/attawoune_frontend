@@ -775,6 +775,7 @@
       "payments": "Paiements",
       "salaries": "Salaires",
       "expenses": "Dépenses",
+      "debts": "Dettes",
       "recovery": "Recouvrement"
     },
     "dashboard": {
@@ -868,6 +869,69 @@
         "remaining": "Reste",
         "status": "Statut"
       }
+    },
+    "debts": {
+      "title": "Dettes étudiantes (années précédentes)",
+      "hint": "Suivi des dettes des années précédentes non enregistrées dans le système, pour les étudiants repris après la mise en place de la plateforme.",
+      "new": "Nouvelle Dette",
+      "search_placeholder": "Rechercher un étudiant, un matricule...",
+      "summary": {
+        "outstanding": "Total restant",
+        "open": "Dettes ouvertes",
+        "partial": "Partiellement réglées",
+        "paid": "Dettes réglées"
+      },
+      "filters": {
+        "all_status": "Tous les statuts"
+      },
+      "table": {
+        "student": "Étudiant",
+        "academic_year": "Année concernée",
+        "amount_due": "Montant dû",
+        "amount_paid": "Payé",
+        "outstanding": "Restant",
+        "description": "Description"
+      },
+      "empty": "Aucune dette enregistrée",
+      "view_payments": "Paiements",
+      "record_payment": "Payer",
+      "delete": "Supprimer",
+      "delete_title": "Supprimer cette dette ?",
+      "delete_message": "Cette opération supprimera définitivement la dette et son historique de paiements.",
+      "confirm_delete": "Supprimer la dette",
+      "modals": {
+        "create": {
+          "title": "Nouvelle Dette",
+          "academic_year": "Année concernée",
+          "no_year": "Non précisée",
+          "current": "en cours",
+          "amount_due": "Montant dû",
+          "description": "Description",
+          "description_placeholder": "Ex. : Frais de scolarité 2023-2024 impayés"
+        },
+        "pay": {
+          "title": "Paiement sur la dette",
+          "remaining": "Restant à payer",
+          "amount": "Montant payé",
+          "date": "Date du paiement",
+          "method": "Méthode de paiement",
+          "notes": "Notes",
+          "submit": "Enregistrer le paiement"
+        },
+        "history": {
+          "title": "Historique des paiements",
+          "empty": "Aucun paiement enregistré pour cette dette.",
+          "remove_payment": "Retirer ce paiement"
+        }
+      }
+    },
+    "debt_status": {
+      "OPEN": "Non réglée",
+      "PARTIAL": "Partiellement réglée",
+      "PAID": "Réglée"
+    },
+    "debt_payment_methods": {
+      "OTHER": "Autre"
     },
     "filters": {
       "current_year_only": "Année en cours seulement"

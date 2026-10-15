@@ -1,9 +1,11 @@
 import axios, { AxiosInstance, InternalAxiosRequestConfig } from "axios";
 
 const configuredApiUrl =
-  process.env.REACT_APP_API_URL || "https://api.universiter-attawoune.ml/api/v1";
+  process.env.REACT_APP_API_URL ||
+  process.env.REACT_APP_API_BASE_URL ||
+  "https://api.universiter-attawoune.ml/api/v1";
 
-const API_BASE_URL = configuredApiUrl.replace(
+export const API_BASE_URL = configuredApiUrl.replace(
   "https://api.attawoune.ml/api/v1",
   "https://api.universiter-attawoune.ml/api/v1",
 );

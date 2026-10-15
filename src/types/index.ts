@@ -349,6 +349,37 @@ export interface TuitionPayment {
   payment_date: string;
 }
 
+export interface DebtPayment {
+  id: number;
+  amount: string;
+  payment_date: string;
+  payment_method: string;
+  payment_method_display?: string;
+  reference: string;
+  notes?: string;
+  received_by?: number | null;
+  received_by_name?: string | null;
+  created_at?: string;
+}
+
+export interface StudentDebt {
+  id: number;
+  student: number;
+  student_name: string;
+  student_matricule: string;
+  academic_year: number | null;
+  academic_year_name: string | null;
+  amount_due: string;
+  amount_paid: string;
+  outstanding: string;
+  status: 'OPEN' | 'PARTIAL' | 'PAID';
+  status_display: string;
+  description: string;
+  recorded_by?: number | null;
+  created_at: string;
+  payments?: DebtPayment[];
+}
+
 // Deliberation types
 export interface StudentPromotion {
   id: number;

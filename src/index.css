@@ -92,13 +92,19 @@
   /*
    * Mobile navigation slides away from the logical start edge. Keep this in
    * CSS so the RTL transform cannot override the desktop sticky sidebar.
+   *
+   * The hidden offset is a CSS variable per direction so the open-state rule
+   * (lower specificity) still wins: `html[dir='rtl'] .app-sidebar` would
+   * otherwise out-specify `.app-sidebar.app-sidebar-open` and the drawer
+   * would never become visible on mobile in RTL.
    */
   .app-sidebar {
-    transform: translateX(-100%);
+    --sidebar-hidden-x: -100%;
+    transform: translateX(var(--sidebar-hidden-x));
   }
 
   html[dir='rtl'] .app-sidebar {
-    transform: translateX(100%);
+    --sidebar-hidden-x: 100%;
   }
 
   .app-sidebar.app-sidebar-open {

@@ -1,5 +1,5 @@
 import api from './api';
-import { TuitionPayment, PaginatedResponse } from '../types';
+import { TuitionPayment, PaginatedResponse, StudentDebt } from '../types';
 
 export interface DashboardData {
     current_year: string;
@@ -140,6 +140,54 @@ export const financeService = {
 
     getOutstandingBalances: async (params?: any) => {
         const response = await api.get('/finance/student-balances/outstanding/', { params });
+        return response.data;
+    },
+
+    // Student debts (legacy debts from untracked years)
+    getDebts: async (params?: any) => {
+        const response = await api.get<PaginatedResponse<StudentDebt>>('/finance/student-debts/', { params });
+        return response.data;
+    },
+
+    getDebt: async (id: number) => {
+        const response = await api.get<StudentDebt>(`/finance/student-debts/${id}/`);
+        return response.data;
+    },
+
+    createDebt: async (data: {
+        student: number | string;
+        academic_year?: number | string;
+        amount_due: string;
+        description?: string;
+    }) => {
+        const response = await api.post<StudentDebt>('/finance/student-debts/', data);
+        return response.data;
+    },
+
+    updateDebt: async (id: number, data: {
+        amount_due?: string;
+        description?: string;
+    }) => {
+        const response = await api.patch<StudentDebt>(`/finance/student-debts/${id}/`, data);
+        return response.data;
+    },
+
+    deleteDebt: async (id: number) => {
+        await api.delete(`/finance/student-debts/${id}/`);
+    },
+
+    recordDebtPayment: async (debtId: number, data: {
+        amount: string;
+        payment_date: string;
+        payment_method?: string;
+        notes?: string;
+    }) => {
+        const response = await api.post(`/finance/student-debts/${debtId}/record-payment/`, data);
+        return response.data;
+    },
+
+    deleteDebtPayment: async (debtId: number, paymentId: number) => {
+        const response = await api.delete(`/finance/student-debts/${debtId}/payments/${paymentId}/`);
         return response.data;
     },
 

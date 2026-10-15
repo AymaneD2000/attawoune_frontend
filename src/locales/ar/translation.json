@@ -746,6 +746,7 @@
       "payments": "المدفوعات",
       "salaries": "الرواتب",
       "expenses": "النفقات",
+      "debts": "الديون",
       "recovery": "التحصيل"
     },
     "dashboard": {
@@ -834,6 +835,69 @@
         "status": "الحالة",
         "unpaid": "غير مدفوع"
       }
+    },
+    "debts": {
+      "title": "ديون الطلاب (سنوات سابقة)",
+      "hint": "تتبع ديون السنوات السابقة غير المسجلة في النظام، للطلاب الملتحقين بعد أول تفعيل للمنصة.",
+      "new": "دانة جديدة",
+      "search_placeholder": "بحث عن طالب أو رقم قاعدي...",
+      "summary": {
+        "outstanding": "إجمالي المتبقي",
+        "open": "ديون مفتوحة",
+        "partial": "مسددة جزئيًا",
+        "paid": "ديون مسددة"
+      },
+      "filters": {
+        "all_status": "جميع الحالات"
+      },
+      "table": {
+        "student": "الطالب",
+        "academic_year": "السنة المعنية",
+        "amount_due": "المبلغ المستحق",
+        "amount_paid": "المدفوع",
+        "outstanding": "المتبقي",
+        "description": "الوصف"
+      },
+      "empty": "لا توجد ديون مسجلة",
+      "view_payments": "المدفوعات",
+      "record_payment": "دفع",
+      "delete": "حذف",
+      "delete_title": "حذف هذه الدانة؟",
+      "delete_message": "سيؤدي هذا الإجراء إلى حذف الدانة وسجل مدفوعاتها نهائيًا.",
+      "confirm_delete": "حذف الدانة",
+      "modals": {
+        "create": {
+          "title": "دانة جديدة",
+          "academic_year": "السنة المعنية",
+          "no_year": "غير محددة",
+          "current": "جارية",
+          "amount_due": "المبلغ المستحق",
+          "description": "الوصف",
+          "description_placeholder": "مثال: رسوم دراسية غير مدفوعة للسنة 2023-2024"
+        },
+        "pay": {
+          "title": "دفع على الدانة",
+          "remaining": "المتبقي للدفع",
+          "amount": "المبلغ المدفوع",
+          "date": "تاريخ الدفع",
+          "method": "طريقة الدفع",
+          "notes": "ملاحظات",
+          "submit": "تسجيل الدفع"
+        },
+        "history": {
+          "title": "سجل المدفوعات",
+          "empty": "لا توجد مدفوعات مسجلة لهذه الدانة.",
+          "remove_payment": "إزالة هذا الدفع"
+        }
+      }
+    },
+    "debt_status": {
+      "OPEN": "غير مسددة",
+      "PARTIAL": "مسددة جزئيًا",
+      "PAID": "مسددة"
+    },
+    "debt_payment_methods": {
+      "OTHER": "أخرى"
     },
     "modals": {
       "payment": {
