@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   ArrowDownTrayIcon,
+  ArrowRightOnRectangleIcon,
   ArrowUpTrayIcon,
   CreditCardIcon,
   PlusIcon,
@@ -19,6 +20,7 @@ import studentService from '../../services/studentService';
 import universityService from '../../services/universityService';
 import { Level, Program, Student } from '../../types';
 import ExcelImportModal from './ExcelImportModal';
+import ReinscriptionModal from './ReinscriptionModal';
 import StudentFilters from './StudentFilters';
 import StudentFormModal from './StudentFormModal';
 import StudentListView from './StudentListView';
@@ -68,6 +70,7 @@ const StudentsPage: React.FC = () => {
   const [studentToEdit, setStudentToEdit] = useState<Student | null>(null);
   const [showStudentForm, setShowStudentForm] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
+  const [showReinscriptionModal, setShowReinscriptionModal] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -227,6 +230,10 @@ const StudentsPage: React.FC = () => {
               <ArrowDownTrayIcon className="h-5 w-5" aria-hidden="true" />
               {t('students.actions.export', 'Exporter')}
             </Button>
+            <Button variant="secondary" onClick={() => setShowReinscriptionModal(true)}>
+              <ArrowRightOnRectangleIcon className="h-5 w-5" aria-hidden="true" />
+              {t('students.actions.reinscription', 'Ré-inscription')}
+            </Button>
             {createAction}
           </>
         ) : undefined}
@@ -323,6 +330,18 @@ const StudentsPage: React.FC = () => {
           student={studentToEdit}
           onClose={closeStudentForm}
           onSuccess={closeStudentForm}
+        />
+      )}
+
+      {showReinscriptionModal && (
+        <ReinscriptionModal
+          open={showReinscriptionModal}
+          onClose={() => setShowReinscriptionModal(false)}
+          onSuccess={() => {
+            setShowReinscriptionModal(false);
+            refreshStudents();
+            toast.success(t('students.reinscription.success', 'Étudiant inscrit pour l\'année en cours.'));
+          }}
         />
       )}
 

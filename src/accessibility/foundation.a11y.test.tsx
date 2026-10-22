@@ -1,3 +1,4 @@
+import { vi, type Mock, type MockInstance } from 'vitest';
 import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
@@ -54,15 +55,15 @@ let mockSummaryQuery: any;
 let mockStudentQuery: any;
 let mockLocation = { pathname: '/students', search: '' };
 let mockSearchParams = new URLSearchParams('tab=info');
-const mockSetParam = jest.fn();
-const mockClearFilters = jest.fn();
-const mockNavigate = jest.fn();
-const mockSetSearchParams = jest.fn();
-const mockToast = { success: jest.fn(), error: jest.fn(), info: jest.fn() };
+const mockSetParam = vi.fn();
+const mockClearFilters = vi.fn();
+const mockNavigate = vi.fn();
+const mockSetSearchParams = vi.fn();
+const mockToast = { success: vi.fn(), error: vi.fn(), info: vi.fn() };
 const getAnimationsDescriptor = Object.getOwnPropertyDescriptor(Element.prototype, 'getAnimations');
-let consoleError: jest.SpyInstance;
+let consoleError: MockInstance;
 
-jest.mock('react-router-dom', () => {
+vi.mock('react-router-dom', () => {
   const React = require('react');
   return {
     MemoryRouter: ({ children }: { children: React.ReactNode }) => children,
@@ -77,9 +78,9 @@ jest.mock('react-router-dom', () => {
     useParams: () => ({ studentId: '1' }),
     useSearchParams: () => [mockSearchParams, mockSetSearchParams],
   };
-}, { virtual: true });
+});
 
-jest.mock('react-i18next', () => {
+vi.mock('react-i18next', () => {
   const translations = require('../locales/fr/translation.json');
   const lookup = (key: string) => key.split('.').reduce<unknown>(
     (value, segment) => value && typeof value === 'object'
@@ -109,7 +110,7 @@ jest.mock('react-i18next', () => {
   };
 });
 
-jest.mock('../context/AuthContext', () => ({
+vi.mock('../context/AuthContext', () => ({
   useAuth: () => ({
     user: {
       id: 1,
@@ -119,15 +120,15 @@ jest.mock('../context/AuthContext', () => ({
       full_name: 'Admin Test',
       role: 'ADMIN',
     },
-    logout: jest.fn(),
+    logout: vi.fn(),
   }),
 }));
 
-jest.mock('../components/ui/ToastProvider', () => ({
+vi.mock('../components/ui/ToastProvider', () => ({
   useToast: () => mockToast,
 }));
 
-jest.mock('../pages/students/useStudentListParams', () => ({
+vi.mock('../pages/students/useStudentListParams', () => ({
   useStudentListParams: () => ({
     params: mockParams,
     setParam: mockSetParam,
@@ -135,11 +136,11 @@ jest.mock('../pages/students/useStudentListParams', () => ({
   }),
 }));
 
-jest.mock('../pages/students/useStudentListScroll', () => ({
-  useStudentListScroll: jest.fn(),
+vi.mock('../pages/students/useStudentListScroll', () => ({
+  useStudentListScroll: vi.fn(),
 }));
 
-jest.mock('../pages/students/studentQueries', () => ({
+vi.mock('../pages/students/studentQueries', () => ({
   studentQueryKeys: {
     lists: () => ['students', 'list'],
     summaries: () => ['students', 'summary'],
@@ -149,40 +150,40 @@ jest.mock('../pages/students/studentQueries', () => ({
   useStudentsQuery: () => mockListQuery,
   useStudentSummaryQuery: () => mockSummaryQuery,
   useStudentQuery: () => mockStudentQuery,
-  useStudentEnrollmentsQuery: () => ({ isLoading: false, isError: false, data: { results: [] }, refetch: jest.fn() }),
-  useStudentGradesQuery: () => ({ isLoading: false, isError: false, data: { exam_grades: { results: [] } }, refetch: jest.fn() }),
-  useStudentAttendanceQuery: () => ({ isLoading: false, isError: false, data: undefined, refetch: jest.fn() }),
-  useStudentBulletinsQuery: () => ({ isLoading: false, isError: false, data: { results: [] }, refetch: jest.fn() }),
-  useStudentFinanceQuery: () => ({ isLoading: false, isError: false, data: undefined, refetch: jest.fn() }),
-  useStudentIdCardQuery: () => ({ isLoading: false, isError: false, data: undefined, refetch: jest.fn() }),
+  useStudentEnrollmentsQuery: () => ({ isLoading: false, isError: false, data: { results: [] }, refetch: vi.fn() }),
+  useStudentGradesQuery: () => ({ isLoading: false, isError: false, data: { exam_grades: { results: [] } }, refetch: vi.fn() }),
+  useStudentAttendanceQuery: () => ({ isLoading: false, isError: false, data: undefined, refetch: vi.fn() }),
+  useStudentBulletinsQuery: () => ({ isLoading: false, isError: false, data: { results: [] }, refetch: vi.fn() }),
+  useStudentFinanceQuery: () => ({ isLoading: false, isError: false, data: undefined, refetch: vi.fn() }),
+  useStudentIdCardQuery: () => ({ isLoading: false, isError: false, data: undefined, refetch: vi.fn() }),
 }));
 
-jest.mock('../services/universityService', () => ({
+vi.mock('../services/universityService', () => ({
   __esModule: true,
   default: {
-    getPrograms: jest.fn().mockResolvedValue({ results: [] }),
-    getLevels: jest.fn().mockResolvedValue({ results: [] }),
+    getPrograms: vi.fn().mockResolvedValue({ results: [] }),
+    getLevels: vi.fn().mockResolvedValue({ results: [] }),
   },
 }));
 
-jest.mock('../services/studentService', () => ({
+vi.mock('../services/studentService', () => ({
   __esModule: true,
   default: {
-    createStudent: jest.fn().mockResolvedValue(student),
-    getStudent: jest.fn().mockResolvedValue(student),
-    updateStudent: jest.fn().mockResolvedValue(student),
-    downloadIdCard: jest.fn().mockResolvedValue(new Blob(['card'])),
-    downloadBulkIdCards: jest.fn().mockResolvedValue(new Blob(['cards'])),
-    exportStudents: jest.fn().mockResolvedValue(new Blob(['students'])),
-    importStudents: jest.fn(),
-    downloadImportTemplate: jest.fn(),
+    createStudent: vi.fn(),
+    getStudent: vi.fn(),
+    updateStudent: vi.fn(),
+    downloadIdCard: vi.fn().mockResolvedValue(new Blob(['card'])),
+    downloadBulkIdCards: vi.fn().mockResolvedValue(new Blob(['cards'])),
+    exportStudents: vi.fn().mockResolvedValue(new Blob(['students'])),
+    importStudents: vi.fn(),
+    downloadImportTemplate: vi.fn(),
   },
 }));
 
-jest.mock('../services/userService', () => ({
+vi.mock('../services/userService', () => ({
   __esModule: true,
   default: {
-    getUser: jest.fn().mockResolvedValue({
+    getUser: vi.fn().mockResolvedValue({
       id: 2,
       first_name: 'Mariam',
       last_name: 'Diallo',
@@ -193,8 +194,8 @@ jest.mock('../services/userService', () => ({
       date_of_birth: '2005-01-01',
       gender: 'M',
     }),
-    createUser: jest.fn(),
-    updateUser: jest.fn(),
+    createUser: vi.fn(),
+    updateUser: vi.fn(),
   },
 }));
 
@@ -231,8 +232,8 @@ describe('foundation accessibility regression', () => {
   });
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    consoleError = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    vi.clearAllMocks();
+    consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     mockParams = { ...defaultParams };
     mockLocation = { pathname: '/students', search: '' };
     mockSearchParams = new URLSearchParams('tab=info');
@@ -243,25 +244,25 @@ describe('foundation accessibility regression', () => {
       isSuccess: true,
       isError: false,
       error: null,
-      refetch: jest.fn(),
+      refetch: vi.fn(),
     };
     mockSummaryQuery = {
       data: { total: 1, active: 1, graduated: 0, suspended: 0 },
       isLoading: false,
       isError: false,
-      refetch: jest.fn(),
+      refetch: vi.fn(),
     };
     mockStudentQuery = {
       data: student,
       isLoading: false,
       isError: false,
       error: null,
-      refetch: jest.fn(),
+      refetch: vi.fn(),
     };
-    (universityService.getPrograms as jest.Mock).mockImplementation(
+    (universityService.getPrograms as Mock).mockImplementation(
       () => new Promise(() => undefined),
     );
-    (universityService.getLevels as jest.Mock).mockImplementation(
+    (universityService.getLevels as Mock).mockImplementation(
       () => new Promise(() => undefined),
     );
   });
@@ -357,9 +358,9 @@ describe('foundation accessibility regression', () => {
   });
 
   it('labels the student form dialog, supports Escape dismissal, and has no axe violations', async () => {
-    const onClose = jest.fn();
+    const onClose = vi.fn();
     renderWithProviders(
-      <StudentFormModal onClose={onClose} onSuccess={jest.fn()} />,
+      <StudentFormModal onClose={onClose} onSuccess={vi.fn()} />,
     );
 
     const dialog = screen.getByRole('dialog', { name: 'Nouvel Étudiant' });
@@ -371,9 +372,9 @@ describe('foundation accessibility regression', () => {
   });
 
   it('renders Excel import in the shared labelled dialog shell', async () => {
-    const onClose = jest.fn();
+    const onClose = vi.fn();
     renderWithProviders(
-      <ExcelImportModal isOpen onClose={onClose} onRefresh={jest.fn()} />,
+      <ExcelImportModal isOpen onClose={onClose} onRefresh={vi.fn()} />,
     );
 
     const dialog = screen.getByRole('dialog', { name: 'Importer des Étudiants (Excel)' });

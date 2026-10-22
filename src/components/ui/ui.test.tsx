@@ -1,3 +1,4 @@
+import { vi, type Mock, type MockInstance } from 'vitest';
 import React from 'react';
 import {
   fireEvent,
@@ -25,7 +26,7 @@ import {
   PaginationBar,
 } from '../common/EntityDisplay';
 
-jest.mock('react-i18next', () => ({
+vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string) => key,
     i18n: { language: 'fr' },
@@ -40,7 +41,7 @@ const ToastTrigger = () => {
 expect.extend(toHaveNoViolations);
 
 const getAnimationsDescriptor = Object.getOwnPropertyDescriptor(Element.prototype, 'getAnimations');
-let consoleError: jest.SpyInstance;
+let consoleError: MockInstance;
 
 beforeAll(() => {
   Object.defineProperty(Element.prototype, 'getAnimations', {
@@ -58,7 +59,7 @@ afterAll(() => {
 });
 
 beforeEach(() => {
-  consoleError = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+  consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
 });
 
 afterEach(() => {
@@ -79,7 +80,7 @@ describe('UI foundation primitives', () => {
   });
 
   it('offers a retry action on request failure', () => {
-    const retry = jest.fn();
+    const retry = vi.fn();
     render(<ErrorState title="Chargement impossible" description="Réessayez." onRetry={retry} />);
     fireEvent.click(screen.getByRole('button', { name: 'common.retry' }));
     expect(retry).toHaveBeenCalledTimes(1);
@@ -91,7 +92,7 @@ describe('UI foundation primitives', () => {
   });
 
   it('switches responsive data states', () => {
-    const retry = jest.fn();
+    const retry = vi.fn();
     const { rerender } = render(
       <ResponsiveDataView
         loading
@@ -177,7 +178,7 @@ describe('UI foundation primitives', () => {
         errorTitle="Erreur"
         errorDescription="Impossible"
         refreshLabel="Actualisation"
-        onRetry={jest.fn()}
+        onRetry={vi.fn()}
       />,
     );
 
@@ -185,12 +186,12 @@ describe('UI foundation primitives', () => {
   });
 
   it('removes an active filter chip from a 44px control', () => {
-    const remove = jest.fn();
+    const remove = vi.fn();
     render(
       <FilterToolbar
         label="Filtres"
         chips={[{ key: 'status', label: 'Actif', onRemove: remove }]}
-        onClear={jest.fn()}
+        onClear={vi.fn()}
         clearLabel="Effacer les filtres"
       >
         <input aria-label="Recherche" />
@@ -210,8 +211,8 @@ describe('UI foundation primitives', () => {
         pageSize={20}
         currentCount={20}
         total={21}
-        onPrevious={jest.fn()}
-        onNext={jest.fn()}
+        onPrevious={vi.fn()}
+        onNext={vi.fn()}
       />,
     );
     expect(screen.getByRole('button', { name: 'common.prev' })).toBeDisabled();
@@ -222,8 +223,8 @@ describe('UI foundation primitives', () => {
         pageSize={20}
         currentCount={1}
         total={21}
-        onPrevious={jest.fn()}
-        onNext={jest.fn()}
+        onPrevious={vi.fn()}
+        onNext={vi.fn()}
       />,
     );
     expect(screen.getByRole('button', { name: 'common.next' })).toBeDisabled();
@@ -247,8 +248,8 @@ describe('UI foundation primitives', () => {
         currentCount={20}
         total={21}
         pageSize={20}
-        onPrevious={jest.fn()}
-        onNext={jest.fn()}
+        onPrevious={vi.fn()}
+        onNext={vi.fn()}
         nextDisabled={false}
       />,
     );
@@ -327,7 +328,7 @@ describe('UI foundation primitives', () => {
   });
 
   it('prevents dialog dismissal while busy', async () => {
-    const onClose = jest.fn();
+    const onClose = vi.fn();
     const Harness = () => {
       const [open, setOpen] = React.useState(true);
       const [busy, setBusy] = React.useState(true);

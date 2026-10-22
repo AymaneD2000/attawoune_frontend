@@ -44,11 +44,11 @@ const ExcelImportModal: React.FC<ExcelImportModalProps> = ({ isOpen, onClose, on
       }
     } catch (err: any) {
       const apiError = err.response?.data?.error;
-      const errorMessage = typeof apiError === 'string' 
-        ? apiError 
+      const errorMessage = typeof apiError === 'string'
+        ? apiError
         : apiError?.message || err.response?.data?.message || t('students.import_dialog.generic_error');
       setError(errorMessage);
-      
+
       if (err.response?.data?.errors) {
         setResults({ success_count: 0, errors: err.response.data.errors });
       }

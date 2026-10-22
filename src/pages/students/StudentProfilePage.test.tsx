@@ -1,3 +1,4 @@
+import { vi, type Mock, type MockInstance } from 'vitest';
 import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -8,13 +9,13 @@ import frTranslation from '../../locales/fr/translation.json';
 import StudentProfilePage from './profile/StudentProfilePage';
 
 let mockRole = 'ADMIN';
-const mockNavigate = jest.fn();
-const mockSetSearchParams = jest.fn();
+const mockNavigate = vi.fn();
+const mockSetSearchParams = vi.fn();
 let mockStudentId = '1';
 let mockSearch = '';
 let mockLocationState: { from?: string } | null = null;
 
-jest.mock('react-router-dom', () => ({
+vi.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
   useParams: () => ({ studentId: mockStudentId }),
   useLocation: () => ({ pathname: `/students/${mockStudentId}`, state: mockLocationState }),
@@ -32,9 +33,9 @@ jest.mock('react-router-dom', () => ({
     };
     return [params, update];
   },
-}), { virtual: true });
+}));
 
-jest.mock('react-i18next', () => ({
+vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (_key: string, fallback?: string | Record<string, unknown>) => {
       if (typeof fallback === 'string') return fallback;
@@ -45,31 +46,33 @@ jest.mock('react-i18next', () => ({
   }),
 }));
 
-jest.mock('../../context/AuthContext', () => ({
+vi.mock('../../context/AuthContext', () => ({
   useAuth: () => ({ user: { role: mockRole } }),
 }));
 
-jest.mock('../../services/studentService', () => ({
+vi.mock('../../services/studentService', () => ({
   __esModule: true,
   default: {
-    getStudent: jest.fn(),
-    getEnrollments: jest.fn(),
-    getGrades: jest.fn(),
-    getAttendance: jest.fn(),
-    getReportCards: jest.fn(),
-    getFinancialStatement: jest.fn(),
-    downloadIdCard: jest.fn(),
-    downloadReportCard: jest.fn(),
-    downloadFinancialStatement: jest.fn(),
+    getStudent: vi.fn(),
+    getEnrollments: vi.fn(),
+    getGrades: vi.fn(),
+    getAttendance: vi.fn(),
+    getReportCards: vi.fn(),
+    getFinancialStatement: vi.fn(),
+    downloadIdCard: vi.fn(),
+    downloadReportCard: vi.fn(),
+    downloadFinancialStatement: vi.fn(),
   },
 }));
 
-jest.mock('./StudentFormModal', () => ({ student, onClose }: any) => (
-  <div role="dialog" aria-label="Formulaire étudiant">
-    Modifier {student.student_id}
-    <button type="button" onClick={onClose}>Fermer</button>
-  </div>
-));
+vi.mock('./StudentFormModal', () => ({
+  default: ({ student, onClose }: any) => (
+    <div role="dialog" aria-label="Formulaire étudiant">
+      Modifier {student.student_id}
+      <button type="button" onClick={onClose}>Fermer</button>
+    </div>
+  ),
+}));
 
 const student: Student = {
   id: 1,
@@ -120,18 +123,18 @@ describe('StudentProfilePage route', () => {
   const originalRevokeObjectURL = window.URL.revokeObjectURL;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     mockRole = 'ADMIN';
     mockStudentId = '1';
     mockSearch = '';
     mockLocationState = null;
-    (studentService.getStudent as jest.Mock).mockResolvedValue(student);
-    (studentService.getEnrollments as jest.Mock).mockResolvedValue({ results: [] });
-    (studentService.getGrades as jest.Mock).mockResolvedValue({
+    (studentService.getStudent as Mock).mockResolvedValue(student);
+    (studentService.getEnrollments as Mock).mockResolvedValue({ results: [] });
+    (studentService.getGrades as Mock).mockResolvedValue({
       exam_grades: { results: [] },
       course_grades: { results: [] },
     });
-    (studentService.getAttendance as jest.Mock).mockResolvedValue({
+    (studentService.getAttendance as Mock).mockResolvedValue({
       statistics: {
         total_sessions: 0,
         present: 0,
@@ -141,18 +144,18 @@ describe('StudentProfilePage route', () => {
         attendance_rate: 0,
       },
     });
-    (studentService.getReportCards as jest.Mock).mockResolvedValue({ results: [] });
-    (studentService.getFinancialStatement as jest.Mock).mockResolvedValue({
+    (studentService.getReportCards as Mock).mockResolvedValue({ results: [] });
+    (studentService.getFinancialStatement as Mock).mockResolvedValue({
       total_due: '0',
       total_paid: '0',
       balance: '0',
       transactions: [],
     });
-    (studentService.downloadIdCard as jest.Mock).mockResolvedValue(new Blob(['card']));
-    (studentService.downloadReportCard as jest.Mock).mockResolvedValue(new Blob(['bulletin']));
-    (studentService.downloadFinancialStatement as jest.Mock).mockResolvedValue(new Blob(['statement']));
-    window.URL.createObjectURL = jest.fn(() => 'blob:student-card');
-    window.URL.revokeObjectURL = jest.fn();
+    (studentService.downloadIdCard as Mock).mockResolvedValue(new Blob(['card']));
+    (studentService.downloadReportCard as Mock).mockResolvedValue(new Blob(['bulletin']));
+    (studentService.downloadFinancialStatement as Mock).mockResolvedValue(new Blob(['statement']));
+    window.URL.createObjectURL = vi.fn(() => 'blob:student-card');
+    window.URL.revokeObjectURL = vi.fn();
   });
 
   afterAll(() => {
@@ -162,7 +165,7 @@ describe('StudentProfilePage route', () => {
 
   test('shows the detail loading state before rendering the routed student profile', async () => {
     let resolveStudent!: (value: Student) => void;
-    (studentService.getStudent as jest.Mock).mockReturnValue(
+    (studentService.getStudent as Mock).mockReturnValue(
       new Promise<Student>((resolve) => { resolveStudent = resolve; }),
     );
 
@@ -241,7 +244,7 @@ describe('StudentProfilePage route', () => {
   });
 
   test('keeps the profile header visible and retries only a failed tab query', async () => {
-    (studentService.getFinancialStatement as jest.Mock)
+    (studentService.getFinancialStatement as Mock)
       .mockRejectedValueOnce(new Error('finance unavailable'))
       .mockResolvedValueOnce({
         total_due: '100000',
@@ -263,7 +266,7 @@ describe('StudentProfilePage route', () => {
 
   test('presents a forbidden finance tab as restricted without a retry control', async () => {
     mockRole = 'STUDENT';
-    (studentService.getFinancialStatement as jest.Mock).mockRejectedValue({
+    (studentService.getFinancialStatement as Mock).mockRejectedValue({
       response: { status: 403 },
     });
 
@@ -274,7 +277,7 @@ describe('StudentProfilePage route', () => {
   });
 
   test('downloads bulletins and financial statements through the authenticated student service', async () => {
-    (studentService.getReportCards as jest.Mock).mockResolvedValue({
+    (studentService.getReportCards as Mock).mockResolvedValue({
       results: [{
         id: 9,
         academic_year_name: '2025-2026',
@@ -282,8 +285,8 @@ describe('StudentProfilePage route', () => {
         is_published: true,
       }],
     });
-    const open = jest.spyOn(window, 'open');
-    const anchorClick = jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined);
+    const open = vi.spyOn(window, 'open');
+    const anchorClick = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined);
 
     const bulletins = renderProfile('/students/1?tab=bulletins');
     fireEvent.click(await screen.findByRole('button', { name: 'Télécharger PDF' }));
@@ -301,7 +304,7 @@ describe('StudentProfilePage route', () => {
   });
 
   test('offers Retry after an ID-card timeout and renders the recovered card', async () => {
-    (studentService.downloadIdCard as jest.Mock)
+    (studentService.downloadIdCard as Mock)
       .mockRejectedValueOnce({ code: 'ECONNABORTED' })
       .mockResolvedValueOnce(new Blob(['card']));
 
@@ -359,7 +362,7 @@ describe('StudentProfilePage route', () => {
   });
 
   test('uses the available semantic earth token for a non-active status', async () => {
-    (studentService.getStudent as jest.Mock).mockResolvedValue({
+    (studentService.getStudent as Mock).mockResolvedValue({
       ...student,
       status: 'SUSPENDED',
     });
@@ -385,7 +388,7 @@ describe('StudentProfilePage route', () => {
   });
 
   test('preserves bulletin credits, rank, and localized generation date', async () => {
-    (studentService.getReportCards as jest.Mock).mockResolvedValue({
+    (studentService.getReportCards as Mock).mockResolvedValue({
       results: [{
         id: 9,
         academic_year_name: '2025-2026',

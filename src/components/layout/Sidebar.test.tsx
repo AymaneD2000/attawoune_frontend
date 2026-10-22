@@ -1,18 +1,19 @@
+import { vi, type Mock, type MockInstance } from 'vitest';
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import Sidebar from './Sidebar';
 
 let mockPathname = '/dashboard';
 
-jest.mock('react-router-dom', () => ({
+vi.mock('react-router-dom', () => ({
   Link: ({ children, to, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement> & { to: string }) => (
     <a href={to} {...props}>{children}</a>
   ),
   useLocation: () => ({ pathname: mockPathname }),
-  useNavigate: () => jest.fn(),
-}), { virtual: true });
+  useNavigate: () => vi.fn(),
+}));
 
-jest.mock('../../context/AuthContext', () => ({
+vi.mock('../../context/AuthContext', () => ({
   useAuth: () => ({
     user: {
       id: 1,
@@ -22,11 +23,11 @@ jest.mock('../../context/AuthContext', () => ({
       full_name: 'Admin Test',
       role: 'ADMIN',
     },
-    logout: jest.fn(),
+    logout: vi.fn(),
   }),
 }));
 
-jest.mock('react-i18next', () => ({
+vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (_key: string, fallback?: string) => fallback || _key,
   }),
@@ -42,7 +43,7 @@ describe('Sidebar direction-aware positioning', () => {
     document.documentElement.dir = 'rtl';
 
     const { container } = render(
-      <Sidebar mobileOpen={false} onMobileClose={jest.fn()} />,
+      <Sidebar mobileOpen={false} onMobileClose={vi.fn()} />,
     );
 
     const sidebar = container.querySelector('aside');
@@ -56,7 +57,7 @@ describe('Sidebar direction-aware positioning', () => {
 
   it('hides a closed mobile drawer while restoring visibility at the desktop breakpoint', () => {
     const { container } = render(
-      <Sidebar mobileOpen={false} onMobileClose={jest.fn()} />,
+      <Sidebar mobileOpen={false} onMobileClose={vi.fn()} />,
     );
 
     expect(container.querySelector('aside')).toHaveClass(
@@ -69,7 +70,7 @@ describe('Sidebar direction-aware positioning', () => {
 
   it('adds the open state class for the mobile drawer', () => {
     const { container } = render(
-      <Sidebar mobileOpen onMobileClose={jest.fn()} />,
+      <Sidebar mobileOpen onMobileClose={vi.fn()} />,
     );
 
     expect(container.querySelector('aside')).toHaveClass('app-sidebar-open');
@@ -77,7 +78,7 @@ describe('Sidebar direction-aware positioning', () => {
   });
 
   it('closes an open mobile drawer when Escape is pressed', () => {
-    const onMobileClose = jest.fn();
+    const onMobileClose = vi.fn();
     render(<Sidebar mobileOpen onMobileClose={onMobileClose} />);
     onMobileClose.mockClear();
 
@@ -89,7 +90,7 @@ describe('Sidebar direction-aware positioning', () => {
   it('contains Tab focus inside an open mobile drawer', () => {
     render(
       <>
-        <Sidebar mobileOpen onMobileClose={jest.fn()} />
+        <Sidebar mobileOpen onMobileClose={vi.fn()} />
         <button type="button">Outside drawer</button>
       </>,
     );
@@ -105,14 +106,14 @@ describe('Sidebar direction-aware positioning', () => {
   it('marks the path-matched navigation link as the current page', () => {
     mockPathname = '/students/42';
 
-    render(<Sidebar mobileOpen={false} onMobileClose={jest.fn()} />);
+    render(<Sidebar mobileOpen={false} onMobileClose={vi.fn()} />);
 
     expect(screen.getByRole('link', { name: 'students' })).toHaveAttribute('aria-current', 'page');
     expect(screen.getByRole('link', { name: 'dashboard' })).not.toHaveAttribute('aria-current');
   });
 
   it('reports groups as collapsed when the desktop sidebar is collapsed', () => {
-    render(<Sidebar mobileOpen={false} onMobileClose={jest.fn()} />);
+    render(<Sidebar mobileOpen={false} onMobileClose={vi.fn()} />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Réduire' }));
 

@@ -2,6 +2,7 @@ import api from './api';
 import {
     CountedResponse,
     PaginatedResponse,
+    ReinscriptionCandidate,
     Student,
     StudentAttendanceStatistics,
     StudentEnrollmentSummary,
@@ -193,10 +194,27 @@ export const studentService = {
         return response.data;
     },
 
-    downloadImportTemplate: async () => {
+    downloadImportTemplate: async (): Promise<Blob> => {
         const response = await api.get('/students/download_template/', {
             responseType: 'blob'
         });
+        return response.data;
+    },
+
+    // Re-inscription: previous-year students eligible for the active year
+    getReinscriptionCandidates: async (
+        search?: string,
+        signal?: AbortSignal
+    ): Promise<ReinscriptionCandidate[]> => {
+        const response = await api.get<ReinscriptionCandidate[]>('/students/reinscription-candidates/', {
+            params: search ? { search } : undefined,
+            signal,
+        });
+        return response.data;
+    },
+
+    reinscribeStudent: async (data: { student: number; level?: number; program?: number }) => {
+        const response = await api.post('/students/reinscription/', data);
         return response.data;
     },
 };

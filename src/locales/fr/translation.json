@@ -126,7 +126,25 @@
       "export": "Exporter",
       "id_card": "Carte d'étudiant",
       "download_cards": "Télécharger les cartes",
-      "new_student": "Nouvel Étudiant"
+      "new_student": "Nouvel Étudiant",
+      "reinscription": "Ré-inscription"
+    },
+    "reinscription": {
+      "title": "Ré-inscription (année précédente)",
+      "description": "Choisissez un étudiant de l'année précédente pour l'inscrire dans l'année académique en cours. C'est le seul passage de données d'une année à l'autre.",
+      "search_placeholder": "Rechercher un étudiant de l'année précédente (nom ou matricule)...",
+      "loading": "Recherche...",
+      "empty": "Aucun étudiant de l'année précédente n'est éligible à la ré-inscription.",
+      "unknown_year": "Année inconnue",
+      "last_year": "Dernière année",
+      "last_level": "Dernier niveau",
+      "change_selection": "Changer",
+      "confirm": "Inscrire dans l'année en cours",
+      "level_label": "Niveau pour l'année en cours",
+      "level_default": "Même niveau que l'année précédente",
+      "level_hint": "L'inscription crée automatiquement le relevé financier de l'année en cours avec les frais du programme.",
+      "success": "Étudiant inscrit pour l'année en cours.",
+      "error_default": "Erreur lors de la ré-inscription."
     },
     "summary": {
       "label": "Résumé des étudiants",
@@ -234,8 +252,10 @@
         "academic_description": "Programme, niveau et informations d’inscription."
       },
       "labels": {
-        "first_name": "Prénom",
-        "last_name": "Nom",
+        "first_name": "Prénom (français)",
+        "last_name": "Nom (français)",
+        "first_name_ar": "Prénom (arabe)",
+        "last_name_ar": "Nom (arabe)",
         "email": "Email",
         "username": "Nom d'utilisateur",
         "date_of_birth": "Date de naissance",
@@ -247,7 +267,8 @@
         "enrollment_date": "Date d'inscription",
         "guardian_name": "Nom du tuteur",
         "phone": "Téléphone",
-        "address": "Adresse"
+        "address": "Adresse (français)",
+        "address_ar": "Adresse (arabe)"
       },
       "placeholders": {
         "select": "Sélectionner"

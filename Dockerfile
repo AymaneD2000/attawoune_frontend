@@ -1,17 +1,17 @@
 # Build stage
-FROM node:18-alpine AS build
+FROM node:24-alpine AS build
 
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm install --legacy-peer-deps
+RUN npm ci
 
 COPY . .
 
-# CRA reads REACT_APP_* variables at build time. Coolify should pass this
+# Vite reads VITE_* variables at build time. Coolify should pass this
 # build arg so the static frontend points to the deployed backend API.
-ARG REACT_APP_API_URL=https://api.universiter-attawoune.ml/api/v1
-ENV REACT_APP_API_URL=$REACT_APP_API_URL
+ARG VITE_API_URL=https://api.universiter-attawoune.ml/api/v1
+ENV VITE_API_URL=$VITE_API_URL
 
 RUN npm run build
 
@@ -21,7 +21,7 @@ FROM nginx:stable-alpine
 # Install curl for healthcheck
 RUN apk add --no-cache curl
 
-COPY --from=build /app/build /usr/share/nginx/html
+COPY --from=build /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80

@@ -1,14 +1,11 @@
 import axios, { AxiosInstance, InternalAxiosRequestConfig } from "axios";
 
 const configuredApiUrl =
-  process.env.REACT_APP_API_URL ||
-  process.env.REACT_APP_API_BASE_URL ||
-  "https://api.universiter-attawoune.ml/api/v1";
+  import.meta.env.VITE_API_URL ||
+  import.meta.env.VITE_API_BASE_URL ||
+  "/api/v1";
 
-export const API_BASE_URL = configuredApiUrl.replace(
-  "https://api.attawoune.ml/api/v1",
-  "https://api.universiter-attawoune.ml/api/v1",
-);
+export const API_BASE_URL = configuredApiUrl;
 
 // Create axios instance
 const api: AxiosInstance = axios.create({

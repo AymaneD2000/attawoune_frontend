@@ -190,7 +190,7 @@ const AuditLogPage: React.FC = () => {
                         </tbody>
                     </table>
                 </div>
-                
+
                 {/* Pagination */}
                 <div className="bg-white px-4 py-3 border-t border-gray-200 flex items-center justify-between sm:px-6">
                     <div className="flex-1 flex justify-between sm:hidden">
@@ -261,7 +261,7 @@ const AuditLogPage: React.FC = () => {
                                     <p><strong>Représentation:</strong> {selectedLog.object_repr}</p>
                                     <p><strong>IP:</strong> {selectedLog.ip_address}</p>
                                     <p><strong>Date:</strong> {new Date(selectedLog.timestamp).toLocaleString()}</p>
-                                    
+
                                     <div className="mt-4">
                                         <strong>Détails techniques (JSON):</strong>
                                         <pre className="mt-2 bg-gray-100 p-2 rounded text-xs overflow-auto max-h-48">

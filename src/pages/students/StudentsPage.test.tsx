@@ -1,3 +1,4 @@
+import { vi, type Mock, type MockInstance } from 'vitest';
 import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { Student, StudentListParams } from '../../types';
@@ -7,26 +8,26 @@ import frTranslation from '../../locales/fr/translation.json';
 import arTranslation from '../../locales/ar/translation.json';
 import StudentsPage from './StudentsPage';
 
-const mockNavigate = jest.fn();
-const mockSetParam = jest.fn();
-const mockClearFilters = jest.fn();
-const mockUseStudentsQuery = jest.fn();
-const mockUseStudentSummaryQuery = jest.fn();
-const mockUseStudentListScroll = jest.fn();
-const mockToastError = jest.fn();
-const mockToastApi = { success: jest.fn(), error: mockToastError, info: jest.fn() };
+const mockNavigate = vi.fn();
+const mockSetParam = vi.fn();
+const mockClearFilters = vi.fn();
+const mockUseStudentsQuery = vi.fn();
+const mockUseStudentSummaryQuery = vi.fn();
+const mockUseStudentListScroll = vi.fn();
+const mockToastError = vi.fn();
+const mockToastApi = { success: vi.fn(), error: mockToastError, info: vi.fn() };
 let mockRole = 'ADMIN';
 let mockLocation = { pathname: '/students', search: '' };
 let mockParams: StudentListParams;
 let mockListQuery: any;
 let mockSummaryQuery: any;
 
-jest.mock('react-router-dom', () => ({
+vi.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
   useLocation: () => mockLocation,
-}), { virtual: true });
+}));
 
-jest.mock('react-i18next', () => ({
+vi.mock('react-i18next', () => ({
   useTranslation: () => {
     const translations: Record<string, string> = {
       'common.view': 'Voir le dossier',
@@ -99,15 +100,15 @@ jest.mock('react-i18next', () => ({
   },
 }));
 
-jest.mock('../../context/AuthContext', () => ({
+vi.mock('../../context/AuthContext', () => ({
   useAuth: () => ({ user: { role: mockRole } }),
 }));
 
-jest.mock('../../components/ui/ToastProvider', () => ({
+vi.mock('../../components/ui/ToastProvider', () => ({
   useToast: () => mockToastApi,
 }));
 
-jest.mock('./useStudentListParams', () => ({
+vi.mock('./useStudentListParams', () => ({
   useStudentListParams: () => ({
     params: mockParams,
     setParam: mockSetParam,
@@ -115,55 +116,59 @@ jest.mock('./useStudentListParams', () => ({
   }),
 }));
 
-jest.mock('./useStudentListScroll', () => ({
+vi.mock('./useStudentListScroll', () => ({
   useStudentListScroll: (key: string, ready: boolean) => mockUseStudentListScroll(key, ready),
 }));
 
-jest.mock('./studentQueries', () => ({
+vi.mock('./studentQueries', () => ({
   useStudentsQuery: (params: StudentListParams) => mockUseStudentsQuery(params),
   useStudentSummaryQuery: (currentYearOnly: boolean) =>
     mockUseStudentSummaryQuery(currentYearOnly),
 }));
 
-jest.mock('../../services/studentService', () => ({
+vi.mock('../../services/studentService', () => ({
   __esModule: true,
   default: {
-    downloadIdCard: jest.fn(),
-    downloadBulkIdCards: jest.fn(),
-    exportStudents: jest.fn(),
+    downloadIdCard: vi.fn(),
+    downloadBulkIdCards: vi.fn(),
+    exportStudents: vi.fn(),
   },
 }));
 
-jest.mock('../../services/api', () => ({
+vi.mock('../../services/api', () => ({
   __esModule: true,
   default: {
-    get: jest.fn().mockResolvedValue({
+    get: vi.fn().mockResolvedValue({
       data: { count: 0, next: null, previous: null, results: [] },
     }),
   },
 }));
 
-jest.mock('../../services/universityService', () => ({
+vi.mock('../../services/universityService', () => ({
   __esModule: true,
   default: {
-    getPrograms: jest.fn(),
-    getLevels: jest.fn(),
+    getPrograms: vi.fn(),
+    getLevels: vi.fn(),
   },
 }));
 
-jest.mock('./StudentFormModal', () => ({ student, onClose }: any) => (
-  <div role="dialog" aria-label="Formulaire étudiant">
-    {student ? `Modifier ${student.student_id}` : 'Créer un étudiant'}
-    <button type="button" onClick={onClose}>Fermer le formulaire</button>
-  </div>
-));
+vi.mock('./StudentFormModal', () => ({
+  default: ({ student, onClose }: any) => (
+    <div role="dialog" aria-label="Formulaire étudiant">
+      {student ? `Modifier ${student.student_id}` : 'Créer un étudiant'}
+      <button type="button" onClick={onClose}>Fermer le formulaire</button>
+    </div>
+  ),
+}));
 
-jest.mock('./ExcelImportModal', () => ({ isOpen, onClose }: any) => isOpen ? (
-  <div role="dialog" aria-label="Import étudiants">
-    Import Excel
-    <button type="button" onClick={onClose}>Fermer l'import</button>
-  </div>
-) : null);
+vi.mock('./ExcelImportModal', () => ({
+  default: ({ isOpen, onClose }: any) => isOpen ? (
+    <div role="dialog" aria-label="Import étudiants">
+      Import Excel
+      <button type="button" onClick={onClose}>Fermer l'import</button>
+    </div>
+  ) : null,
+}));
 
 const student: Student = {
   id: 1,
@@ -209,7 +214,7 @@ describe('StudentsPage migrated list', () => {
   const originalAnchorClick = HTMLAnchorElement.prototype.click;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     mockRole = 'ADMIN';
     mockParams = { ...defaultParams };
     mockListQuery = {
@@ -219,25 +224,25 @@ describe('StudentsPage migrated list', () => {
       isSuccess: true,
       isError: false,
       error: null,
-      refetch: jest.fn(),
+      refetch: vi.fn(),
     };
     mockSummaryQuery = {
       data: { total: 17, active: 12, graduated: 3, suspended: 2 },
       isLoading: false,
       isError: false,
       error: null,
-      refetch: jest.fn(),
+      refetch: vi.fn(),
     };
     mockUseStudentsQuery.mockImplementation(() => mockListQuery);
     mockUseStudentSummaryQuery.mockImplementation(() => mockSummaryQuery);
-    (universityService.getPrograms as jest.Mock).mockReturnValue(new Promise(() => undefined));
-    (universityService.getLevels as jest.Mock).mockReturnValue(new Promise(() => undefined));
-    (studentService.downloadIdCard as jest.Mock).mockResolvedValue(new Blob(['card']));
-    (studentService.downloadBulkIdCards as jest.Mock).mockResolvedValue(new Blob(['cards']));
-    (studentService.exportStudents as jest.Mock).mockResolvedValue(new Blob(['students']));
-    window.URL.createObjectURL = jest.fn(() => 'blob:students');
-    window.URL.revokeObjectURL = jest.fn();
-    HTMLAnchorElement.prototype.click = jest.fn();
+    (universityService.getPrograms as Mock).mockReturnValue(new Promise(() => undefined));
+    (universityService.getLevels as Mock).mockReturnValue(new Promise(() => undefined));
+    (studentService.downloadIdCard as Mock).mockResolvedValue(new Blob(['card']));
+    (studentService.downloadBulkIdCards as Mock).mockResolvedValue(new Blob(['cards']));
+    (studentService.exportStudents as Mock).mockResolvedValue(new Blob(['students']));
+    window.URL.createObjectURL = vi.fn(() => 'blob:students');
+    window.URL.revokeObjectURL = vi.fn();
+    HTMLAnchorElement.prototype.click = vi.fn();
   });
 
   afterAll(() => {
@@ -305,7 +310,7 @@ describe('StudentsPage migrated list', () => {
       isLoading: false,
       isError: true,
       error: new Error('summary unavailable'),
-      refetch: jest.fn(),
+      refetch: vi.fn(),
     };
 
     renderPage();
@@ -329,7 +334,7 @@ describe('StudentsPage migrated list', () => {
       isLoading: true,
       isError: false,
       error: null,
-      refetch: jest.fn(),
+      refetch: vi.fn(),
     };
 
     renderPage();
@@ -366,10 +371,10 @@ describe('StudentsPage migrated list', () => {
   });
 
   test('sends every filter and server ordering change through exact URL parameter keys', async () => {
-    (universityService.getPrograms as jest.Mock).mockResolvedValue({
+    (universityService.getPrograms as Mock).mockResolvedValue({
       results: [{ id: 3, name: 'Études islamiques' }],
     });
-    (universityService.getLevels as jest.Mock).mockResolvedValue({
+    (universityService.getLevels as Mock).mockResolvedValue({
       results: [{ id: 1, name: 'L1', display_name: 'Licence 1', order: 1 }],
     });
     renderPage();
@@ -530,8 +535,8 @@ describe('StudentsPage migrated list', () => {
   });
 
   test('reports download failures through the toast instead of alert', async () => {
-    (studentService.exportStudents as jest.Mock).mockRejectedValue(new Error('export failed'));
-    const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => undefined);
+    (studentService.exportStudents as Mock).mockRejectedValue(new Error('export failed'));
+    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => undefined);
     renderPage();
 
     fireEvent.click(screen.getByRole('button', { name: 'Exporter' }));

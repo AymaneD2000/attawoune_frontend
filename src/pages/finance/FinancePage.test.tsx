@@ -1,10 +1,11 @@
+import { vi, type Mock, type MockInstance } from 'vitest';
 import React from 'react';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import FinancePage from './FinancePage';
 import financeService from '../../services/financeService';
 import universityService from '../../services/universityService';
 
-jest.mock('react-i18next', () => ({
+vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string, fallback?: string) => {
       const translations: Record<string, string> = {
@@ -24,47 +25,51 @@ jest.mock('react-i18next', () => ({
   }),
 }));
 
-jest.mock('../../context/AuthContext', () => ({
+vi.mock('../../context/AuthContext', () => ({
   useAuth: () => ({ user: { role: 'ADMIN' } }),
 }));
 
-jest.mock('../../services/financeService', () => ({
+vi.mock('../../services/financeService', () => ({
   __esModule: true,
   default: {
-    getDashboardStats: jest.fn(),
-    getPayments: jest.fn(),
-    deletePayment: jest.fn(),
-    exportPayments: jest.fn(),
-    importPayments: jest.fn(),
-    downloadPaymentTemplate: jest.fn(),
-    getSalaries: jest.fn(),
-    getExpenses: jest.fn(),
-    getOutstandingBalances: jest.fn(),
-    importSalaries: jest.fn(),
-    downloadSalaryTemplate: jest.fn(),
-    importExpenses: jest.fn(),
-    downloadExpenseTemplate: jest.fn(),
+    getDashboardStats: vi.fn(),
+    getPayments: vi.fn(),
+    deletePayment: vi.fn(),
+    exportPayments: vi.fn(),
+    importPayments: vi.fn(),
+    downloadPaymentTemplate: vi.fn(),
+    getSalaries: vi.fn(),
+    getExpenses: vi.fn(),
+    getOutstandingBalances: vi.fn(),
+    importSalaries: vi.fn(),
+    downloadSalaryTemplate: vi.fn(),
+    importExpenses: vi.fn(),
+    downloadExpenseTemplate: vi.fn(),
   },
 }));
 
-jest.mock('../../services/universityService', () => ({
+vi.mock('../../services/universityService', () => ({
   __esModule: true,
   default: {
-    getLevels: jest.fn().mockResolvedValue({ results: [] }),
-    getSemesters: jest.fn().mockResolvedValue({ results: [] }),
-    getTeachers: jest.fn().mockResolvedValue({ results: [] }),
+    getLevels: vi.fn().mockResolvedValue({ results: [] }),
+    getSemesters: vi.fn().mockResolvedValue({ results: [] }),
+    getTeachers: vi.fn().mockResolvedValue({ results: [] }),
   },
 }));
 
-jest.mock('../../services/api', () => ({
+vi.mock('../../services/api', () => ({
   __esModule: true,
-  default: { get: jest.fn() },
+  default: { get: vi.fn() },
 }));
 
-jest.mock('./FinanceAnalytics', () => () => <div>Finance analytics</div>);
-jest.mock('./PaymentExcelImportModal', () => () => null);
-jest.mock('./FinanceExcelImportModal', () => () => null);
-jest.mock('../../components/common/SearchableSelect', () => () => <div />);
+vi.mock('./FinanceAnalytics', () => ({
+  default: () => <div>Finance analytics</div>,
+}));
+vi.mock('./PaymentExcelImportModal', () => ({ default: () => null }));
+vi.mock('./FinanceExcelImportModal', () => ({ default: () => null }));
+vi.mock('../../components/common/SearchableSelect', () => ({
+  default: () => <div />,
+}));
 
 const payment = {
   id: 42,
@@ -88,15 +93,15 @@ const payment = {
 
 describe('Finance payment deletion', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
-    (financeService.getDashboardStats as jest.Mock).mockResolvedValue({});
-    (financeService.getPayments as jest.Mock)
+    vi.clearAllMocks();
+    (financeService.getDashboardStats as Mock).mockResolvedValue({});
+    (financeService.getPayments as Mock)
       .mockResolvedValueOnce({ results: [payment], count: 1 })
       .mockResolvedValue({ results: [], count: 0 });
-    (financeService.deletePayment as jest.Mock).mockResolvedValue(undefined);
-    (universityService.getLevels as jest.Mock).mockResolvedValue({ results: [] });
-    (universityService.getSemesters as jest.Mock).mockResolvedValue({ results: [] });
-    (universityService.getTeachers as jest.Mock).mockResolvedValue({ results: [] });
+    (financeService.deletePayment as Mock).mockResolvedValue(undefined);
+    (universityService.getLevels as Mock).mockResolvedValue({ results: [] });
+    (universityService.getSemesters as Mock).mockResolvedValue({ results: [] });
+    (universityService.getTeachers as Mock).mockResolvedValue({ results: [] });
   });
 
   it('requires confirmation and refreshes the payment ledger after deletion', async () => {

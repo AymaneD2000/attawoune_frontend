@@ -1,3 +1,4 @@
+import { vi, type Mock, type MockInstance } from 'vitest';
 import React from 'react';
 import { act, fireEvent, render } from '@testing-library/react';
 import TeacherFormModal from './teachers/TeacherFormModal';
@@ -6,7 +7,7 @@ import teacherService from '../services/teacherService';
 import userService from '../services/userService';
 import { Teacher, User } from '../types';
 
-jest.mock('react-i18next', () => ({
+vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string, fallback?: string) => {
       const labels: Record<string, string> = {
@@ -18,30 +19,30 @@ jest.mock('react-i18next', () => ({
   }),
 }));
 
-jest.mock('../context/AuthContext', () => ({
+vi.mock('../context/AuthContext', () => ({
   useAuth: () => ({ user: { role: 'ADMIN' } }),
 }));
 
-jest.mock('../services/universityService', () => ({
+vi.mock('../services/universityService', () => ({
   __esModule: true,
   default: {
     getDepartments: async () => ({ results: [] }),
   },
 }));
 
-jest.mock('../services/teacherService', () => ({
+vi.mock('../services/teacherService', () => ({
   __esModule: true,
   default: {
-    updateTeacher: jest.fn(),
-    createTeacher: jest.fn(),
+    updateTeacher: vi.fn(),
+    createTeacher: vi.fn(),
   },
 }));
 
-jest.mock('../services/userService', () => ({
+vi.mock('../services/userService', () => ({
   __esModule: true,
   default: {
-    updateUser: jest.fn(),
-    createUser: jest.fn(),
+    updateUser: vi.fn(),
+    createUser: vi.fn(),
   },
 }));
 
@@ -88,17 +89,17 @@ const user: User = {
 
 describe('partial edit forms', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
-    (teacherService.updateTeacher as jest.Mock).mockResolvedValue(teacher);
-    (userService.updateUser as jest.Mock).mockResolvedValue(user);
+    vi.clearAllMocks();
+    (teacherService.updateTeacher as Mock).mockResolvedValue(teacher);
+    (userService.updateUser as Mock).mockResolvedValue(user);
   });
 
   it('updates only the teacher attribute changed on the first step', async () => {
     const { container } = render(
       <TeacherFormModal
         teacher={teacher}
-        onClose={jest.fn()}
-        onSuccess={jest.fn()}
+        onClose={vi.fn()}
+        onSuccess={vi.fn()}
       />,
     );
     await act(async () => Promise.resolve());
@@ -119,7 +120,7 @@ describe('partial edit forms', () => {
 
   it('does not resend untouched user fields such as gender and role', async () => {
     const { container } = render(
-      <UserFormModal user={user} onClose={jest.fn()} onSuccess={jest.fn()} />,
+      <UserFormModal user={user} onClose={vi.fn()} onSuccess={vi.fn()} />,
     );
 
     const phone = container.querySelector('input[name="phone"]') as HTMLInputElement;

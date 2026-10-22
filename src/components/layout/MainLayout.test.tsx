@@ -1,3 +1,4 @@
+import { vi, type Mock, type MockInstance } from 'vitest';
 import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import arTranslations from '../../locales/ar/translation.json';
@@ -5,18 +6,18 @@ import frTranslations from '../../locales/fr/translation.json';
 import MainLayout from './MainLayout';
 
 let mockPathname = '/dashboard';
-const mockNavigate = jest.fn();
+const mockNavigate = vi.fn();
 
-jest.mock('react-router-dom', () => ({
+vi.mock('react-router-dom', () => ({
   Link: ({ children, to, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement> & { to: string }) => (
     <a href={to} {...props}>{children}</a>
   ),
   Outlet: () => <p>Contenu de la route</p>,
   useLocation: () => ({ pathname: mockPathname }),
   useNavigate: () => mockNavigate,
-}), { virtual: true });
+}));
 
-jest.mock('../../context/AuthContext', () => ({
+vi.mock('../../context/AuthContext', () => ({
   useAuth: () => ({
     user: {
       id: 1,
@@ -26,20 +27,20 @@ jest.mock('../../context/AuthContext', () => ({
       full_name: 'Admin Test',
       role: 'ADMIN',
     },
-    logout: jest.fn(),
+    logout: vi.fn(),
   }),
 }));
 
-jest.mock('react-i18next', () => ({
+vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (_key: string, fallback?: string) => fallback || _key,
     i18n: { language: 'fr' },
   }),
 }));
 
-jest.mock('../common/LanguageSwitcher', () => () => (
-  <button type="button">Langue</button>
-));
+vi.mock('../common/LanguageSwitcher', () => ({
+  default: () => <button type="button">Langue</button>,
+}));
 
 const renderLayout = () => render(<MainLayout />);
 

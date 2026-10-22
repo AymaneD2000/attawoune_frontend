@@ -28,24 +28,32 @@ interface StudentFormModalProps {
 const FIELD_ORDER = [
   'first_name',
   'last_name',
+  'first_name_ar',
+  'last_name_ar',
   'email',
   'date_of_birth',
   'gender',
   'photo',
+  'address',
+  'address_ar',
   'program',
   'current_level',
   'enrollment_date',
   'guardian_name',
 ] as const;
 
-const STEP_ONE_FIELDS = new Set<string>(FIELD_ORDER.slice(0, 6));
+const STEP_ONE_FIELDS = new Set<string>(FIELD_ORDER.slice(0, 10));
 const FIELD_IDS: Record<(typeof FIELD_ORDER)[number], string> = {
   first_name: 'student-first-name',
   last_name: 'student-last-name',
+  first_name_ar: 'student-first-name-ar',
+  last_name_ar: 'student-last-name-ar',
   email: 'student-email',
   date_of_birth: 'student-date-of-birth',
   gender: 'student-gender',
   photo: 'student-photo',
+  address: 'student-address',
+  address_ar: 'student-address-ar',
   program: 'student-program',
   current_level: 'student-current-level',
   enrollment_date: 'student-enrollment-date',
@@ -70,11 +78,14 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({
   const [userData, setUserData] = useState({
     first_name: '',
     last_name: '',
+    first_name_ar: '',
+    last_name_ar: '',
     email: '',
     username: '',
     role: 'STUDENT' as const,
     phone: '',
     address: '',
+    address_ar: '',
     date_of_birth: '',
     gender: 'M',
   });
@@ -137,11 +148,14 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({
             const populatedUserData = {
               first_name: user.first_name || '',
               last_name: user.last_name || '',
+              first_name_ar: user.first_name_ar || '',
+              last_name_ar: user.last_name_ar || '',
               email: user.email || '',
               username: user.username || '',
               role: 'STUDENT' as const,
               phone: user.phone || '',
               address: user.address || '',
+              address_ar: user.address_ar || '',
               date_of_birth: user.date_of_birth || '',
               gender: user.gender || 'M',
             };
@@ -248,7 +262,7 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({
     reader.readAsDataURL(selectedPhoto);
   };
 
-  const handleUserChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleUserChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setUserData({ ...userData, [event.target.name]: event.target.value });
   };
 
@@ -306,6 +320,9 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({
         if (!userPayload.date_of_birth) delete userPayload.date_of_birth;
         if (!userPayload.phone) delete userPayload.phone;
         if (!userPayload.address) delete userPayload.address;
+        if (!userPayload.first_name_ar) delete userPayload.first_name_ar;
+        if (!userPayload.last_name_ar) delete userPayload.last_name_ar;
+        if (!userPayload.address_ar) delete userPayload.address_ar;
 
         const userResponse = await userService.createUser(userPayload);
         userId = userResponse.id;
@@ -452,6 +469,34 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({
         />
       </Field>
       <Field
+        id="student-first-name-ar"
+        label={t('students.form.labels.first_name_ar', 'Prénom (arabe)')}
+        error={fieldError('first_name_ar')}
+      >
+        <input
+          ref={registerField('first_name_ar') as React.Ref<HTMLInputElement>}
+          type="text"
+          name="first_name_ar"
+          dir="rtl"
+          value={userData.first_name_ar}
+          onChange={handleUserChange}
+        />
+      </Field>
+      <Field
+        id="student-last-name-ar"
+        label={t('students.form.labels.last_name_ar', 'Nom (arabe)')}
+        error={fieldError('last_name_ar')}
+      >
+        <input
+          ref={registerField('last_name_ar') as React.Ref<HTMLInputElement>}
+          type="text"
+          name="last_name_ar"
+          dir="rtl"
+          value={userData.last_name_ar}
+          onChange={handleUserChange}
+        />
+      </Field>
+      <Field
         id="student-email"
         label={t('students.form.labels.email', 'Email')}
         error={fieldError('email')}
@@ -492,6 +537,38 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({
           <option value="F">{t('admin.users.gender.F', 'Femme')}</option>
         </select>
       </Field>
+
+      <div className="md:col-span-2">
+        <Field
+          id="student-address"
+          label={t('students.form.labels.address', 'Adresse (français)')}
+          error={fieldError('address')}
+        >
+          <textarea
+            ref={registerField('address') as React.Ref<HTMLTextAreaElement>}
+            rows={2}
+            name="address"
+            value={userData.address}
+            onChange={handleUserChange}
+          />
+        </Field>
+      </div>
+      <div className="md:col-span-2">
+        <Field
+          id="student-address-ar"
+          label={t('students.form.labels.address_ar', 'Adresse (arabe)')}
+          error={fieldError('address_ar')}
+        >
+          <textarea
+            ref={registerField('address_ar') as React.Ref<HTMLTextAreaElement>}
+            rows={2}
+            name="address_ar"
+            dir="rtl"
+            value={userData.address_ar}
+            onChange={handleUserChange}
+          />
+        </Field>
+      </div>
 
       <div className="rounded-[var(--radius-control)] border border-ui-warning/35 bg-ui-warning/10 p-4 text-sm text-ui-foreground md:col-span-2">
         <span className="font-bold">{t('common.note', 'Note')}:</span>{' '}

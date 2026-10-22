@@ -1,3 +1,4 @@
+import { vi, type Mock, type MockInstance } from 'vitest';
 import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
@@ -21,7 +22,7 @@ const getAnimationsDescriptor = Object.getOwnPropertyDescriptor(
   Element.prototype,
   'getAnimations',
 );
-let consoleError: jest.SpyInstance;
+let consoleError: MockInstance;
 
 beforeAll(() => {
   Object.defineProperty(Element.prototype, 'getAnimations', {
@@ -39,7 +40,7 @@ afterAll(() => {
 });
 
 beforeEach(() => {
-  consoleError = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+  consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
 });
 
 afterEach(() => {
@@ -50,7 +51,7 @@ afterEach(() => {
   consoleError.mockRestore();
 });
 
-jest.mock('react-i18next', () => ({
+vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string, fallback?: string) => {
       const labels: Record<string, string> = {
@@ -61,29 +62,29 @@ jest.mock('react-i18next', () => ({
   }),
 }));
 
-jest.mock('../../services/universityService', () => ({
+vi.mock('../../services/universityService', () => ({
   __esModule: true,
   default: {
-    getPrograms: jest.fn(() => new Promise(() => {})),
-    getLevels: jest.fn(() => new Promise(() => {})),
+    getPrograms: vi.fn(() => new Promise(() => {})),
+    getLevels: vi.fn(() => new Promise(() => {})),
   },
 }));
 
-jest.mock('../../services/userService', () => ({
+vi.mock('../../services/userService', () => ({
   __esModule: true,
   default: {
-    getUser: jest.fn(),
-    createUser: jest.fn(),
-    updateUser: jest.fn(),
+    getUser: vi.fn(),
+    createUser: vi.fn(),
+    updateUser: vi.fn(),
   },
 }));
 
-jest.mock('../../services/studentService', () => ({
+vi.mock('../../services/studentService', () => ({
   __esModule: true,
   default: {
-    createStudent: jest.fn(),
-    getStudent: jest.fn(),
-    updateStudent: jest.fn(),
+    createStudent: vi.fn(),
+    getStudent: vi.fn(),
+    updateStudent: vi.fn(),
   },
 }));
 
@@ -130,11 +131,11 @@ const renderStudentForm = (
       mutations: { retry: false },
     },
   });
-  const invalidateQueries = jest
+  const invalidateQueries = vi
     .spyOn(queryClient, 'invalidateQueries')
     .mockResolvedValue(undefined);
-  const onClose = props.onClose || jest.fn();
-  const onSuccess = props.onSuccess || jest.fn();
+  const onClose = props.onClose || vi.fn();
+  const onSuccess = props.onSuccess || vi.fn();
 
   const view = render(
     <QueryClientProvider client={queryClient}>
@@ -157,25 +158,25 @@ const renderStudentForm = (
 
 const waitForEditValues = async () => {
   await waitFor(() => {
-    expect(screen.getByRole('textbox', { name: /Prénom/ })).toHaveValue('Mariam');
+    expect(screen.getByRole('textbox', { name: /^Prénom$/ })).toHaveValue('Mariam');
   });
 };
 
 describe('Student form modal UI foundation migration', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
-    (universityService.getPrograms as jest.Mock).mockImplementation(
+    vi.clearAllMocks();
+    (universityService.getPrograms as Mock).mockImplementation(
       () => new Promise(() => {}),
     );
-    (universityService.getLevels as jest.Mock).mockImplementation(
+    (universityService.getLevels as Mock).mockImplementation(
       () => new Promise(() => {}),
     );
-    (userService.getUser as jest.Mock).mockResolvedValue(user);
-    (userService.createUser as jest.Mock).mockResolvedValue({ id: 2 });
-    (userService.updateUser as jest.Mock).mockResolvedValue({});
-    (studentService.createStudent as jest.Mock).mockResolvedValue(student);
-    (studentService.getStudent as jest.Mock).mockResolvedValue(student);
-    (studentService.updateStudent as jest.Mock).mockResolvedValue(student);
+    (userService.getUser as Mock).mockResolvedValue(user);
+    (userService.createUser as Mock).mockResolvedValue({ id: 2 });
+    (userService.updateUser as Mock).mockResolvedValue({});
+    (studentService.createStudent as Mock).mockResolvedValue(student);
+    (studentService.getStudent as Mock).mockResolvedValue(student);
+    (studentService.updateStudent as Mock).mockResolvedValue(student);
   });
 
   it('uses the shared dialog semantics and keeps sticky actions outside the only scroll body', async () => {
@@ -199,7 +200,7 @@ describe('Student form modal UI foundation migration', () => {
     'protects dirty data from %s dismissal until discard is confirmed',
     async (dismissalPath) => {
       const { container, onClose, unmount } = renderStudentForm();
-      fireEvent.change(screen.getByRole('textbox', { name: /Prénom/ }), {
+      fireEvent.change(screen.getByRole('textbox', { name: /^Prénom$/ }), {
         target: { value: 'Mariam' },
       });
 
@@ -230,7 +231,7 @@ describe('Student form modal UI foundation migration', () => {
 
   it('cancels only the discard confirmation and preserves dirty form data', async () => {
     const { onClose } = renderStudentForm();
-    fireEvent.change(screen.getByRole('textbox', { name: /Prénom/ }), {
+    fireEvent.change(screen.getByRole('textbox', { name: /^Prénom$/ }), {
       target: { value: 'Mariam' },
     });
 
@@ -244,7 +245,7 @@ describe('Student form modal UI foundation migration', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Continuer la modification' }));
     await confirmationRemoval;
     expect(onClose).not.toHaveBeenCalled();
-    expect(screen.getByRole('textbox', { name: /Prénom/ })).toHaveValue('Mariam');
+    expect(screen.getByRole('textbox', { name: /^Prénom$/ })).toHaveValue('Mariam');
   });
 
   it('announces validation errors beside required controls and focuses the first invalid field', async () => {
@@ -253,7 +254,7 @@ describe('Student form modal UI foundation migration', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Suivant' }));
 
     const summary = await screen.findByRole('alert');
-    const firstName = screen.getByRole('textbox', { name: /Prénom/ });
+    const firstName = screen.getByRole('textbox', { name: /^Prénom$/ });
     expect(summary).toHaveTextContent('Veuillez remplir tous les champs obligatoires');
     expect(firstName).toHaveAttribute('aria-invalid', 'true');
     expect(firstName).toHaveAccessibleDescription('Veuillez remplir tous les champs obligatoires');
@@ -261,7 +262,7 @@ describe('Student form modal UI foundation migration', () => {
   });
 
   it('normalizes API field errors, links them to controls, and focuses the first rejected field', async () => {
-    (userService.updateUser as jest.Mock).mockRejectedValue({
+    (userService.updateUser as Mock).mockRejectedValue({
       response: {
         data: {
           error: {
@@ -277,7 +278,7 @@ describe('Student form modal UI foundation migration', () => {
     renderStudentForm({ student });
     await waitForEditValues();
 
-    const firstName = screen.getByRole('textbox', { name: /Prénom/ });
+    const firstName = screen.getByRole('textbox', { name: /^Prénom$/ });
     fireEvent.change(firstName, { target: { value: 'Aïssata' } });
     fireEvent.click(screen.getByRole('button', { name: 'Enregistrer les modifications' }));
 
@@ -297,7 +298,7 @@ describe('Student form modal UI foundation migration', () => {
   });
 
   it('focuses the error summary when an API failure has no field keys', async () => {
-    (userService.updateUser as jest.Mock).mockRejectedValue({
+    (userService.updateUser as Mock).mockRejectedValue({
       response: {
         data: {
           error: { message: 'Le dossier étudiant ne peut pas être enregistré.' },
@@ -307,7 +308,7 @@ describe('Student form modal UI foundation migration', () => {
     renderStudentForm({ student });
     await waitForEditValues();
 
-    fireEvent.change(screen.getByRole('textbox', { name: /Prénom/ }), {
+    fireEvent.change(screen.getByRole('textbox', { name: /^Prénom$/ }), {
       target: { value: 'Aïssata' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Enregistrer les modifications' }));
@@ -318,7 +319,7 @@ describe('Student form modal UI foundation migration', () => {
   });
 
   it('keeps explicit summary navigation on the target step instead of returning to the first error', async () => {
-    (studentService.updateStudent as jest.Mock).mockRejectedValue({
+    (studentService.updateStudent as Mock).mockRejectedValue({
       response: {
         data: {
           error: {
@@ -340,7 +341,7 @@ describe('Student form modal UI foundation migration', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: 'Enregistrer' }));
 
-    const firstName = await screen.findByRole('textbox', { name: /Prénom/ });
+    const firstName = await screen.findByRole('textbox', { name: /^Prénom$/ });
     await waitFor(() => expect(firstName).toHaveFocus());
     const summary = screen.getByRole('alert');
     const programLink = within(summary).getByRole('link', {
@@ -362,7 +363,7 @@ describe('Student form modal UI foundation migration', () => {
     const { onClose, onSuccess } = renderStudentForm({ student });
     await waitForEditValues();
 
-    fireEvent.change(screen.getByRole('textbox', { name: /Prénom/ }), {
+    fireEvent.change(screen.getByRole('textbox', { name: /^Prénom$/ }), {
       target: { value: 'Aïssata' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Enregistrer les modifications' }));
@@ -383,7 +384,7 @@ describe('Student form modal UI foundation migration', () => {
       ...student,
       photo: 'https://api.example.test/media/students/photos/new-profile.png',
     };
-    (studentService.updateStudent as jest.Mock).mockResolvedValue(savedStudent);
+    (studentService.updateStudent as Mock).mockResolvedValue(savedStudent);
     const { invalidateQueries, onClose, onSuccess } = renderStudentForm({ student });
     await waitForEditValues();
 
@@ -398,7 +399,7 @@ describe('Student form modal UI foundation migration', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Enregistrer' }));
 
     await waitFor(() => expect(studentService.updateStudent).toHaveBeenCalledTimes(1));
-    const [, payload] = (studentService.updateStudent as jest.Mock).mock.calls[0];
+    const [, payload] = (studentService.updateStudent as Mock).mock.calls[0];
     expect(payload).toBeInstanceOf(FormData);
     expect(payload.get('photo')).toBe(replacement);
     expect(Array.from(payload.keys())).toEqual(['photo']);
@@ -420,10 +421,10 @@ describe('Student form modal UI foundation migration', () => {
 
   it('invalidates list and summary prefixes after create without invalidating all student data', async () => {
     const { invalidateQueries } = renderStudentForm();
-    fireEvent.change(screen.getByRole('textbox', { name: /Prénom/ }), {
+    fireEvent.change(screen.getByRole('textbox', { name: /^Prénom$/ }), {
       target: { value: 'Mariam' },
     });
-    fireEvent.change(screen.getByRole('textbox', { name: /Nom/ }), {
+    fireEvent.change(screen.getByRole('textbox', { name: /^Nom$/ }), {
       target: { value: 'Diallo' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Suivant' }));
@@ -439,10 +440,10 @@ describe('Student form modal UI foundation migration', () => {
 
   it('keeps create invalidation to list and summary prefixes when a photo is selected', async () => {
     const { invalidateQueries } = renderStudentForm();
-    fireEvent.change(screen.getByRole('textbox', { name: /Prénom/ }), {
+    fireEvent.change(screen.getByRole('textbox', { name: /^Prénom$/ }), {
       target: { value: 'Mariam' },
     });
-    fireEvent.change(screen.getByRole('textbox', { name: /Nom/ }), {
+    fireEvent.change(screen.getByRole('textbox', { name: /^Nom$/ }), {
       target: { value: 'Diallo' },
     });
     const photo = new File(['photo-bytes'], 'profile.png', { type: 'image/png' });

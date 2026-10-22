@@ -77,7 +77,9 @@ const FinanceDebtsTab: React.FC<FinanceDebtsTabProps> = ({ canManage }) => {
 
   const handleSearchStudents = async (query: string): Promise<Option[]> => {
     try {
-      const response = await api.get(`/students/?search=${query}`);
+      // Year isolation: only students of the active academic year can be
+      // offered for debts (previous-year students must be re-inscribed first).
+      const response = await api.get(`/students/?search=${query}&current_year_only=true`);
       return (response.data.results || []).map((s: any) => ({
         id: s.id,
         label: s.user_name || `${s.first_name} ${s.last_name}`,

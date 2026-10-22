@@ -1,3 +1,4 @@
+import { vi, type Mock, type MockInstance } from 'vitest';
 import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, render, renderHook, waitFor } from '@testing-library/react';
@@ -15,7 +16,7 @@ import { useStudentListScroll } from './useStudentListScroll';
 let mockInitialSearch = '';
 let mockCurrentSearch = '';
 
-jest.mock(
+vi.mock(
   'react-router-dom',
   () => {
     const ReactModule = require('react');
@@ -41,8 +42,7 @@ jest.mock(
         return [searchParams, setSearchParams] as const;
       },
     };
-  },
-  { virtual: true }
+  }
 );
 
 const defaultParams: StudentListParams = {
@@ -99,14 +99,14 @@ describe('cancellable student queries', () => {
     );
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   test('passes React Query signal to all summary requests through the service', async () => {
     const queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } },
     });
-    const summarySpy = jest.spyOn(studentService, 'getStudentSummary').mockResolvedValue({
+    const summarySpy = vi.spyOn(studentService, 'getStudentSummary').mockResolvedValue({
       total: 4,
       active: 2,
       graduated: 1,
@@ -124,7 +124,7 @@ describe('cancellable student queries', () => {
 
   test('reuses one cancellation signal for all four summary list requests', async () => {
     const signal = new AbortController().signal;
-    const getSpy = jest.spyOn(api, 'get').mockResolvedValue({
+    const getSpy = vi.spyOn(api, 'get').mockResolvedValue({
       data: { count: 0, next: null, previous: null, results: [] },
     });
 
@@ -153,7 +153,7 @@ describe('cancellable student queries', () => {
     const queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } },
     });
-    const financeSpy = jest.spyOn(studentService, 'getFinancialStatement').mockResolvedValue({
+    const financeSpy = vi.spyOn(studentService, 'getFinancialStatement').mockResolvedValue({
       total_due: '1000',
       total_paid: '400',
       balance: '600',
@@ -171,7 +171,7 @@ describe('cancellable student queries', () => {
 
   test('passes the finance cancellation signal to Axios', async () => {
     const signal = new AbortController().signal;
-    const getSpy = jest.spyOn(api, 'get').mockResolvedValue({
+    const getSpy = vi.spyOn(api, 'get').mockResolvedValue({
       data: { total_due: '1000', total_paid: '400', balance: '600', transactions: [] },
     });
 
@@ -184,7 +184,7 @@ describe('cancellable student queries', () => {
   });
 
   test('downloads protected bulletin and financial PDFs through authenticated Axios requests', async () => {
-    const getSpy = jest.spyOn(api, 'get').mockResolvedValue({ data: new Blob(['pdf']) });
+    const getSpy = vi.spyOn(api, 'get').mockResolvedValue({ data: new Blob(['pdf']) });
 
     await studentService.downloadReportCard(7);
     await studentService.downloadFinancialStatement(9);
@@ -318,13 +318,13 @@ describe('useStudentListScroll', () => {
     frames = new Map();
     nextFrameId = 1;
     Object.defineProperty(window, 'scrollY', { configurable: true, value: 0 });
-    window.requestAnimationFrame = jest.fn((callback: FrameRequestCallback) => {
+    window.requestAnimationFrame = vi.fn((callback: FrameRequestCallback) => {
       const id = nextFrameId++;
       frames.set(id, callback);
       return id;
     });
-    window.cancelAnimationFrame = jest.fn((id: number) => frames.delete(id));
-    window.scrollTo = jest.fn();
+    window.cancelAnimationFrame = vi.fn((id: number) => frames.delete(id));
+    window.scrollTo = vi.fn();
   });
 
   afterEach(() => {
@@ -342,7 +342,7 @@ describe('useStudentListScroll', () => {
   };
 
   const latestFrameId = () => {
-    const results = (window.requestAnimationFrame as jest.Mock).mock.results;
+    const results = (window.requestAnimationFrame as Mock).mock.results;
     return results[results.length - 1].value as number;
   };
 

@@ -111,7 +111,7 @@ const FinancePage: React.FC = () => {
     student: '',
     amount: '',
     payment_method: 'CASH',
-    academic_year: '', 
+    academic_year: '',
     level: '',
     semester: '',
     reference: ''
@@ -241,7 +241,9 @@ const FinancePage: React.FC = () => {
 
   const handleSearchStudents = async (query: string): Promise<Option[]> => {
     try {
-      const response = await api.get(`/students/?search=${query}`);
+      // Year isolation: only students of the active academic year can be
+      // offered for payments / debts.
+      const response = await api.get(`/students/?search=${query}&current_year_only=true`);
       return (response.data.results || []).map((s: any) => ({
         id: s.id,
         label: s.user_name || `${s.first_name} ${s.last_name}`,
@@ -736,14 +738,14 @@ const FinancePage: React.FC = () => {
 
   const renderSalaries = () => {
     const filteredSalaries = salaries.filter(salary => {
-      const matchesSearch = searchTerm === '' || 
+      const matchesSearch = searchTerm === '' ||
         salary.employee_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         salary.status.toLowerCase().includes(searchTerm.toLowerCase());
 
       const salaryDate = new Date(salary.year, salary.month - 1, 1);
       const start = startDate ? new Date(startDate) : null;
       const end = endDate ? new Date(endDate) : null;
-      
+
       let matchesDate = true;
       if (start) matchesDate = matchesDate && salaryDate >= start;
       if (end) matchesDate = matchesDate && salaryDate <= end;
@@ -862,14 +864,14 @@ const FinancePage: React.FC = () => {
 
   const renderExpenses = () => {
     const filteredExpenses = expenses.filter(expense => {
-      const matchesSearch = searchTerm === '' || 
+      const matchesSearch = searchTerm === '' ||
         expense.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
         expense.category.toLowerCase().includes(searchTerm.toLowerCase());
 
       const expenseDate = new Date(expense.date);
       const start = startDate ? new Date(startDate) : null;
       const end = endDate ? new Date(endDate) : null;
-      
+
       let matchesDate = true;
       if (start) matchesDate = matchesDate && expenseDate >= start;
       if (end) matchesDate = matchesDate && expenseDate <= end;
@@ -975,7 +977,7 @@ const FinancePage: React.FC = () => {
 
   const renderRecovery = () => {
     const filteredBalances = outstandingBalances.filter(item => {
-      const matchesSearch = searchTerm === '' || 
+      const matchesSearch = searchTerm === '' ||
         item.student_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.student_matricule.toLowerCase().includes(searchTerm.toLowerCase());
 
@@ -1022,7 +1024,7 @@ const FinancePage: React.FC = () => {
                 filteredBalances.map((item) => {
                   const percentPaid = item.total_due > 0 ? (item.total_paid / item.total_due) : 0;
                   const isGoodPayer = percentPaid >= 0.60;
-                  
+
                   return (
                     <tr key={item.id} className={`hover:bg-gray-50 ${isGoodPayer ? 'bg-green-50/50' : ''}`}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">

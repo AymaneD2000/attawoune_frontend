@@ -1,10 +1,11 @@
+import { vi } from 'vitest';
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import SearchableSelect from './components/common/SearchableSelect';
 
 test('searchable select loads and selects an option', async () => {
-  const onChange = jest.fn();
-  const onSearch = jest.fn().mockResolvedValue([
+  const onChange = vi.fn();
+  const onSearch = vi.fn().mockResolvedValue([
     { id: 7, label: 'Enseignant Test' },
   ]);
 

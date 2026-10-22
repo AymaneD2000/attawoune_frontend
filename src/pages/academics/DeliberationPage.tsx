@@ -80,7 +80,7 @@ const DeliberationPage: React.FC = () => {
         setProcessing(true);
         // Don't clear results immediately to avoid flicker if just updating
         if (!hasExistingResults) setResults([]);
-        
+
         try {
             const response = await api.post('/academics/deliberation/process/', {
                 academic_year_id: parseInt(selectedYear),
@@ -139,9 +139,9 @@ const DeliberationPage: React.FC = () => {
                                     : 'bg-primary-600 hover:bg-primary-700'
                         }`}
                     >
-                        {processing 
-                            ? t('deliberation.buttons.processing', 'Traitement en cours...') 
-                            : hasExistingResults 
+                        {processing
+                            ? t('deliberation.buttons.processing', 'Traitement en cours...')
+                            : hasExistingResults
                                 ? t('deliberation.buttons.reprocess', 'Relancer la délibération')
                                 : t('deliberation.buttons.process', 'Lancer la délibération')
                         }

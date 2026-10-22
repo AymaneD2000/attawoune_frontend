@@ -5,10 +5,13 @@ export interface User {
   email: string;
   first_name: string;
   last_name: string;
+  first_name_ar?: string;
+  last_name_ar?: string;
   full_name: string;
   role: 'ADMIN' | 'DEAN' | 'TEACHER' | 'STUDENT' | 'ACCOUNTANT' | 'SECRETARY';
   phone: string;
   address: string;
+  address_ar?: string;
   profile_picture: string | null;
   date_of_birth: string | null;
   gender?: 'M' | 'F';
@@ -378,6 +381,17 @@ export interface StudentDebt {
   recorded_by?: number | null;
   created_at: string;
   payments?: DebtPayment[];
+}
+
+// A previous-year student eligible for re-inscription into the active year
+export interface ReinscriptionCandidate {
+  id: number;
+  student_id: string;
+  name: string;
+  email?: string;
+  program: string;
+  last_year: string | null;
+  last_level: string | null;
 }
 
 // Deliberation types
