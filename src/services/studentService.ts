@@ -11,6 +11,8 @@ import {
     StudentListParams,
     StudentReportCard,
     StudentSummary,
+    AcademicYearCorrectionRequest,
+    AcademicYearCorrectionResponse,
 } from '../types';
 
 type CompatibleStudentListParams = Partial<
@@ -204,10 +206,14 @@ export const studentService = {
     // Re-inscription: previous-year students eligible for the active year
     getReinscriptionCandidates: async (
         search?: string,
+        enrollmentDate?: string,
         signal?: AbortSignal
     ): Promise<ReinscriptionCandidate[]> => {
+        const params: Record<string, string> = {};
+        if (search) params.search = search;
+        if (enrollmentDate) params.enrollment_date = enrollmentDate;
         const response = await api.get<ReinscriptionCandidate[]>('/students/reinscription-candidates/', {
-            params: search ? { search } : undefined,
+            params: Object.keys(params).length > 0 ? params : undefined,
             signal,
         });
         return response.data;
@@ -215,6 +221,15 @@ export const studentService = {
 
     reinscribeStudent: async (data: { student: number; level?: number; program?: number }) => {
         const response = await api.post('/students/reinscription/', data);
+        return response.data;
+    },
+
+    // Academic-year correction: bulk-move newly created students to the right year
+    correctAcademicYear: async (data: AcademicYearCorrectionRequest) => {
+        const response = await api.post<AcademicYearCorrectionResponse>(
+            '/students/correct-academic-year/',
+            data,
+        );
         return response.data;
     },
 };

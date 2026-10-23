@@ -1,6 +1,6 @@
 import { vi, type Mock, type MockInstance } from 'vitest';
 import React from 'react';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { Student, StudentListParams } from '../../types';
 import studentService from '../../services/studentService';
 import universityService from '../../services/universityService';
@@ -170,6 +170,38 @@ vi.mock('./ExcelImportModal', () => ({
   ) : null,
 }));
 
+vi.mock('./AcademicYearCorrectionModal', () => ({
+  default: ({ open, studentIds, onClose, onCompleted }: any) => open ? (
+    <div role="dialog" aria-label="Corriger l'année académique">
+      Correction d'année académique ({studentIds.length} étudiant(s))
+      <button
+        type="button"
+        onClick={() => onCompleted({
+          transferred: [{
+            student: studentIds[0],
+            name: 'Mariam Diallo',
+            old_student_id: 'ATT-001',
+            new_student_id: 'ATT-002',
+          }],
+          blocked: [],
+        })}
+      >
+        Corriger tous
+      </button>
+      <button
+        type="button"
+        onClick={() => onCompleted({
+          transferred: [],
+          blocked: [{ student: studentIds[0], reason: 'Paiements trouvés' }],
+        })}
+      >
+        Bloquer
+      </button>
+      <button type="button" onClick={onClose}>Fermer la correction</button>
+    </div>
+  ) : null,
+}));
+
 const student: Student = {
   id: 1,
   user: 2,
@@ -267,6 +299,13 @@ describe('StudentsPage migrated list', () => {
     expect(arSummary.error_description).toBe(
       'المؤشرات غير متاحة. تظل قائمة الطلاب متاحة.',
     );
+
+    expect(frTranslation.students.actions.correct_year).toBe("Corriger l'année académique");
+    expect(arTranslation.students.actions.correct_year).toBe('تصحيح السنة الأكاديمية');
+    expect(frTranslation.students.year_correction.summary_partial).toContain('{{count}}');
+    expect(arTranslation.students.year_correction.summary_partial).toContain('{{count}}');
+    expect(frTranslation.students.year_correction.warning).toContain("l'année cible");
+    expect(arTranslation.students.year_correction.warning).toContain('السنة الهدف');
   });
 
   test('renders summary metrics, both responsive renderers, labelled selection, and uses URL/query/scroll state', async () => {
@@ -532,6 +571,65 @@ describe('StudentsPage migrated list', () => {
     })[0]);
     fireEvent.click(screen.getByRole('button', { name: 'Télécharger les cartes' }));
     await waitFor(() => expect(studentService.downloadBulkIdCards).toHaveBeenCalledWith([1]));
+  });
+
+  test.each([
+    ['DEAN', false],
+    ['SECRETARY', true],
+    ['ADMIN', true],
+  ])('%s: year-correction action visible %s', (role, visible) => {
+    mockRole = role as 'DEAN' | 'SECRETARY' | 'ADMIN';
+    renderPage();
+    fireEvent.click(screen.getAllByRole('checkbox', { name: 'Sélectionner Mariam Diallo' })[0]);
+
+    const button = screen.queryByRole('button', { name: "Corriger l'année académique" });
+    if (visible) {
+      expect(button).toBeInTheDocument();
+    } else {
+      expect(button).not.toBeInTheDocument();
+    }
+  });
+
+  test('refreshes the lists, clears the selection, and toasts after a completed correction', () => {
+    mockRole = 'ADMIN';
+    renderPage();
+    fireEvent.click(screen.getAllByRole('checkbox', { name: 'Sélectionner Mariam Diallo' })[0]);
+    fireEvent.click(screen.getByRole('button', { name: "Corriger l'année académique" }));
+
+    const dialog = screen.getByRole('dialog', { name: "Corriger l'année académique" });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Corriger tous' }));
+
+    expect(mockListQuery.refetch).toHaveBeenCalled();
+    expect(mockSummaryQuery.refetch).toHaveBeenCalled();
+    expect(screen.queryByRole('button', { name: 'Télécharger les cartes' })).not.toBeInTheDocument();
+    expect(mockToastApi.success).toHaveBeenCalledWith('Tous les étudiants sélectionnés ont été transférés.');
+  });
+
+  test('reports blocked students through an info toast', () => {
+    mockRole = 'ADMIN';
+    renderPage();
+    fireEvent.click(screen.getAllByRole('checkbox', { name: 'Sélectionner Mariam Diallo' })[0]);
+    fireEvent.click(screen.getByRole('button', { name: "Corriger l'année académique" }));
+
+    const dialog = screen.getByRole('dialog', { name: "Corriger l'année académique" });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Bloquer' }));
+
+    expect(mockToastApi.info).toHaveBeenCalledWith('1 étudiant(s) bloqué(s) pour revue manuelle.');
+    expect(mockToastApi.success).not.toHaveBeenCalled();
+  });
+
+  test('closes the year-correction dialog without refreshing the lists', () => {
+    mockRole = 'ADMIN';
+    renderPage();
+    fireEvent.click(screen.getAllByRole('checkbox', { name: 'Sélectionner Mariam Diallo' })[0]);
+    fireEvent.click(screen.getByRole('button', { name: "Corriger l'année académique" }));
+
+    const dialog = screen.getByRole('dialog', { name: "Corriger l'année académique" });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Fermer la correction' }));
+
+    expect(screen.queryByRole('dialog', { name: "Corriger l'année académique" })).not.toBeInTheDocument();
+    expect(mockListQuery.refetch).not.toHaveBeenCalled();
+    expect(mockSummaryQuery.refetch).not.toHaveBeenCalled();
   });
 
   test('reports download failures through the toast instead of alert', async () => {
