@@ -22,3 +22,6 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Legacy CRA build output (Vite builds to dist/)
+/build
