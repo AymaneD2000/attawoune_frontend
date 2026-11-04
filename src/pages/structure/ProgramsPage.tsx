@@ -12,6 +12,9 @@ import {
 } from '@heroicons/react/24/outline';
 import { changedFields } from '../../utils/partialUpdate';
 
+const formatAmount = (value: string | number | null | undefined) =>
+    `${new Intl.NumberFormat('fr-FR').format(Number(value) || 0)} FCFA`;
+
 const ProgramsPage: React.FC = () => {
     const { t } = useTranslation();
     const [programs, setPrograms] = useState<Program[]>([]);
@@ -225,6 +228,9 @@ const ProgramsPage: React.FC = () => {
                                         {t('structure.programs.table.level', 'Niveau')}
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider rtl:text-right">
+                                        {t('structure.programs.table.fees', 'Frais par niveau')}
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider rtl:text-right">
                                         {t('structure.programs.table.students', 'Étudiants')}
                                     </th>
                                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider rtl:text-left">
@@ -248,6 +254,28 @@ const ProgramsPage: React.FC = () => {
                                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
                                                 {program.levels_display}
                                             </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                            <div className="space-y-0.5">
+                                                {(program.levels || []).map((levelId) => {
+                                                    const level = levels.find(l => l.id === levelId);
+                                                    const fee = program.fees?.find(f => f.level === levelId);
+                                                    return (
+                                                        <div key={levelId} className="flex justify-between gap-3">
+                                                            <span className="text-gray-500">{level?.display_name ?? levelId}</span>
+                                                            {fee ? (
+                                                                <span className="font-medium">{formatAmount(fee.amount)}</span>
+                                                            ) : (
+                                                                <span className="italic text-gray-400">{t('structure.programs.table.fees_not_set', 'Non défini')}</span>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })}
+                                                <div className="flex justify-between gap-3 border-t border-gray-200 pt-0.5">
+                                                    <span className="text-gray-500">{t('structure.programs.table.fees_total', 'Total')}</span>
+                                                    <span className="font-semibold text-indigo-600">{formatAmount(program.tuition_fee)}</span>
+                                                </div>
+                                            </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">

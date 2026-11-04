@@ -1130,6 +1130,9 @@
         "department": "Département",
         "level": "Niveau",
         "students": "Étudiants",
+        "fees": "Frais par niveau",
+        "fees_total": "Total",
+        "fees_not_set": "Non défini",
         "actions": "Actions"
       },
       "modal": {

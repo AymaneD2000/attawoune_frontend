@@ -1038,6 +1038,9 @@
         "department": "القسم",
         "level": "المستوى",
         "students": "الطلاب",
+        "fees": "الرسوم حسب المستوى",
+        "fees_total": "المجموع",
+        "fees_not_set": "غير محدد",
         "actions": "إجراءات"
       },
       "modal": {
