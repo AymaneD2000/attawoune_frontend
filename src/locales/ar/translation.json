@@ -1040,7 +1040,7 @@
         "students": "الطلاب",
         "fees": "الرسوم حسب المستوى",
         "fees_total": "المجموع",
-        "fees_not_set": "غير محدد",
+        "fees_default": "افتراضي",
         "actions": "إجراءات"
       },
       "modal": {

@@ -266,14 +266,22 @@ const ProgramsPage: React.FC = () => {
                                                             {fee ? (
                                                                 <span className="font-medium">{formatAmount(fee.amount)}</span>
                                                             ) : (
-                                                                <span className="italic text-gray-400">{t('structure.programs.table.fees_not_set', 'Non défini')}</span>
+                                                                <span className="text-gray-500">
+                                                                    {formatAmount(program.tuition_fee)}{' '}
+                                                                    <span className="italic text-xs text-gray-400">({t('structure.programs.table.fees_default', 'par défaut')})</span>
+                                                                </span>
                                                             )}
                                                         </div>
                                                     );
                                                 })}
                                                 <div className="flex justify-between gap-3 border-t border-gray-200 pt-0.5">
                                                     <span className="text-gray-500">{t('structure.programs.table.fees_total', 'Total')}</span>
-                                                    <span className="font-semibold text-indigo-600">{formatAmount(program.tuition_fee)}</span>
+                                                    <span className="font-semibold text-indigo-600">
+                                                        {formatAmount((program.levels || []).reduce((sum, levelId) => {
+                                                            const fee = program.fees?.find(f => f.level === levelId);
+                                                            return sum + (Number(fee ? fee.amount : program.tuition_fee) || 0);
+                                                        }, 0))}
+                                                    </span>
                                                 </div>
                                             </div>
                                         </td>

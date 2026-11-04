@@ -1132,7 +1132,7 @@
         "students": "Étudiants",
         "fees": "Frais par niveau",
         "fees_total": "Total",
-        "fees_not_set": "Non défini",
+        "fees_default": "par défaut",
         "actions": "Actions"
       },
       "modal": {
